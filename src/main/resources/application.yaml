@@ -1,0 +1,279 @@
+spring:
+  application:
+    name: SMS_Gateway
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+  datasource:
+    jdbc-url: jdbc:sqlserver://${IP_BD_SQL_SERVER:localhost:1433};databaseName=MAESTRA;encrypt=false;trustServerCertificate=true
+    username: ${USER_BD}
+    password: ${PASS_BD}
+    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+  jpa:
+    hibernate:
+      ddl-auto: auto
+    show-sql: true
+    generate-ddl: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.SQLServer2008Dialect
+        jdbc:
+          time_zone: America/Bogota
+        naming:
+          physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+    open-in-view: false
+  cloud:
+    config:
+      enabled: false
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: notificaciones4@comfenalcoquindio.co
+    password: gmpc zhdy ulze yypf
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+  main:
+    banner-mode: off
+  servlet:
+    multipart:
+      max-file-size: -1
+      max-request-size: -1
+  jackson:
+    property-naming-strategy: SNAKE_CASE
+
+server:
+  port: 9002
+
+eureka:
+  instance:
+    prefer-ip-address: true
+    ip-address: ${EUREKA_INSTANCE}
+  client:
+    serviceUrl:
+      defaultZone: http://${EUREKA_INSTANCE}:8761/eureka
+
+# ============================================================
+# Configuración de Proveedores SMS
+# Cambia el proveedor actual modificando 'sms.routing.primary'
+# ============================================================
+sms:
+  routing:
+    strategy: FAILOVER
+    primary: inalambria
+    fallback:
+      - mock
+      - go4clients
+    health-check:
+      enabled: true
+      interval-seconds: 60
+
+  providers:
+    inalambria:
+      enabled: true
+      name: Inalambria
+      description: Inalambria SMS Provider
+      username: ${INALAMBRIA_USERNAME:COMFENALCOquindioOTP}
+      password: ${INALAMBRIA_PASSWORD:c0qU1IO}
+      base-url: https://restaws.inalambria.com
+      timeout-seconds: 30
+      max-retries: 3
+
+    go4clients:
+      enabled: true
+      name: Go4Clients
+      description: Go4Clients Cloud API
+      api-key: ${GO4CLIENTS_API_KEY:4b3058ead56541539592bcb891c5bde4}
+      api-secret: ${GO4CLIENTS_API_SECRET:0051518486296435}
+      base-url: https://cloud.go4clients.com:8580/api
+      sender: ${GO4CLIENTS_SENDER:RANDOM}
+      timeout-seconds: 30
+      max-retries: 3
+
+    mock:
+      enabled: true
+      name: Mock
+      description: Mock Provider for testing
+      base-url: https://mock.local
+      timeout-seconds: 5
+      max-retries: 1
+
+# Inalambria Account Types Configuration
+inalambria:
+  account:
+    otp:
+      username: ${INALAMBRIA_OTP_USERNAME:COMFENALCOquindioOTP}
+      password: ${INALAMBRIA_OTP_PASSWORD:c0qU1IO}
+    template:
+      username: ${INALAMBRIA_TEMPLATE_USERNAME:COMFENALCOquindioOTP}
+      password: ${INALAMBRIA_TEMPLATE_PASSWORD:c0qU1IO}
+    personalizada:
+      username: ${INALAMBRIA_PERSONALIZADA_USERNAME:COMFENALCOquindioOTP}
+      password: ${INALAMBRIA_PERSONALIZADA_PASSWORD:c0qU1IO}
+    masivo:
+      username: ${INALAMBRIA_MASIVO_USERNAME:COMFENALCOquindioMASIVO}
+      password: ${INALAMBRIA_MASIVO_PASSWORD:M451v0,123}
+    habeasdata:
+      username: ${INALAMBRIA_HABEASDATA_USERNAME:COMFENALCOquindioCOMUNICADOR}
+      password: ${INALAMBRIA_HABEASDATA_PASSWORD:Mv.SEdD5}
+
+# ============================================================
+# Configuración de Proveedores Email
+# ============================================================
+email:
+  routing:
+    strategy: FAILOVER
+    primary: sendgrid
+    fallback:
+      - javamail
+    health-check:
+      enabled: true
+      interval-seconds: 60
+
+  sendgrid:
+    enabled: true
+    api-key: ${SENDGRID_API_KEY:SG.xxxxxxxxxx.yyyyyyyyyy.zzzzzzzzz}
+    from-email: ${SENDGRID_FROM_EMAIL:notificaciones4@comfenalcoquindio.co}
+    from-name: ${SENDGRID_FROM_NAME:Comfenalco}
+    sandbox: false
+
+  javamail:
+    enabled: true
+    host: smtp.gmail.com
+    port: 587
+    username: ${EMAIL_USERNAME:notificaciones4@comfenalcoquindio.co}
+    password: ${EMAIL_PASSWORD:gmpc zhdy ulze yypf}
+    protocol: smtp
+    auth: true
+    starttls: true
+    encoding: UTF-8
+
+  mock:
+    enabled: false
+    log-emails: true
+    simulate-delay: false
+    delay-ms: 100
+
+  smtp:
+    host: smtp.gmail.com
+    port: 587
+    username: notificaciones4@comfenalcoquindio.co
+    password: gmpc zhdy ulze yypf
+    auth: true
+    starttls:
+      enable: true
+
+  providers:
+    # Configuración global
+    global:
+      timeout-seconds: 30
+      max-retries: 3
+      enable-circuit-breaker: true
+      enable-retry: true
+      default-sender: RANDOM
+      enable-metrics: true
+      enable-logging: true
+
+# ============================================================
+# Configuración de Resilience4j para SMS
+# ============================================================
+resilience4j:
+  circuitbreaker:
+    instances:
+      otpService:
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 60s
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        permitted-number-of-calls-in-half-open-state: 3
+        automatic-transition-from-open-to-half-open-enabled: true
+      smsService:
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 60s
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        permitted-number-of-calls-in-half-open-state: 3
+        automatic-transition-from-open-to-half-open-enabled: true
+
+  retry:
+    instances:
+      otpService:
+        max-attempts: 3
+        wait-duration: 1s
+        retry-exceptions:
+          - java.net.ConnectException
+          - java.net.SocketTimeoutException
+          - org.springframework.web.client.ResourceAccessException
+        retry-on-exception: true
+      smsService:
+        max-attempts: 3
+        wait-duration: 1s
+        retry-exceptions:
+          - java.net.ConnectException
+          - java.net.SocketTimeoutException
+          - org.springframework.web.client.ResourceAccessException
+        retry-on-exception: true
+
+# ============================================================
+# Configuración de Logging
+# ============================================================
+logging:
+  level:
+    root: warn
+    org.springframework.web: debug
+    org.hibernate.SQL: debug
+    org.hibernate.type.descriptor.sql.BasicBinder: trace
+    com.netflix.eureka: warn
+    com.netflix.discovery: warn
+    com.essenza.sms_gateway.modules.SMSService: debug
+  file:
+    name: notificacion.log
+
+# ============================================================
+# Configuración de SpringDoc OpenAPI
+# ============================================================
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha
+    doc-expansion: none
+    try-it-out-enabled: true
+
+# ============================================================
+# Configuración de API externa
+# ============================================================
+api:
+  servicios:
+    url: ${URL_DOMINIO}
+    puerto: ${PUERTO_DOMINIO}
+    usuario: ApiService
+    clave: 0000
+    cedula: 00001
+
+# ============================================================
+# Información de aplicación
+# ============================================================
+aplicacion:
+  descripcion: API REST Notificacion
+  version: 1.0.0
+  terminos-servicios: Terminos y condiciones
+  contacto:
+    nombre: Comfenalco Quindio
+    email:
+    url: https://www.comfenalcoquindio.com/
+  licencia: Apache License Version 2.0
+  licencia-url: https://www.apache.org/licenses/LICENSE-2.0
+  id: 230
+
+# ============================================================
+# Configuración de archivos
+# ============================================================
+aplication:
+  files:
+    max-bytes: 8000000
