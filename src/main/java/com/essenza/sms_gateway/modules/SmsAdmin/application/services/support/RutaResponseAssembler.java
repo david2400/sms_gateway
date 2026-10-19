@@ -3,7 +3,7 @@ package com.essenza.sms_gateway.modules.SmsAdmin.application.services.support;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.dto.RutaResponse;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.model.Ruta;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.ports.RutaPasoAdminPort;
-import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.inbound.mappers.RutaDtoMapper;
+import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.mappers.RutaMapper;
 import com.essenza.sms_gateway.modules.SmsAdmin.shared.AdminCodigos;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class RutaResponseAssembler {
 
-    private final RutaDtoMapper mapper;
+    private final RutaMapper mapper;
     private final RutaPasoAdminPort pasos;
 
     public RutaResponse toResponse(Ruta ruta) {

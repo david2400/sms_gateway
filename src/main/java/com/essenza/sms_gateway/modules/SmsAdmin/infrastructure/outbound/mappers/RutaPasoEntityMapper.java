@@ -8,7 +8,7 @@ import org.mapstruct.ReportingPolicy;
 
 /** {@code sms_ruta_paso}: entidad ↔ modelo. Ruta y cuenta las asigna el adapter (getReferenceById). */
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.ERROR)
-public interface RutaPasoPersistenceMapper {
+public interface RutaPasoEntityMapper {
 
     @Mapping(target = "rutaId", source = "ruta.id")
     @Mapping(target = "cuentaId", source = "cuenta.id")

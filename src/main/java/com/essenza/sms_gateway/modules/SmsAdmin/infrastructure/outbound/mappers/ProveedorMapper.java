@@ -1,4 +1,4 @@
-package com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.inbound.mappers;
+package com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.mappers;
 
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.dto.ProveedorRequest;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.dto.ProveedorResponse;
@@ -12,7 +12,7 @@ import org.mapstruct.ReportingPolicy;
 
 /** API de proveedores: request → modelo y modelo → respuesta. */
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.ERROR)
-public interface ProveedorDtoMapper {
+public interface ProveedorMapper {
 
     /** Para crear; los valores por defecto los aplica el service. */
     @Mapping(target = "id", ignore = true)

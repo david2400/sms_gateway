@@ -25,17 +25,6 @@ spring:
   cloud:
     config:
       enabled: false
-  mail:
-    host: smtp.gmail.com
-    port: 587
-    username: notificaciones4@comfenalcoquindio.co
-    password: gmpc zhdy ulze yypf
-    properties:
-      mail:
-        smtp:
-          auth: true
-          starttls:
-            enable: true
   main:
     banner-mode: off
   servlet:

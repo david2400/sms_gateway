@@ -12,7 +12,7 @@ import java.util.Map;
 
 /**
  * Conversión de la columna {@code sms_cuenta.parametros_json} (texto JSON) ↔ mapa clave/valor.
- * La usa {@link CuentaPersistenceMapper} mediante {@code uses}.
+ * La usa {@link CuentaEntityMapper} mediante {@code uses}.
  */
 @Component
 public class ParametrosJsonMapper {

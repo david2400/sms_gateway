@@ -9,7 +9,7 @@ import org.mapstruct.ReportingPolicy;
 
 /** {@code sms_proveedor}: entidad ↔ modelo. */
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.ERROR)
-public interface ProveedorPersistenceMapper {
+public interface ProveedorEntityMapper {
 
     Proveedor toModel(AdminProveedorEntity entity);
 

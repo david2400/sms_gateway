@@ -9,7 +9,7 @@ import com.essenza.sms_gateway.modules.SmsAdmin.domain.model.Proveedor;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.ports.ProveedorAdminPort;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.ports.RoutingCacheAdminPort;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.services.AdminFinder;
-import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.inbound.mappers.ProveedorDtoMapper;
+import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.mappers.ProveedorMapper;
 import com.essenza.sms_gateway.modules.SmsAdmin.shared.AdminCodigos;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,7 +25,7 @@ public class ActualizarProveedorService implements ActualizarProveedorUseCase {
 
     private final ProveedorAdminPort proveedores;
     private final AdminFinder finder;
-    private final ProveedorDtoMapper mapper;
+    private final ProveedorMapper mapper;
     private final ProveedorResponseAssembler assembler;
     private final RoutingCacheAdminPort routingCache;
 

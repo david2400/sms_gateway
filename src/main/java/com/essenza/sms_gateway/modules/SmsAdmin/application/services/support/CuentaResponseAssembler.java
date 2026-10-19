@@ -4,7 +4,7 @@ import com.essenza.sms_gateway.modules.SmsAdmin.domain.dto.CuentaResponse;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.model.Cuenta;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.ports.RutaPasoAdminPort;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.ports.SecretCheckPort;
-import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.inbound.mappers.CuentaDtoMapper;
+import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.mappers.CuentaMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class CuentaResponseAssembler {
 
-    private final CuentaDtoMapper mapper;
+    private final CuentaMapper mapper;
     private final SecretCheckPort secretCheck;
     private final RutaPasoAdminPort pasos;
 

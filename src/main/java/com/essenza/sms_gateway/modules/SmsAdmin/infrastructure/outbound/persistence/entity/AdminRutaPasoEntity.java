@@ -18,7 +18,7 @@ import lombok.Setter;
  * Tabla {@code sms_ruta_paso} vista por el módulo de administración.
  */
 @Entity(name = "AdminRutaPaso")
-@Table(name = "sms_ruta_paso",
+@Table(name = "SmsRutaPaso",
         uniqueConstraints = @UniqueConstraint(name = "uq_sms_ruta_paso", columnNames = {"ruta_id", "orden"}))
 @Getter
 @Setter

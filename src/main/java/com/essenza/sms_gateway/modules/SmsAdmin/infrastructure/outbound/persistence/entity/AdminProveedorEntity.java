@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
  * Mapea la misma tabla que usa SmsCore; el nombre de entidad es distinto para no chocar en JPA.
  */
 @Entity(name = "AdminProveedor")
-@Table(name = "sms_proveedor")
+@Table(name = "SmsProveedor")
 @Getter
 @Setter
 @NoArgsConstructor

@@ -4,7 +4,7 @@ import com.essenza.sms_gateway.modules.SmsAdmin.domain.dto.ProveedorResponse;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.model.Proveedor;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.ports.CuentaAdminPort;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.ports.ProveedorCatalogPort;
-import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.inbound.mappers.ProveedorDtoMapper;
+import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.mappers.ProveedorMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class ProveedorResponseAssembler {
 
-    private final ProveedorDtoMapper mapper;
+    private final ProveedorMapper mapper;
     private final ProveedorCatalogPort catalog;
     private final CuentaAdminPort cuentas;
 

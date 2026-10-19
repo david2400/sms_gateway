@@ -2,7 +2,7 @@ package com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.adapter
 
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.model.Ruta;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.ports.RutaAdminPort;
-import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.mappers.RutaPersistenceMapper;
+import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.mappers.RutaEntityMapper;
 import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.persistence.repository.AdminProveedorRepository;
 import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.persistence.repository.AdminRutaRepository;
 import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.persistence.entity.AdminRutaEntity;
@@ -20,7 +20,7 @@ public class RutaAdminJpaAdapter implements RutaAdminPort {
 
     private final AdminRutaRepository rutaRepository;
     private final AdminProveedorRepository proveedorRepository;
-    private final RutaPersistenceMapper mapper;
+    private final RutaEntityMapper mapper;
 
     @Override
     public List<Ruta> findAll(Long proveedorId, boolean soloCentral, String tipoMensaje) {

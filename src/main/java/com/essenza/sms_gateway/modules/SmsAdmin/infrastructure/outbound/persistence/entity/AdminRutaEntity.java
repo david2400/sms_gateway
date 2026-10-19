@@ -17,7 +17,7 @@ import lombok.Setter;
  * Tabla {@code sms_ruta} vista por el módulo de administración. {@code proveedor == null} = ruta central.
  */
 @Entity(name = "AdminRuta")
-@Table(name = "sms_ruta")
+@Table(name = "SmsRuta")
 @Getter
 @Setter
 @NoArgsConstructor

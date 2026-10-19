@@ -10,7 +10,7 @@ import org.mapstruct.ReportingPolicy;
 
 /** {@code sms_cuenta}: entidad ↔ modelo. El proveedor lo asigna el adapter (getReferenceById). */
 @Mapper(componentModel = "spring", uses = ParametrosJsonMapper.class, injectionStrategy = InjectionStrategy.CONSTRUCTOR, unmappedTargetPolicy = ReportingPolicy.ERROR)
-public interface CuentaPersistenceMapper {
+public interface CuentaEntityMapper {
 
     @Mapping(target = "proveedorId", source = "proveedor.id")
     @Mapping(target = "proveedorCodigo", source = "proveedor.codigo")

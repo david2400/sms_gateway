@@ -1,4 +1,4 @@
-package com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.inbound.mappers;
+package com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.mappers;
 
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.dto.PasoRequest;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.dto.RutaResponse;
@@ -11,7 +11,7 @@ import java.util.List;
 
 /** Pasos de ruta: request → modelo (los defaults los aplica PasoRutaValidator) y modelo → respuesta. */
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.ERROR)
-public interface RutaPasoDtoMapper {
+public interface RutaPasoMapper {
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "rutaId", ignore = true)

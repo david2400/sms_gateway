@@ -3,7 +3,7 @@ package com.essenza.sms_gateway.modules.SmsAdmin.application.services.Ruta;
 import com.essenza.sms_gateway.modules.SmsAdmin.application.input.Ruta.ConsultarRutaEfectivaUseCase;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.dto.RutaEfectivaResponse;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.ports.ProveedorCatalogPort;
-import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.inbound.mappers.RutaEfectivaDtoMapper;
+import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.mappers.RutaEfectivaMapper;
 import com.essenza.sms_gateway.modules.SmsAdmin.shared.AdminCodigos;
 import com.essenza.sms_gateway.modules.SmsCore.domain.model.MessageType;
 import com.essenza.sms_gateway.modules.SmsCore.domain.model.ProviderAccount;
@@ -25,7 +25,7 @@ public class ConsultarRutaEfectivaService implements ConsultarRutaEfectivaUseCas
 
     private final RoutingPolicyPort routingPolicy;
     private final ProveedorCatalogPort catalog;
-    private final RutaEfectivaDtoMapper mapper;
+    private final RutaEfectivaMapper mapper;
 
     @Override
     public RutaEfectivaResponse efectiva(String proveedorCodigo, MessageType tipoMensaje) {

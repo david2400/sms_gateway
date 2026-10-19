@@ -1,4 +1,4 @@
-package com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.inbound.mappers;
+package com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.mappers;
 
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.dto.CuentaRequest;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.dto.CuentaResponse;
@@ -14,7 +14,7 @@ import java.util.List;
 
 /** API de cuentas: request → modelo y modelo → respuesta (nunca incluye contraseñas). */
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.ERROR)
-public interface CuentaDtoMapper {
+public interface CuentaMapper {
 
     /** Para crear; los valores por defecto los aplica el service. */
     @Mapping(target = "id", ignore = true)

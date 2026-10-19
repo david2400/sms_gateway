@@ -9,7 +9,7 @@ import org.mapstruct.ReportingPolicy;
 
 /** {@code sms_ruta}: entidad ↔ modelo. El proveedor lo asigna el adapter (null = ruta central). */
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.ERROR)
-public interface RutaPersistenceMapper {
+public interface RutaEntityMapper {
 
     @Mapping(target = "proveedorId", source = "proveedor.id")
     @Mapping(target = "proveedorCodigo", source = "proveedor.codigo")

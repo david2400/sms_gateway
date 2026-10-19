@@ -1,4 +1,4 @@
-package com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.inbound.mappers;
+package com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.mappers;
 
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.dto.RutaEfectivaResponse;
 import com.essenza.sms_gateway.modules.SmsCore.domain.model.RouteStep;
@@ -8,7 +8,7 @@ import org.mapstruct.ReportingPolicy;
 
 /** Ruta efectiva: paso del motor de SmsCore ({@link RouteStep}) → respuesta. */
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.ERROR)
-public interface RutaEfectivaDtoMapper {
+public interface RutaEfectivaMapper {
 
     @Mapping(target = "orden", source = "step.order")
     @Mapping(target = "proveedor", source = "step.account.providerCode")

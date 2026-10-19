@@ -2,7 +2,7 @@ package com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.adapter
 
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.model.Cuenta;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.ports.CuentaAdminPort;
-import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.mappers.CuentaPersistenceMapper;
+import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.mappers.CuentaEntityMapper;
 import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.persistence.repository.AdminCuentaRepository;
 import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.persistence.repository.AdminProveedorRepository;
 import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.persistence.entity.AdminCuentaEntity;
@@ -18,7 +18,7 @@ public class CuentaAdminJpaAdapter implements CuentaAdminPort {
 
     private final AdminCuentaRepository repository;
     private final AdminProveedorRepository proveedorRepository;
-    private final CuentaPersistenceMapper mapper;
+    private final CuentaEntityMapper mapper;
 
     @Override
     public List<Cuenta> findAll(Long proveedorId) {

@@ -1,4 +1,4 @@
-package com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.inbound.mappers;
+package com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.mappers;
 
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.dto.RutaRequest;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.dto.RutaResponse;
@@ -11,11 +11,11 @@ import org.mapstruct.ReportingPolicy;
 
 import java.util.List;
 
-/** API de rutas: request → modelo y ruta + pasos → respuesta. Los pasos los convierte {@link RutaPasoDtoMapper}. */
-@Mapper(componentModel = "spring", uses = RutaPasoDtoMapper.class, injectionStrategy = InjectionStrategy.CONSTRUCTOR, unmappedTargetPolicy = ReportingPolicy.ERROR)
-public interface RutaDtoMapper {
+/** API de rutas: request → modelo y ruta + pasos → respuesta. Los pasos los convierte {@link RutaPasoMapper}. */
+@Mapper(componentModel = "spring", uses = RutaPasoMapper.class, injectionStrategy = InjectionStrategy.CONSTRUCTOR, unmappedTargetPolicy = ReportingPolicy.ERROR)
+public interface RutaMapper {
 
-    /** Los pasos del request se convierten aparte con {@link RutaPasoDtoMapper#toModels}. */
+    /** Los pasos del request se convierten aparte con {@link RutaPasoMapper#toModels}. */
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "proveedorCodigo", ignore = true)
     Ruta toModel(RutaRequest request);

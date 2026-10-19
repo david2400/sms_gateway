@@ -8,7 +8,7 @@ import com.essenza.sms_gateway.modules.SmsAdmin.domain.exception.AdminConflictEx
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.model.Proveedor;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.ports.ProveedorAdminPort;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.ports.RoutingCacheAdminPort;
-import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.inbound.mappers.ProveedorDtoMapper;
+import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.mappers.ProveedorMapper;
 import com.essenza.sms_gateway.modules.SmsAdmin.shared.AdminCodigos;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,7 +26,7 @@ public class CrearProveedorService implements CrearProveedorUseCase {
     static final int DEFAULT_READ_TIMEOUT_MS = 5000;
 
     private final ProveedorAdminPort proveedores;
-    private final ProveedorDtoMapper mapper;
+    private final ProveedorMapper mapper;
     private final ProveedorResponseAssembler assembler;
     private final RoutingCacheAdminPort routingCache;
 

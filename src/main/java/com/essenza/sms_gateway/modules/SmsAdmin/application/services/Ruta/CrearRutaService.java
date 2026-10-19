@@ -11,8 +11,8 @@ import com.essenza.sms_gateway.modules.SmsAdmin.domain.ports.RutaAdminPort;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.ports.RutaPasoAdminPort;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.services.AdminFinder;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.services.PasoRutaValidator;
-import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.inbound.mappers.RutaDtoMapper;
-import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.inbound.mappers.RutaPasoDtoMapper;
+import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.mappers.RutaMapper;
+import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.mappers.RutaPasoMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -29,8 +29,8 @@ public class CrearRutaService implements CrearRutaUseCase {
     private final RutaPasoAdminPort pasos;
     private final AdminFinder finder;
     private final PasoRutaValidator pasoValidator;
-    private final RutaDtoMapper rutaMapper;
-    private final RutaPasoDtoMapper pasoMapper;
+    private final RutaMapper rutaMapper;
+    private final RutaPasoMapper pasoMapper;
     private final RutaResponseAssembler assembler;
     private final RoutingCacheAdminPort routingCache;
 
