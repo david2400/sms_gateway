@@ -1,17 +1,19 @@
 package com.essenza.sms_gateway.modules.SmsAdmin.domain.model;
 
-import lombok.Builder;
-import lombok.Value;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /** Ruta ({@code sms_ruta}). {@code proveedorId == null} = ruta del endpoint central. */
-@Value
-@Builder(toBuilder = true)
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class Ruta {
-    Long id;
-    Long proveedorId;
-    String proveedorCodigo;
-    String tipoMensaje;
-    boolean activo;
+    private Long id;
+    private Long proveedorId;
+    private String proveedorCodigo;
+    private String tipoMensaje;
+    private Boolean activo;
 
     public boolean isCentral() {
         return proveedorId == null;

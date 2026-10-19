@@ -2,7 +2,7 @@ package com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.adapter
 
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.model.Proveedor;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.ports.ProveedorAdminPort;
-import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.mappers.AdminPersistenceMapper;
+import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.mappers.ProveedorPersistenceMapper;
 import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.persistence.repository.AdminProveedorRepository;
 import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.persistence.entity.AdminProveedorEntity;
 import lombok.RequiredArgsConstructor;
@@ -16,21 +16,21 @@ import java.util.Optional;
 public class ProveedorAdminJpaAdapter implements ProveedorAdminPort {
 
     private final AdminProveedorRepository repository;
-    private final AdminPersistenceMapper mapper;
+    private final ProveedorPersistenceMapper mapper;
 
     @Override
     public List<Proveedor> findAll() {
-        return repository.findAllByOrderByCodigoAsc().stream().map(mapper::toProveedor).toList();
+        return repository.findAllByOrderByCodigoAsc().stream().map(mapper::toModel).toList();
     }
 
     @Override
     public Optional<Proveedor> findById(Long id) {
-        return repository.findById(id).map(mapper::toProveedor);
+        return repository.findById(id).map(mapper::toModel);
     }
 
     @Override
     public Optional<Proveedor> findByCodigo(String codigo) {
-        return repository.findByCodigo(codigo).map(mapper::toProveedor);
+        return repository.findByCodigo(codigo).map(mapper::toModel);
     }
 
     @Override
@@ -38,12 +38,7 @@ public class ProveedorAdminJpaAdapter implements ProveedorAdminPort {
         AdminProveedorEntity e = p.getId() != null
                 ? repository.findById(p.getId()).orElseThrow()
                 : new AdminProveedorEntity();
-        e.setCodigo(p.getCodigo());
-        e.setNombre(p.getNombre());
-        e.setBaseUrl(p.getBaseUrl());
-        e.setConnectTimeoutMs(p.getConnectTimeoutMs());
-        e.setReadTimeoutMs(p.getReadTimeoutMs());
-        e.setActivo(p.isActivo());
-        return mapper.toProveedor(repository.saveAndFlush(e));
+        mapper.updateEntity(p, e);
+        return mapper.toModel(repository.saveAndFlush(e));
     }
 }

@@ -2,7 +2,7 @@ package com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.adapter
 
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.model.Ruta;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.ports.RutaAdminPort;
-import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.mappers.AdminPersistenceMapper;
+import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.mappers.RutaPersistenceMapper;
 import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.persistence.repository.AdminProveedorRepository;
 import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.persistence.repository.AdminRutaRepository;
 import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.persistence.entity.AdminRutaEntity;
@@ -20,12 +20,12 @@ public class RutaAdminJpaAdapter implements RutaAdminPort {
 
     private final AdminRutaRepository rutaRepository;
     private final AdminProveedorRepository proveedorRepository;
-    private final AdminPersistenceMapper mapper;
+    private final RutaPersistenceMapper mapper;
 
     @Override
     public List<Ruta> findAll(Long proveedorId, boolean soloCentral, String tipoMensaje) {
         return rutaRepository.findAllByOrderByIdAsc().stream()
-                .map(mapper::toRuta)
+                .map(mapper::toModel)
                 .filter(r -> !soloCentral || r.isCentral())
                 .filter(r -> proveedorId == null || Objects.equals(proveedorId, r.getProveedorId()))
                 .filter(r -> tipoMensaje == null || tipoMensaje.equals(r.getTipoMensaje()))
@@ -34,7 +34,7 @@ public class RutaAdminJpaAdapter implements RutaAdminPort {
 
     @Override
     public Optional<Ruta> findById(Long id) {
-        return rutaRepository.findWithProveedorById(id).map(mapper::toRuta);
+        return rutaRepository.findWithProveedorById(id).map(mapper::toModel);
     }
 
     @Override
@@ -42,17 +42,16 @@ public class RutaAdminJpaAdapter implements RutaAdminPort {
         return (proveedorId == null
                 ? rutaRepository.findFirstByProveedorIsNullAndTipoMensaje(tipoMensaje)
                 : rutaRepository.findFirstByProveedor_IdAndTipoMensaje(proveedorId, tipoMensaje))
-                .map(mapper::toRuta);
+                .map(mapper::toModel);
     }
 
     @Override
     public Ruta save(Ruta r) {
         AdminRutaEntity e = r.getId() != null ? rutaRepository.findById(r.getId()).orElseThrow() : new AdminRutaEntity();
+        mapper.updateEntity(r, e);
         e.setProveedor(r.getProveedorId() != null ? proveedorRepository.getReferenceById(r.getProveedorId()) : null);
-        e.setTipoMensaje(r.getTipoMensaje());
-        e.setActivo(r.isActivo());
         Long id = rutaRepository.saveAndFlush(e).getId();
-        return rutaRepository.findWithProveedorById(id).map(mapper::toRuta).orElseThrow();
+        return rutaRepository.findWithProveedorById(id).map(mapper::toModel).orElseThrow();
     }
 
     @Override

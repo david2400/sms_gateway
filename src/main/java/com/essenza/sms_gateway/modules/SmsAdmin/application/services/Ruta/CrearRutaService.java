@@ -1,6 +1,7 @@
 package com.essenza.sms_gateway.modules.SmsAdmin.application.services.Ruta;
 
 import com.essenza.sms_gateway.modules.SmsAdmin.application.input.Ruta.CrearRutaUseCase;
+import com.essenza.sms_gateway.modules.SmsAdmin.application.services.support.RutaResponseAssembler;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.dto.RutaRequest;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.dto.RutaResponse;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.exception.AdminConflictException;
@@ -10,7 +11,8 @@ import com.essenza.sms_gateway.modules.SmsAdmin.domain.ports.RutaAdminPort;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.ports.RutaPasoAdminPort;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.services.AdminFinder;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.services.PasoRutaValidator;
-import com.essenza.sms_gateway.modules.SmsAdmin.domain.services.RutaResponseAssembler;
+import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.inbound.mappers.RutaDtoMapper;
+import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.inbound.mappers.RutaPasoDtoMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -27,30 +29,30 @@ public class CrearRutaService implements CrearRutaUseCase {
     private final RutaPasoAdminPort pasos;
     private final AdminFinder finder;
     private final PasoRutaValidator pasoValidator;
+    private final RutaDtoMapper rutaMapper;
+    private final RutaPasoDtoMapper pasoMapper;
     private final RutaResponseAssembler assembler;
     private final RoutingCacheAdminPort routingCache;
 
     @Override
     public RutaResponse crear(RutaRequest request) {
-        Long proveedorId = request.getProveedorId();
-        if (proveedorId != null) {
-            finder.proveedorReferenciado(proveedorId);
+        if (request.getProveedorId() != null) {
+            finder.proveedorReferenciado(request.getProveedorId());
         }
-        String tipo = request.getTipoMensaje().name();
-        rutas.findByProveedorAndTipo(proveedorId, tipo).ifPresent(r -> {
-            throw new AdminConflictException("Ya existe la ruta " + RutaResponseAssembler.nombre(r) + "/" + tipo
+        Ruta ruta = rutaMapper.toModel(request);
+        if (ruta.getActivo() == null) {
+            ruta.setActivo(Boolean.TRUE);
+        }
+        rutas.findByProveedorAndTipo(ruta.getProveedorId(), ruta.getTipoMensaje()).ifPresent(r -> {
+            throw new AdminConflictException("Ya existe la ruta " + RutaResponseAssembler.nombre(r) + "/" + r.getTipoMensaje()
                     + " (id " + r.getId() + "); modifique sus pasos con PUT /rutas/" + r.getId() + "/pasos");
         });
-        Ruta ruta = rutas.save(Ruta.builder()
-                .proveedorId(proveedorId)
-                .tipoMensaje(tipo)
-                .activo(request.getActivo() == null || request.getActivo())
-                .build());
+        Ruta saved = rutas.save(ruta);
         if (request.getPasos() != null && !request.getPasos().isEmpty()) {
-            pasos.replace(ruta.getId(), pasoValidator.validar(ruta, request.getPasos()));
+            pasos.replace(saved.getId(), pasoValidator.validar(saved, pasoMapper.toModels(request.getPasos())));
         }
-        log.info("[SMS-ADMIN] Ruta creada: {}/{} (id {})", RutaResponseAssembler.nombre(ruta), tipo, ruta.getId());
+        log.info("[SMS-ADMIN] Ruta creada: {}/{} (id {})", RutaResponseAssembler.nombre(saved), saved.getTipoMensaje(), saved.getId());
         routingCache.invalidarAlConfirmar();
-        return assembler.toResponse(ruta);
+        return assembler.toResponse(saved);
     }
 }

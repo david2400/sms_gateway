@@ -1,6 +1,5 @@
 package com.essenza.sms_gateway.modules.SmsAdmin.domain.services;
 
-import com.essenza.sms_gateway.modules.SmsAdmin.domain.dto.PasoRequest;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.exception.AdminValidationException;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.model.Cuenta;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.model.Paso;
@@ -8,7 +7,6 @@ import com.essenza.sms_gateway.modules.SmsAdmin.domain.model.Ruta;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -30,30 +28,34 @@ public class PasoRutaValidator {
 
     private final AdminFinder finder;
 
-    public List<Paso> validar(Ruta ruta, List<PasoRequest> requests) {
+    /**
+     * Valida los pasos y completa rutaId y valores por defecto (modifica y devuelve la misma lista).
+     */
+    public List<Paso> validar(Ruta ruta, List<Paso> pasos) {
         Set<Integer> ordenes = new HashSet<>();
         Set<Long> cuentasUsadas = new HashSet<>();
-        List<Paso> pasos = new ArrayList<>();
-        for (PasoRequest r : requests) {
-            if (!ordenes.add(r.getOrden())) {
-                throw new AdminValidationException("El orden " + r.getOrden() + " está repetido");
+        for (Paso paso : pasos) {
+            if (!ordenes.add(paso.getOrden())) {
+                throw new AdminValidationException("El orden " + paso.getOrden() + " está repetido");
             }
-            if (!cuentasUsadas.add(r.getCuentaId())) {
-                throw new AdminValidationException("La cuenta " + r.getCuentaId() + " está repetida en la ruta");
+            if (!cuentasUsadas.add(paso.getCuentaId())) {
+                throw new AdminValidationException("La cuenta " + paso.getCuentaId() + " está repetida en la ruta");
             }
-            Cuenta cuenta = finder.cuentaReferenciada(r.getCuentaId());
+            Cuenta cuenta = finder.cuentaReferenciada(paso.getCuentaId());
             if (!ruta.isCentral() && !ruta.getProveedorId().equals(cuenta.getProveedorId())) {
                 throw new AdminValidationException("La cuenta " + cuenta.getCodigo() + " es de " + cuenta.getProveedorCodigo()
                         + " y la ruta es de " + ruta.getProveedorCodigo() + "; use la ruta central para mezclar proveedores");
             }
-            pasos.add(Paso.builder()
-                    .rutaId(ruta.getId())
-                    .orden(r.getOrden())
-                    .cuentaId(cuenta.getId())
-                    .maxIntentos(r.getMaxIntentos() != null ? r.getMaxIntentos() : DEFAULT_MAX_INTENTOS)
-                    .esperaMs(r.getEsperaMs() != null ? r.getEsperaMs() : DEFAULT_ESPERA_MS)
-                    .activo(r.getActivo() == null || r.getActivo())
-                    .build());
+            paso.setRutaId(ruta.getId());
+            if (paso.getMaxIntentos() == null) {
+                paso.setMaxIntentos(DEFAULT_MAX_INTENTOS);
+            }
+            if (paso.getEsperaMs() == null) {
+                paso.setEsperaMs(DEFAULT_ESPERA_MS);
+            }
+            if (paso.getActivo() == null) {
+                paso.setActivo(Boolean.TRUE);
+            }
         }
         return pasos;
     }

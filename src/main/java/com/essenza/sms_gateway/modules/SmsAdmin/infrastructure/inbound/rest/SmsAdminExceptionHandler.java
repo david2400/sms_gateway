@@ -56,7 +56,6 @@ public class SmsAdminExceptionHandler {
     }
 
     private static ResponseEntity<AdminErrorResponse> error(HttpStatus status, String codigo, String mensaje, List<String> detalles) {
-        return ResponseEntity.status(status).body(AdminErrorResponse.builder()
-                .codigo(codigo).mensaje(mensaje).detalles(detalles).fecha(LocalDateTime.now()).build());
+        return ResponseEntity.status(status).body(new AdminErrorResponse(codigo, mensaje, detalles, LocalDateTime.now()));
     }
 }

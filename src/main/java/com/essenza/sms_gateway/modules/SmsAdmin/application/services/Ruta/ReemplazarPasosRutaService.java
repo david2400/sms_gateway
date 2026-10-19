@@ -1,6 +1,7 @@
 package com.essenza.sms_gateway.modules.SmsAdmin.application.services.Ruta;
 
 import com.essenza.sms_gateway.modules.SmsAdmin.application.input.Ruta.ReemplazarPasosRutaUseCase;
+import com.essenza.sms_gateway.modules.SmsAdmin.application.services.support.RutaResponseAssembler;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.dto.PasoRequest;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.dto.RutaResponse;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.model.Ruta;
@@ -8,7 +9,7 @@ import com.essenza.sms_gateway.modules.SmsAdmin.domain.ports.RoutingCacheAdminPo
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.ports.RutaPasoAdminPort;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.services.AdminFinder;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.services.PasoRutaValidator;
-import com.essenza.sms_gateway.modules.SmsAdmin.domain.services.RutaResponseAssembler;
+import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.inbound.mappers.RutaPasoDtoMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -26,13 +27,14 @@ public class ReemplazarPasosRutaService implements ReemplazarPasosRutaUseCase {
     private final RutaPasoAdminPort pasos;
     private final AdminFinder finder;
     private final PasoRutaValidator pasoValidator;
+    private final RutaPasoDtoMapper pasoMapper;
     private final RutaResponseAssembler assembler;
     private final RoutingCacheAdminPort routingCache;
 
     @Override
     public RutaResponse reemplazarPasos(Long id, List<PasoRequest> nuevos) {
         Ruta ruta = finder.ruta(id);
-        pasos.replace(id, pasoValidator.validar(ruta, nuevos));
+        pasos.replace(id, pasoValidator.validar(ruta, pasoMapper.toModels(nuevos)));
         log.info("[SMS-ADMIN] Ruta {} ({}/{}): {} pasos", id, RutaResponseAssembler.nombre(ruta), ruta.getTipoMensaje(), nuevos.size());
         routingCache.invalidarAlConfirmar();
         return assembler.toResponse(ruta);

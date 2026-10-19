@@ -1,19 +1,21 @@
 package com.essenza.sms_gateway.modules.SmsAdmin.domain.model;
 
-import lombok.Builder;
-import lombok.Value;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /** Paso de una ruta ({@code sms_ruta_paso}). */
-@Value
-@Builder(toBuilder = true)
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class Paso {
-    Long id;
-    Long rutaId;
-    int orden;
-    Long cuentaId;
-    String cuentaCodigo;
-    String proveedorCodigo;
-    int maxIntentos;
-    int esperaMs;
-    boolean activo;
+    private Long id;
+    private Long rutaId;
+    private Integer orden;
+    private Long cuentaId;
+    private String cuentaCodigo;
+    private String proveedorCodigo;
+    private Integer maxIntentos;
+    private Integer esperaMs;
+    private Boolean activo;
 }

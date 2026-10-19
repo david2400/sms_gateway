@@ -28,10 +28,16 @@ import com.essenza.sms_gateway.modules.SmsAdmin.application.services.Ruta.CrearR
 import com.essenza.sms_gateway.modules.SmsAdmin.application.services.Ruta.ReemplazarPasosRutaService;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.services.AdminFinder;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.services.CambioProveedorCuentaValidator;
-import com.essenza.sms_gateway.modules.SmsAdmin.domain.services.CuentaResponseAssembler;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.services.PasoRutaValidator;
-import com.essenza.sms_gateway.modules.SmsAdmin.domain.services.ProveedorResponseAssembler;
-import com.essenza.sms_gateway.modules.SmsAdmin.domain.services.RutaResponseAssembler;
+import com.essenza.sms_gateway.modules.SmsAdmin.application.services.support.CuentaResponseAssembler;
+import com.essenza.sms_gateway.modules.SmsAdmin.application.services.support.ProveedorResponseAssembler;
+import com.essenza.sms_gateway.modules.SmsAdmin.application.services.support.RutaResponseAssembler;
+import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.inbound.mappers.CuentaDtoMapperImpl;
+import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.inbound.mappers.ProveedorDtoMapperImpl;
+import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.inbound.mappers.RutaDtoMapperImpl;
+import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.inbound.mappers.RutaEfectivaDtoMapperImpl;
+import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.inbound.mappers.RutaPasoDtoMapper;
+import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.inbound.mappers.RutaPasoDtoMapperImpl;
 import com.essenza.sms_gateway.modules.SmsCore.domain.model.MessageType;
 import com.essenza.sms_gateway.modules.SmsCore.domain.model.ProviderAccount;
 import com.essenza.sms_gateway.modules.SmsCore.domain.model.RoutePlan;
@@ -102,19 +108,23 @@ class SmsAdminServicesTest {
         };
 
         AdminFinder finder = new AdminFinder(proveedores, cuentas, rutas);
-        ProveedorResponseAssembler proveedorAssembler = new ProveedorResponseAssembler(catalog, cuentas);
-        CuentaResponseAssembler cuentaAssembler = new CuentaResponseAssembler(ref -> "INALAMBRIA_OTP_PASSWORD".equals(ref), pasos);
-        RutaResponseAssembler rutaAssembler = new RutaResponseAssembler(pasos);
+        ProveedorDtoMapperImpl proveedorMapper = new ProveedorDtoMapperImpl();
+        CuentaDtoMapperImpl cuentaMapper = new CuentaDtoMapperImpl();
+        RutaPasoDtoMapper pasoMapper = new RutaPasoDtoMapperImpl();
+        RutaDtoMapperImpl rutaMapper = new RutaDtoMapperImpl(pasoMapper);
+        ProveedorResponseAssembler proveedorAssembler = new ProveedorResponseAssembler(proveedorMapper, catalog, cuentas);
+        CuentaResponseAssembler cuentaAssembler = new CuentaResponseAssembler(cuentaMapper, ref -> "INALAMBRIA_OTP_PASSWORD".equals(ref), pasos);
+        RutaResponseAssembler rutaAssembler = new RutaResponseAssembler(rutaMapper, pasos);
         PasoRutaValidator pasoValidator = new PasoRutaValidator(finder);
 
-        crearProveedor = new CrearProveedorService(proveedores, proveedorAssembler, cache);
+        crearProveedor = new CrearProveedorService(proveedores, proveedorMapper, proveedorAssembler, cache);
         obtenerProveedor = new ObtenerProveedorService(finder, proveedorAssembler);
-        crearCuenta = new CrearCuentaService(cuentas, finder, cuentaAssembler, cache);
+        crearCuenta = new CrearCuentaService(cuentas, finder, cuentaMapper, cuentaAssembler, cache);
         obtenerCuenta = new ObtenerCuentaService(finder, cuentaAssembler);
-        actualizarCuenta = new ActualizarCuentaService(cuentas, finder, new CambioProveedorCuentaValidator(pasos, rutas), cuentaAssembler, cache);
-        crearRuta = new CrearRutaService(rutas, pasos, finder, pasoValidator, rutaAssembler, cache);
-        reemplazarPasos = new ReemplazarPasosRutaService(pasos, finder, pasoValidator, rutaAssembler, cache);
-        rutaEfectiva = new ConsultarRutaEfectivaService(routing, catalog);
+        actualizarCuenta = new ActualizarCuentaService(cuentas, finder, new CambioProveedorCuentaValidator(pasos, rutas), cuentaMapper, cuentaAssembler, cache);
+        crearRuta = new CrearRutaService(rutas, pasos, finder, pasoValidator, rutaMapper, pasoMapper, rutaAssembler, cache);
+        reemplazarPasos = new ReemplazarPasosRutaService(pasos, finder, pasoValidator, pasoMapper, rutaAssembler, cache);
+        rutaEfectiva = new ConsultarRutaEfectivaService(routing, catalog, new RutaEfectivaDtoMapperImpl());
 
         inalambria = crearProveedor.crear(proveedor("inalambria")).getId();
         go4 = crearProveedor.crear(proveedor("GO4CLIENTS")).getId();
@@ -146,8 +156,7 @@ class SmsAdminServicesTest {
 
     @Test
     void rutaCentralPuedeMezclarProveedoresYRefrescaCache() {
-        RutaResponse r = crearRuta.crear(RutaRequest.builder().tipoMensaje(MessageType.OTP)
-                .pasos(List.of(paso(1, cuentaOtp), paso(2, cuentaGo4))).build());
+        RutaResponse r = crearRuta.crear(ruta(null, MessageType.OTP, List.of(paso(1, cuentaOtp), paso(2, cuentaGo4))));
 
         assertEquals("CENTRAL", r.getProveedorCodigo());
         assertEquals(2, r.getPasos().size());
@@ -157,37 +166,33 @@ class SmsAdminServicesTest {
 
     @Test
     void rutaDeProveedorNoAceptaCuentasDeOtro() {
-        assertThrows(AdminValidationException.class, () -> crearRuta.crear(RutaRequest.builder()
-                .proveedorId(inalambria).tipoMensaje(MessageType.OTP)
-                .pasos(List.of(paso(1, cuentaOtp), paso(2, cuentaGo4))).build()));
+        assertThrows(AdminValidationException.class, () -> crearRuta.crear(ruta(inalambria, MessageType.OTP, List.of(paso(1, cuentaOtp), paso(2, cuentaGo4)))));
     }
 
     @Test
     void rutaDuplicadaEsConflicto() {
-        crearRuta.crear(RutaRequest.builder().proveedorId(inalambria).tipoMensaje(MessageType.OTP).build());
+        crearRuta.crear(ruta(inalambria, MessageType.OTP, null));
         assertThrows(AdminConflictException.class, () ->
-                crearRuta.crear(RutaRequest.builder().proveedorId(inalambria).tipoMensaje(MessageType.OTP).build()));
+                crearRuta.crear(ruta(inalambria, MessageType.OTP, null)));
     }
 
     @Test
     void ordenOCuentaRepetidosSonInvalidos() {
-        Long id = crearRuta.crear(RutaRequest.builder().tipoMensaje(MessageType.NORMAL).build()).getId();
+        Long id = crearRuta.crear(ruta(null, MessageType.NORMAL, null)).getId();
         assertThrows(AdminValidationException.class, () -> reemplazarPasos.reemplazarPasos(id, List.of(paso(1, cuentaOtp), paso(1, cuentaGo4))));
         assertThrows(AdminValidationException.class, () -> reemplazarPasos.reemplazarPasos(id, List.of(paso(1, cuentaOtp), paso(2, cuentaOtp))));
     }
 
     @Test
     void reemplazarPasosCambiaElOrden() {
-        Long id = crearRuta.crear(RutaRequest.builder().tipoMensaje(MessageType.OTP)
-                .pasos(List.of(paso(1, cuentaOtp), paso(2, cuentaGo4))).build()).getId();
+        Long id = crearRuta.crear(ruta(null, MessageType.OTP, List.of(paso(1, cuentaOtp), paso(2, cuentaGo4)))).getId();
         RutaResponse r = reemplazarPasos.reemplazarPasos(id, List.of(paso(1, cuentaGo4), paso(2, cuentaOtp)));
         assertEquals("GO4CLIENTS_PRINCIPAL", r.getPasos().get(0).getCuentaCodigo());
     }
 
     @Test
     void noSeCambiaDeProveedorUnaCuentaUsadaEnRutaDeProveedor() {
-        crearRuta.crear(RutaRequest.builder().proveedorId(inalambria).tipoMensaje(MessageType.OTP)
-                .pasos(List.of(paso(1, cuentaOtp))).build());
+        crearRuta.crear(ruta(inalambria, MessageType.OTP, List.of(paso(1, cuentaOtp))));
         assertThrows(AdminConflictException.class, () ->
                 actualizarCuenta.actualizar(cuentaOtp, cuenta(go4, "INALAMBRIA_OTP", "INALAMBRIA_OTP_PASSWORD")));
     }
@@ -213,15 +218,35 @@ class SmsAdminServicesTest {
     // ===================== helpers y puertos en memoria =====================
 
     private static ProveedorRequest proveedor(String codigo) {
-        return ProveedorRequest.builder().codigo(codigo).nombre(codigo).baseUrl("https://x").build();
+        ProveedorRequest r = new ProveedorRequest();
+        r.setCodigo(codigo);
+        r.setNombre(codigo);
+        r.setBaseUrl("https://x");
+        return r;
     }
 
     private static CuentaRequest cuenta(Long proveedorId, String codigo, String secretRef) {
-        return CuentaRequest.builder().proveedorId(proveedorId).codigo(codigo).usuario("u").secretRef(secretRef).build();
+        CuentaRequest r = new CuentaRequest();
+        r.setProveedorId(proveedorId);
+        r.setCodigo(codigo);
+        r.setUsuario("u");
+        r.setSecretRef(secretRef);
+        return r;
+    }
+
+    private static RutaRequest ruta(Long proveedorId, MessageType tipo, List<PasoRequest> pasos) {
+        RutaRequest r = new RutaRequest();
+        r.setProveedorId(proveedorId);
+        r.setTipoMensaje(tipo);
+        r.setPasos(pasos);
+        return r;
     }
 
     private static PasoRequest paso(int orden, Long cuentaId) {
-        return PasoRequest.builder().orden(orden).cuentaId(cuentaId).build();
+        PasoRequest r = new PasoRequest();
+        r.setOrden(orden);
+        r.setCuentaId(cuentaId);
+        return r;
     }
 
     static class MemProveedores implements ProveedorAdminPort {
@@ -232,7 +257,10 @@ class SmsAdminServicesTest {
         public Optional<Proveedor> findById(Long id) { return Optional.ofNullable(data.get(id)); }
         public Optional<Proveedor> findByCodigo(String c) { return data.values().stream().filter(p -> p.getCodigo().equals(c)).findFirst(); }
         public Proveedor save(Proveedor p) {
-            Proveedor s = p.getId() == null ? p.toBuilder().id(seq.incrementAndGet()).build() : p;
+            if (p.getId() == null) {
+                p.setId(seq.incrementAndGet());
+            }
+            Proveedor s = p;
             data.put(s.getId(), s);
             return s;
         }
@@ -249,8 +277,11 @@ class SmsAdminServicesTest {
         public Optional<Cuenta> findById(Long id) { return Optional.ofNullable(data.get(id)); }
         public Optional<Cuenta> findByCodigo(String c) { return data.values().stream().filter(x -> x.getCodigo().equals(c)).findFirst(); }
         public Cuenta save(Cuenta c) {
-            Cuenta s = (c.getId() == null ? c.toBuilder().id(seq.incrementAndGet()) : c.toBuilder())
-                    .proveedorCodigo(proveedores.data.get(c.getProveedorId()).getCodigo()).build();
+            if (c.getId() == null) {
+                c.setId(seq.incrementAndGet());
+            }
+            c.setProveedorCodigo(proveedores.data.get(c.getProveedorId()).getCodigo());
+            Cuenta s = c;
             data.put(s.getId(), s);
             return s;
         }
@@ -269,8 +300,11 @@ class SmsAdminServicesTest {
             return data.values().stream().filter(r -> Objects.equals(pid, r.getProveedorId()) && r.getTipoMensaje().equals(tipo)).findFirst();
         }
         public Ruta save(Ruta r) {
-            Ruta s = (r.getId() == null ? r.toBuilder().id(seq.incrementAndGet()) : r.toBuilder())
-                    .proveedorCodigo(r.getProveedorId() == null ? null : proveedores.data.get(r.getProveedorId()).getCodigo()).build();
+            if (r.getId() == null) {
+                r.setId(seq.incrementAndGet());
+            }
+            r.setProveedorCodigo(r.getProveedorId() == null ? null : proveedores.data.get(r.getProveedorId()).getCodigo());
+            Ruta s = r;
             data.put(s.getId(), s);
             return s;
         }
@@ -285,7 +319,8 @@ class SmsAdminServicesTest {
 
         public List<Paso> findByRuta(Long id) { return data.getOrDefault(id, List.of()); }
         public List<Paso> replace(Long id, List<Paso> nuevos) {
-            data.put(id, nuevos.stream().map(p -> p.toBuilder().cuentaCodigo(cuentas.data.get(p.getCuentaId()).getCodigo()).build()).toList());
+            nuevos.forEach(p -> p.setCuentaCodigo(cuentas.data.get(p.getCuentaId()).getCodigo()));
+            data.put(id, List.copyOf(nuevos));
             return data.get(id);
         }
         public void deleteByRuta(Long id) { data.remove(id); }

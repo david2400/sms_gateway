@@ -1,12 +1,12 @@
 package com.essenza.sms_gateway.modules.SmsAdmin.application.services.Cuenta;
 
 import com.essenza.sms_gateway.modules.SmsAdmin.application.input.Cuenta.CambiarEstadoCuentaUseCase;
+import com.essenza.sms_gateway.modules.SmsAdmin.application.services.support.CuentaResponseAssembler;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.dto.CuentaResponse;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.model.Cuenta;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.ports.CuentaAdminPort;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.ports.RoutingCacheAdminPort;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.services.AdminFinder;
-import com.essenza.sms_gateway.modules.SmsAdmin.domain.services.CuentaResponseAssembler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -26,7 +26,9 @@ public class CambiarEstadoCuentaService implements CambiarEstadoCuentaUseCase {
 
     @Override
     public CuentaResponse cambiarEstado(Long id, boolean activo) {
-        Cuenta saved = cuentas.save(finder.cuenta(id).toBuilder().activo(activo).build());
+        Cuenta cuenta = finder.cuenta(id);
+        cuenta.setActivo(activo);
+        Cuenta saved = cuentas.save(cuenta);
         log.info("[SMS-ADMIN] Cuenta {} {}", saved.getCodigo(), activo ? "activada" : "desactivada");
         routingCache.invalidarAlConfirmar();
         return assembler.toResponse(saved);
