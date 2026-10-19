@@ -57,68 +57,22 @@ eureka:
       defaultZone: http://${EUREKA_INSTANCE}:8761/eureka
 
 # ============================================================
-# Configuración de Proveedores SMS
-# Cambia el proveedor actual modificando 'sms.routing.primary'
+# SMS multi-proveedor (módulo SmsCore)
+# Proveedores, cuentas, rutas y log viven en BD (ver src/main/resources/db/sms_core):
+#   sms_proveedor, sms_cuenta, sms_ruta, sms_ruta_paso, sms_envio, sms_envio_intento
+# Las contraseñas NO van en BD: sms_cuenta.secret_ref es el nombre de la variable
+# de entorno (ej. INALAMBRIA_OTP_PASSWORD, GO4CLIENTS_API_SECRET).
 # ============================================================
 sms:
-  routing:
-    strategy: FAILOVER
-    primary: inalambria
-    fallback:
-      - mock
-      - go4clients
-    health-check:
-      enabled: true
-      interval-seconds: 60
+  core:
+    routing-cache-ttl-seconds: 60
 
-  providers:
-    inalambria:
-      enabled: true
-      name: Inalambria
-      description: Inalambria SMS Provider
-      username: ${INALAMBRIA_USERNAME:COMFENALCOquindioOTP}
-      password: ${INALAMBRIA_PASSWORD:c0qU1IO}
-      base-url: https://restaws.inalambria.com
-      timeout-seconds: 30
-      max-retries: 3
-
-    go4clients:
-      enabled: true
-      name: Go4Clients
-      description: Go4Clients Cloud API
-      api-key: ${GO4CLIENTS_API_KEY:4b3058ead56541539592bcb891c5bde4}
-      api-secret: ${GO4CLIENTS_API_SECRET:0051518486296435}
-      base-url: https://cloud.go4clients.com:8580/api
-      sender: ${GO4CLIENTS_SENDER:RANDOM}
-      timeout-seconds: 30
-      max-retries: 3
-
-    mock:
-      enabled: true
-      name: Mock
-      description: Mock Provider for testing
-      base-url: https://mock.local
-      timeout-seconds: 5
-      max-retries: 1
-
-# Inalambria Account Types Configuration
-inalambria:
-  account:
-    otp:
-      username: ${INALAMBRIA_OTP_USERNAME:COMFENALCOquindioOTP}
-      password: ${INALAMBRIA_OTP_PASSWORD:c0qU1IO}
-    template:
-      username: ${INALAMBRIA_TEMPLATE_USERNAME:COMFENALCOquindioOTP}
-      password: ${INALAMBRIA_TEMPLATE_PASSWORD:c0qU1IO}
-    personalizada:
-      username: ${INALAMBRIA_PERSONALIZADA_USERNAME:COMFENALCOquindioOTP}
-      password: ${INALAMBRIA_PERSONALIZADA_PASSWORD:c0qU1IO}
-    masivo:
-      username: ${INALAMBRIA_MASIVO_USERNAME:COMFENALCOquindioMASIVO}
-      password: ${INALAMBRIA_MASIVO_PASSWORD:M451v0,123}
-    habeasdata:
-      username: ${INALAMBRIA_HABEASDATA_USERNAME:COMFENALCOquindioCOMUNICADOR}
-      password: ${INALAMBRIA_HABEASDATA_PASSWORD:Mv.SEdD5}
+  # Servicio externo de usuarios (actualización de PIN en /otp/send-with-pin)
+  usuario-service:
+    base-url: ${USUARIO_SERVICE_URL:}
+    guardar-endpoint: /api/login/usuarios/guardar
+    connect-timeout-seconds: 10
+    read-timeout-seconds: 30
 
 # ============================================================
 # Configuración de Proveedores Email
@@ -178,46 +132,6 @@ email:
       enable-logging: true
 
 # ============================================================
-# Configuración de Resilience4j para SMS
-# ============================================================
-resilience4j:
-  circuitbreaker:
-    instances:
-      otpService:
-        failure-rate-threshold: 50
-        wait-duration-in-open-state: 60s
-        sliding-window-size: 10
-        minimum-number-of-calls: 5
-        permitted-number-of-calls-in-half-open-state: 3
-        automatic-transition-from-open-to-half-open-enabled: true
-      smsService:
-        failure-rate-threshold: 50
-        wait-duration-in-open-state: 60s
-        sliding-window-size: 10
-        minimum-number-of-calls: 5
-        permitted-number-of-calls-in-half-open-state: 3
-        automatic-transition-from-open-to-half-open-enabled: true
-
-  retry:
-    instances:
-      otpService:
-        max-attempts: 3
-        wait-duration: 1s
-        retry-exceptions:
-          - java.net.ConnectException
-          - java.net.SocketTimeoutException
-          - org.springframework.web.client.ResourceAccessException
-        retry-on-exception: true
-      smsService:
-        max-attempts: 3
-        wait-duration: 1s
-        retry-exceptions:
-          - java.net.ConnectException
-          - java.net.SocketTimeoutException
-          - org.springframework.web.client.ResourceAccessException
-        retry-on-exception: true
-
-# ============================================================
 # Configuración de Logging
 # ============================================================
 logging:
@@ -228,7 +142,11 @@ logging:
     org.hibernate.type.descriptor.sql.BasicBinder: trace
     com.netflix.eureka: warn
     com.netflix.discovery: warn
-    com.essenza.sms_gateway.modules.SMSService: debug
+    com.essenza.sms_gateway.modules.SmsCore: debug
+    com.essenza.sms_gateway.modules.INALAMBRIA: debug
+    com.essenza.sms_gateway.modules.Go4Clients: debug
+    com.essenza.sms_gateway.modules.Mock: debug
+    com.essenza.sms_gateway.modules.SmsAdmin: debug
   file:
     name: notificacion.log
 

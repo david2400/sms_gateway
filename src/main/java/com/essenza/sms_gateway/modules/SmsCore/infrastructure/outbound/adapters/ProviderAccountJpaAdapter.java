@@ -1,0 +1,38 @@
+package com.essenza.sms_gateway.modules.SmsCore.infrastructure.outbound.adapters;
+
+import com.essenza.sms_gateway.modules.SmsCore.domain.model.ProviderAccount;
+import com.essenza.sms_gateway.modules.SmsCore.domain.ports.ProviderAccountQueryPort;
+import com.essenza.sms_gateway.modules.SmsCore.infrastructure.outbound.mappers.ProviderAccountFactory;
+import com.essenza.sms_gateway.modules.SmsCore.infrastructure.outbound.persistence.repository.SmsCuentaRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Optional;
+
+/**
+ * Lee cuentas de proveedor desde {@code sms_cuenta}.
+ */
+@Component
+@RequiredArgsConstructor
+public class ProviderAccountJpaAdapter implements ProviderAccountQueryPort {
+
+    private final SmsCuentaRepository cuentaRepository;
+    private final ProviderAccountFactory accountFactory;
+
+    @Override
+    @Transactional(transactionManager = "maestraTransactionManager", readOnly = true)
+    public Optional<ProviderAccount> findActive(String providerCode, String accountCode) {
+        return cuentaRepository.findByCodigoAndProveedor_Codigo(accountCode, providerCode.toUpperCase())
+                .filter(accountFactory::isUsable)
+                .map(accountFactory::toAccount);
+    }
+
+    @Override
+    @Transactional(transactionManager = "maestraTransactionManager", readOnly = true)
+    public Optional<ProviderAccount> findFirstActive(String providerCode) {
+        return cuentaRepository.findFirstByProveedor_CodigoAndActivoTrueOrderByIdAsc(providerCode.toUpperCase())
+                .filter(accountFactory::isUsable)
+                .map(accountFactory::toAccount);
+    }
+}

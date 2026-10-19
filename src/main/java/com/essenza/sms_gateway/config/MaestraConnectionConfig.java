@@ -27,7 +27,9 @@ import java.util.Map;
         "com.essenza.sms_gateway.modules.notificar.PublishNotificacion.infrastructure.outbound.persistence",
         "com.essenza.sms_gateway.modules.EmailService.infrastructure.outbound.repositories",
         "com.essenza.sms_gateway.modules.plantillas.infrastructure.outbound.persistence",
-        "com.essenza.sms_gateway.modules.plantillas.infrastructure.outbound.repository"
+        "com.essenza.sms_gateway.modules.plantillas.infrastructure.outbound.repository",
+        "com.essenza.sms_gateway.modules.SmsCore.infrastructure.outbound.persistence.repository",
+        "com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.persistence.repository"
     },
     entityManagerFactoryRef = "maestraEntityManagerFactory",
     transactionManagerRef = "maestraTransactionManager"
@@ -58,7 +60,9 @@ public class MaestraConnectionConfig {
                         "com.essenza.sms_gateway.modules.notificar.CreateNotificacion.infrastructure.outbound.persistence.sqlserver.maestra",
                         "com.essenza.sms_gateway.modules.notificar.PublishNotificacion.infrastructure.outbound.persistence",
                         "com.essenza.sms_gateway.modules.EmailService.infrastructure.outbound.persistence",
-                        "com.essenza.sms_gateway.modules.plantillas.infrastructure.outbound.persistence.sqlserver.maestra"
+                        "com.essenza.sms_gateway.modules.plantillas.infrastructure.outbound.persistence.sqlserver.maestra",
+                        "com.essenza.sms_gateway.modules.SmsCore.infrastructure.outbound.persistence.entity",
+                        "com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.persistence.entity"
                 )
                 .persistenceUnit("maestra")
                 .properties(jpaProperties())
