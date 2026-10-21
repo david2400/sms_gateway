@@ -35,7 +35,7 @@ public class SmsEnvioQueryJpaAdapter implements SmsEnvioQueryPort {
     private final SmsEnvioPersistenceMapper mapper;
 
     @Override
-    @Transactional(transactionManager = "maestraTransactionManager", readOnly = true)
+    @Transactional(readOnly = true)
     public Optional<SmsEnvioDetalleResponse> findById(UUID envioId) {
         return envioRepository.findWithFinalByUuid(envioId).map(entity -> {
             SmsEnvioDetalleResponse detalle = mapper.toDetalle(entity);
@@ -45,7 +45,7 @@ public class SmsEnvioQueryJpaAdapter implements SmsEnvioQueryPort {
     }
 
     @Override
-    @Transactional(transactionManager = "maestraTransactionManager", readOnly = true)
+    @Transactional(readOnly = true)
     public PageResult<SmsEnvioDetalleResponse> search(SmsEnvioFilter filter) {
         PageRequest pageRequest = PageRequest.of(filter.getPage(), filter.getSize(),
                 Sort.by(Sort.Direction.DESC, "fechaCreacion"));

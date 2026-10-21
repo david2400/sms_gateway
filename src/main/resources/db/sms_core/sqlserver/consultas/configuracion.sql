@@ -12,7 +12,7 @@ JOIN dbo.SmsProveedor pc      ON pc.id_sms_proveedor = c.proveedor_id
 ORDER BY CASE WHEN r.proveedor_id IS NULL THEN 0 ELSE 1 END, pr.codigo, r.tipo_mensaje, rp.orden;
 
 -- Cuentas y la variable de entorno que debe existir para cada una
-SELECT p.codigo AS proveedor, c.codigo AS cuenta, c.usuario, c.secret_ref AS variable_entorno_password,
+SELECT p.codigo AS proveedor, c.codigo AS cuenta, c.usuario, CASE WHEN c.clave_cifrada IS NOT NULL THEN 'SI' ELSE 'NO' END AS tiene_clave_cifrada, c.secret_ref AS variable_entorno_password,
        c.remitente, c.parametros_json, c.activo
 FROM dbo.SmsCuenta c
 JOIN dbo.SmsProveedor p ON p.id_sms_proveedor = c.proveedor_id

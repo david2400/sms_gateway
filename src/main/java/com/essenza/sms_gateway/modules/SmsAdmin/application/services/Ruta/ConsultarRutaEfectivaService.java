@@ -42,7 +42,7 @@ public class ConsultarRutaEfectivaService implements ConsultarRutaEfectivaUseCas
             boolean implementado = catalog.isImplementado(cuenta.getProviderCode());
             if (!credenciales) {
                 advertencias.add("Cuenta " + cuenta.getCode()
-                        + " sin credenciales (revise usuario y la variable de entorno de secret_ref): sus intentos fallarán");
+                        + " sin credenciales (revise usuario y la clave: clave_cifrada + SMS_CRYPTO_KEY, o la variable de secret_ref): sus intentos fallarán");
             }
             if (!implementado) {
                 advertencias.add("Proveedor " + cuenta.getProviderCode() + " no tiene módulo implementado: la cuenta "

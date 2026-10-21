@@ -41,7 +41,9 @@ public class SmsCentralController {
 
     @Operation(summary = "Enviar SMS (central)",
             description = "Elige cuenta y proveedor según la ruta central configurada en BD para el tipo de mensaje. "
-                    + "Hace hasta N intentos por cuenta (3 por defecto) y luego pasa a la siguiente.")
+                    + "Hace hasta N intentos por cuenta (3 por defecto) y luego pasa a la siguiente. "
+                    + "Con el campo opcional 'cuenta' se usa primero esa cuenta y el resto de la ruta queda de respaldo. "
+                    + "422 si la cuenta no existe o está inactiva.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "SMS enviado",
                     content = @Content(schema = @Schema(implementation = SmsEnvioResponse.class))),

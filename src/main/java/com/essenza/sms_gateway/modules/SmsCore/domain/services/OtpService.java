@@ -56,12 +56,20 @@ public class OtpService {
      * Genera el código y envía el OTP.
      */
     public OtpSendResult sendAutoGenerate(String phoneNumber, String message, Integer expirationMinutes) {
+        return sendAutoGenerate(phoneNumber, message, expirationMinutes, null);
+    }
+
+    /**
+     * Genera el código y envía el OTP, opcionalmente con una cuenta específica (luego el resto de la ruta OTP).
+     */
+    public OtpSendResult sendAutoGenerate(String phoneNumber, String message, Integer expirationMinutes, String cuenta) {
         SendOtpRequest request = SendOtpRequest.builder()
                 .phoneNumber(phoneNumber)
                 .otpCode(pinGenerator.generatePin())
                 .message(message != null && !message.isBlank() ? message : "Tu código de verificación es: {OTP}")
                 .expirationMinutes(expirationMinutes != null ? expirationMinutes : 5)
                 .referenceId("AUTO-" + System.currentTimeMillis())
+                .cuenta(cuenta)
                 .build();
         return send(request, null);
     }
@@ -109,6 +117,7 @@ public class OtpService {
                 .countryCode(request.getCountryCode() != null ? request.getCountryCode() : "57")
                 .text(request.buildFullMessage())
                 .type(MessageType.OTP)
+                .accountCode(request.getCuenta())
                 .idempotencyKey(idempotencyKey == null || idempotencyKey.isBlank() ? null : idempotencyKey.trim())
                 .build();
         return dispatchService.dispatch(message, DispatchChannel.CENTRAL, null);

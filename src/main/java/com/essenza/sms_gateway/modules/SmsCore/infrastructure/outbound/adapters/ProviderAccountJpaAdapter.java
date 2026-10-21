@@ -21,15 +21,21 @@ public class ProviderAccountJpaAdapter implements ProviderAccountQueryPort {
     private final ProviderAccountFactory accountFactory;
 
     @Override
-    @Transactional(transactionManager = "maestraTransactionManager", readOnly = true)
+    @Transactional(readOnly = true)
     public Optional<ProviderAccount> findActive(String providerCode, String accountCode) {
-        return cuentaRepository.findByCodigoAndProveedor_Codigo(accountCode, providerCode.toUpperCase())
+        if (accountCode == null || accountCode.isBlank()) {
+            return Optional.empty();
+        }
+        String code = accountCode.trim();
+        return (providerCode == null
+                ? cuentaRepository.findByCodigo(code)
+                : cuentaRepository.findByCodigoAndProveedor_Codigo(code, providerCode.toUpperCase()))
                 .filter(accountFactory::isUsable)
                 .map(accountFactory::toAccount);
     }
 
     @Override
-    @Transactional(transactionManager = "maestraTransactionManager", readOnly = true)
+    @Transactional(readOnly = true)
     public Optional<ProviderAccount> findFirstActive(String providerCode) {
         return cuentaRepository.findFirstByProveedor_CodigoAndActivoTrueOrderByIdSmsCuentaAsc(providerCode.toUpperCase())
                 .filter(accountFactory::isUsable)

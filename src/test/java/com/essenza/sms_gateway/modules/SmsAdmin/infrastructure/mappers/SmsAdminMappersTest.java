@@ -6,12 +6,12 @@ import com.essenza.sms_gateway.modules.SmsAdmin.domain.dto.ProveedorRequest;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.exception.AdminValidationException;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.model.Cuenta;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.model.Proveedor;
-import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.inbound.mappers.CuentaDtoMapper;
-import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.inbound.mappers.CuentaDtoMapperImpl;
-import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.inbound.mappers.ProveedorDtoMapper;
-import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.inbound.mappers.ProveedorDtoMapperImpl;
-import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.mappers.CuentaPersistenceMapper;
-import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.mappers.CuentaPersistenceMapperImpl;
+import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.mappers.CuentaMapper;
+import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.mappers.CuentaMapperImpl;
+import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.mappers.ProveedorMapper;
+import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.mappers.ProveedorMapperImpl;
+import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.mappers.CuentaEntityMapper;
+import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.mappers.CuentaEntityMapperImpl;
 import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.mappers.ParametrosJsonMapper;
 import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.persistence.entity.AdminCuentaEntity;
 import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.persistence.entity.AdminProveedorEntity;
@@ -30,9 +30,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class SmsAdminMappersTest {
 
     private final ParametrosJsonMapper parametros = new ParametrosJsonMapper();
-    private final CuentaPersistenceMapper cuentaPersistence = new CuentaPersistenceMapperImpl(parametros);
-    private final ProveedorDtoMapper proveedorDto = new ProveedorDtoMapperImpl();
-    private final CuentaDtoMapper cuentaDto = new CuentaDtoMapperImpl();
+    private final CuentaEntityMapper cuentaPersistence = new CuentaEntityMapperImpl(parametros);
+    private final ProveedorMapper proveedorDto = new ProveedorMapperImpl();
+    private final CuentaMapper cuentaDto = new CuentaMapperImpl();
 
     @Test
     void cuentaEntidadAModeloYDeVuelta() {

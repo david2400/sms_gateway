@@ -31,7 +31,8 @@ CREATE TABLE IF NOT EXISTS SmsCuenta (
   proveedor_id    BIGINT       NOT NULL,
   codigo          VARCHAR(50)  NOT NULL,
   usuario         VARCHAR(100) NULL,      -- valor literal, o 'env:NOMBRE_VARIABLE'
-  secret_ref      VARCHAR(100) NOT NULL,  -- NOMBRE de la variable de entorno con la contraseña (nunca la contraseña)
+  secret_ref      VARCHAR(100) NULL,      -- alternativa: NOMBRE de la variable de entorno con la contraseña
+  clave_cifrada   VARCHAR(500) NULL,      -- contraseña cifrada AES-256-GCM ('v1:...'); llave en SMS_CRYPTO_KEY
   remitente       VARCHAR(20)  NULL,
   parametros_json LONGTEXT     NULL,      -- parámetros propios de cada proveedor
   activo          BIT(1)       NOT NULL DEFAULT b'1',
@@ -106,6 +107,14 @@ CREATE TABLE IF NOT EXISTS SmsEnvioIntento (
   CONSTRAINT fk_sms_intento_proveedor FOREIGN KEY (proveedor_id) REFERENCES SmsProveedor (id_sms_proveedor),
   CONSTRAINT fk_sms_intento_cuenta    FOREIGN KEY (cuenta_id)    REFERENCES SmsCuenta (id_sms_cuenta)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+/* ------------- MIGRACIÓN: tablas creadas antes de clave_cifrada ------------- */
+SET @sql = IF((SELECT COUNT(*) FROM information_schema.columns
+               WHERE table_schema = DATABASE() AND LOWER(table_name) = 'smscuenta' AND column_name = 'clave_cifrada') = 0,
+  'ALTER TABLE SmsCuenta ADD COLUMN clave_cifrada VARCHAR(500) NULL AFTER secret_ref',
+  'DO 0');
+PREPARE st FROM @sql; EXECUTE st; DEALLOCATE PREPARE st;
+ALTER TABLE SmsCuenta MODIFY secret_ref VARCHAR(100) NULL;
 
 /* ---------------------- ÍNDICES Y COLUMNA AUXILIAR ----------------------
    Separados para que se creen también si Hibernate (ddl-auto=update) creó

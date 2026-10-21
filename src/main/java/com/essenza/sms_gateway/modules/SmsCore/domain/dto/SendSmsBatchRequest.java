@@ -40,6 +40,11 @@ public class SendSmsBatchRequest {
     @Schema(description = "Remitente (si el proveedor lo soporta)")
     private String sender;
 
+    @Size(max = 50)
+    @Schema(description = "Código de la cuenta a usar para todos los destinatarios (SmsCuenta.codigo). Opcional: si se indica se usa primero "
+            + "esa cuenta y, si agota sus intentos, se continúa con el resto de la ruta", example = "INALAMBRIA_OTP")
+    private String cuenta;
+
     @NotEmpty(message = "Debe enviar al menos un destinatario")
     @Size(max = MAX_DESTINATIONS, message = "Máximo " + MAX_DESTINATIONS + " destinatarios; para volúmenes mayores use campañas")
     @Valid

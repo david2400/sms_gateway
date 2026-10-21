@@ -13,7 +13,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(transactionManager = "maestraTransactionManager", readOnly = true)
+@Transactional(readOnly = true)
 public class ListarRutasService implements ListarRutasUseCase {
 
     private final RutaAdminPort rutas;

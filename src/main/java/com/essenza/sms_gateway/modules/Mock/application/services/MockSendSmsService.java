@@ -23,6 +23,7 @@ public class MockSendSmsService implements MockSendSmsUseCase {
                 .text(request.getMessage())
                 .type(request.getTipoMensaje())
                 .sender(request.getSender())
+                .accountCode(request.getCuenta())
                 .idempotencyKey(idempotencyKey == null || idempotencyKey.isBlank() ? null : idempotencyKey.trim())
                 .build();
         return sendSmsByProvider.send(MockSmsSender.PROVIDER_CODE, message);

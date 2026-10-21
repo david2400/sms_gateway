@@ -2,7 +2,7 @@
    V4 - Proveedor GO4CLIENTS (MySQL). Idempotente. Requiere V1.
    Credenciales en variables de entorno (no en BD):
      SmsCuenta.usuario    = 'env:GO4CLIENTS_API_KEY'  -> api key
-     SmsCuenta.secret_ref = 'GO4CLIENTS_API_SECRET'   -> api secret
+     SmsCuenta.clave_cifrada = api secret cifrado (AES-256-GCM, llave SMS_CRYPTO_KEY)
    ===================================================================== */
 
 INSERT INTO SmsProveedor (codigo, nombre, base_url, connect_timeout_ms, read_timeout_ms, activo, fecha_creacion)
@@ -11,8 +11,9 @@ FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM SmsProveedor WHERE codigo = 'GO4CLIENT
 
 SET @prov = (SELECT id_sms_proveedor FROM SmsProveedor WHERE codigo = 'GO4CLIENTS');
 
-INSERT INTO SmsCuenta (proveedor_id, codigo, usuario, secret_ref, remitente, parametros_json, activo)
-SELECT @prov, 'GO4CLIENTS_PRINCIPAL', 'env:GO4CLIENTS_API_KEY', 'GO4CLIENTS_API_SECRET', 'RANDOM', '{"priority":"HIGH"}', b'1'
+INSERT INTO SmsCuenta (proveedor_id, codigo, usuario, secret_ref, clave_cifrada, remitente, parametros_json, activo)
+SELECT @prov, 'GO4CLIENTS_PRINCIPAL', 'env:GO4CLIENTS_API_KEY', NULL,
+         'v1:y8o3E8dikzW62ZxJyJAaUiOhQWHdvwwdYEb/UqlBdwtNumcQNzAo5Iyvnxc=', 'RANDOM', '{"priority":"HIGH"}', b'1'
 FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM SmsCuenta WHERE codigo = 'GO4CLIENTS_PRINCIPAL');
 
 -- Rutas del endpoint propio  POST /v1/sms/go4clients/send

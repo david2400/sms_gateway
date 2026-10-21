@@ -19,7 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@Transactional(transactionManager = "maestraTransactionManager")
+@Transactional
 public class CrearProveedorService implements CrearProveedorUseCase {
 
     static final int DEFAULT_CONNECT_TIMEOUT_MS = 2000;

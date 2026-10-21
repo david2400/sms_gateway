@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-/** Cuenta de un proveedor ({@code sms_cuenta}). Nunca contiene la contraseña, solo su {@code secretRef}. */
+/** Cuenta de un proveedor ({@code sms_cuenta}). La contraseña solo viaja cifrada ({@code claveCifrada}). */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -18,6 +18,7 @@ public class Cuenta {
     private String codigo;
     private String usuario;
     private String secretRef;
+    private String claveCifrada;
     private String remitente;
     private Map<String, Object> parametros = new LinkedHashMap<>();
     private Boolean activo;

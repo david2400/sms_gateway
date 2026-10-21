@@ -9,7 +9,7 @@ import java.util.Map;
 
 /**
  * Cuenta de un proveedor ({@code sms_cuenta} + datos de {@code sms_proveedor}),
- * con la contraseña ya resuelta desde su {@code secret_ref}.
+ * con la contraseña ya descifrada ({@code clave_cifrada}) o resuelta desde su {@code secret_ref}.
  */
 @Value
 @Builder

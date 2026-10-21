@@ -2,10 +2,9 @@
    V2 - Proveedor INALAMBRIA (MySQL). Idempotente. Requiere V1.
    Ejecutar como SCRIPT en DBeaver (Alt+X).
 
-   Contraseñas en variables de entorno (secret_ref = nombre de la variable):
-     INALAMBRIA_OTP_PASSWORD, INALAMBRIA_MASIVO_PASSWORD,
-     INALAMBRIA_HABEASDATA_PASSWORD, INALAMBRIA_TEMPLATE_PASSWORD,
-     INALAMBRIA_PERSONALIZADA_PASSWORD
+   Contraseñas CIFRADAS (AES-256-GCM) en clave_cifrada. Se descifran al enviar con la llave
+   de la variable de entorno SMS_CRYPTO_KEY (nunca en BD ni en el repositorio).
+   Si cambia la llave, vuelva a cifrar (ClaveCifradaCli o PUT /v1/sms/admin/cuentas/{id} con 'clave').
    ===================================================================== */
 
 -- 1. Proveedor
@@ -16,15 +15,20 @@ FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM SmsProveedor WHERE codigo = 'INALAMBRI
 -- 2. Cuentas
 SET @prov = (SELECT id_sms_proveedor FROM SmsProveedor WHERE codigo = 'INALAMBRIA');
 
-INSERT INTO SmsCuenta (proveedor_id, codigo, usuario, secret_ref, remitente, parametros_json, activo)
-SELECT @prov, v.codigo, v.usuario, v.secret_ref, NULL, v.parametros_json, b'1'
+INSERT INTO SmsCuenta (proveedor_id, codigo, usuario, secret_ref, clave_cifrada, remitente, parametros_json, activo)
+SELECT @prov, v.codigo, v.usuario, NULL, v.clave_cifrada, NULL, v.parametros_json, b'1'
 FROM (
-  SELECT 'INALAMBRIA_OTP' AS codigo, 'COMFENALCOquindioOTP' AS usuario, 'INALAMBRIA_OTP_PASSWORD' AS secret_ref,
+  SELECT 'INALAMBRIA_OTP' AS codigo, 'COMFENALCOquindioOTP' AS usuario,
+         'v1:MOIs/G3Q9IWGgpOqaYikpP3lactcYqEPCVnrrCtPhKF+0Xc=' AS clave_cifrada,
          '{"type":1,"messagePattern":"0","templateId":0}' AS parametros_json
-  UNION ALL SELECT 'INALAMBRIA_MASIVO',        'COMFENALCOquindioMASIVO',      'INALAMBRIA_MASIVO_PASSWORD',        '{"type":1,"messagePattern":"0","templateId":0}'
-  UNION ALL SELECT 'INALAMBRIA_HABEASDATA',    'COMFENALCOquindioCOMUNICADOR', 'INALAMBRIA_HABEASDATA_PASSWORD',    '{"type":1,"messagePattern":"0","templateId":0}'
-  UNION ALL SELECT 'INALAMBRIA_TEMPLATE',      'COMFENALCOquindioOTP',         'INALAMBRIA_TEMPLATE_PASSWORD',      '{"type":1,"messagePattern":"1","templateId":0}'
-  UNION ALL SELECT 'INALAMBRIA_PERSONALIZADA', 'COMFENALCOquindioOTP',         'INALAMBRIA_PERSONALIZADA_PASSWORD', '{"type":1,"messagePattern":"1","templateId":0}'
+  UNION ALL SELECT 'INALAMBRIA_MASIVO',        'COMFENALCOquindioMASIVO',
+         'v1:zqg+2HKF6qCl2NTp2pQlnWwrrnGXtzu+2Iwj2VWSwKCGE3gVyd8=', '{"type":1,"messagePattern":"0","templateId":0}'
+  UNION ALL SELECT 'INALAMBRIA_HABEASDATA',    'COMFENALCOquindioCOMUNICADOR',
+         'v1:Wpp8p25Jr6cif+9OrAWOraLPR9vfw4pE6oMxGcmjoaldjQft', '{"type":1,"messagePattern":"0","templateId":0}'
+  UNION ALL SELECT 'INALAMBRIA_TEMPLATE',      'COMFENALCOquindioOTP',
+         'v1:g04hQjF0uvZaUSCrcNO4OWJLuIMoJrq5D5KUuMWqehGew8U=', '{"type":1,"messagePattern":"1","templateId":0}'
+  UNION ALL SELECT 'INALAMBRIA_PERSONALIZADA', 'COMFENALCOquindioOTP',
+         'v1:POKjUCKJbM1z/8VwYNPztUKTleO0Kf85gNEi5cG0Eh18bWs=', '{"type":1,"messagePattern":"1","templateId":0}'
 ) v
 WHERE NOT EXISTS (SELECT 1 FROM SmsCuenta c WHERE c.codigo = v.codigo);
 

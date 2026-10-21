@@ -16,7 +16,8 @@ import lombok.Setter;
 
 /**
  * Cuenta de un proveedor ({@code sms_cuenta}).
- * La contraseña NO se guarda: {@code secretRef} es el nombre de la variable de entorno que la contiene.
+ * La contraseña se guarda cifrada en {@code claveCifrada} (AES-256-GCM, llave en SMS_CRYPTO_KEY) o, si no hay,
+ * se lee de la variable de entorno indicada en {@code secretRef}.
  */
 @Entity
 @Table(name = "SmsCuenta")
@@ -40,9 +41,13 @@ public class SmsCuentaEntity {
     @Column(name = "usuario", length = 100)
     private String usuario;
 
-    /** Nombre de la variable de entorno / propiedad con la contraseña. */
-    @Column(name = "secret_ref", length = 100, nullable = false)
+    /** Nombre de la variable de entorno / propiedad con la contraseña (alternativa a {@code claveCifrada}). */
+    @Column(name = "secret_ref", length = 100)
     private String secretRef;
+
+    /** Contraseña cifrada ({@code v1:...}); tiene prioridad sobre {@code secretRef}. */
+    @Column(name = "clave_cifrada", length = 500)
+    private String claveCifrada;
 
     @Column(name = "remitente", length = 20)
     private String remitente;

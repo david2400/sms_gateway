@@ -48,6 +48,23 @@ class OtpServiceTest {
         assertEquals("k1", sent.getIdempotencyKey());
         assertNull(dispatch.provider);
         assertEquals(DispatchChannel.CENTRAL, dispatch.channel);
+        assertNull(sent.getAccountCode());
+    }
+
+    @Test
+    void otpConCuentaLaPasaAlMotor() {
+        service.send(SendOtpRequest.builder().phoneNumber("3157132338").otpCode("482913")
+                .message("Su código es {OTP}").cuenta("INALAMBRIA_MASIVO").build(), null);
+
+        assertEquals("INALAMBRIA_MASIVO", dispatch.sent.get(0).getAccountCode());
+    }
+
+    @Test
+    void otpAutoGeneradoConCuenta() {
+        service.sendAutoGenerate("3157132338", null, 5, "INALAMBRIA_OTP");
+
+        assertEquals("INALAMBRIA_OTP", dispatch.sent.get(0).getAccountCode());
+        assertEquals(MessageType.OTP, dispatch.sent.get(0).getType());
     }
 
     @Test
@@ -103,7 +120,7 @@ class OtpServiceTest {
                 .providerCode("INALAMBRIA").accountCode("INALAMBRIA_OTP").httpStatus(200).attempts(1).build();
 
         FakeDispatch() {
-            super(null, null, List.of());
+            super(null, null, null, List.of());
         }
 
         @Override

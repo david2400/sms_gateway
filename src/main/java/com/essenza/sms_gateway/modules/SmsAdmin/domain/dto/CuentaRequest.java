@@ -8,10 +8,14 @@ import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.util.Map;
 
-/** Alta o modificación de cuenta. La contraseña NUNCA se envía: se indica el nombre de la variable de entorno. */
+/**
+ * Alta o modificación de cuenta. La contraseña se envía en {@code clave} y se guarda cifrada (nunca se devuelve);
+ * alternativa: {@code secret_ref} con el nombre de una variable de entorno.
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -31,10 +35,17 @@ public class CuentaRequest {
     @Schema(description = "Usuario o api key. Use 'env:VARIABLE' para leerlo del entorno", example = "COMFENALCOquindioOTP")
     private String usuario;
 
-    @NotBlank
     @Pattern(regexp = "[A-Za-z_][A-Za-z0-9_.]{0,99}", message = "secret_ref debe ser el NOMBRE de una variable de entorno, no la contraseña")
-    @Schema(description = "Nombre de la variable de entorno con la contraseña / secret", example = "INALAMBRIA_OTP_PASSWORD")
+    @Schema(description = "Opcional: nombre de la variable de entorno con la contraseña (si no se usa 'clave')",
+            example = "INALAMBRIA_OTP_PASSWORD")
     private String secretRef;
+
+    @Size(max = 200)
+    @Schema(description = "Contraseña / api secret en texto plano. Se guarda cifrada (AES-256) y nunca se devuelve. "
+            + "Al actualizar, si no se envía se conserva la actual", accessMode = Schema.AccessMode.WRITE_ONLY,
+            example = "********")
+    @ToString.Exclude
+    private String clave;
 
     @Size(max = 20)
     @Schema(description = "Remitente", example = "RANDOM")

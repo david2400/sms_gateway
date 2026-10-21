@@ -41,4 +41,9 @@ public class SendSmsRequest {
 
     @Schema(description = "Remitente (si el proveedor lo soporta)", example = "Comfenalco")
     private String sender;
+
+    @Size(max = 50)
+    @Schema(description = "Código de la cuenta a usar (SmsCuenta.codigo). Opcional: si se indica se usa primero "
+            + "esa cuenta y, si agota sus intentos, se continúa con el resto de la ruta", example = "INALAMBRIA_OTP")
+    private String cuenta;
 }

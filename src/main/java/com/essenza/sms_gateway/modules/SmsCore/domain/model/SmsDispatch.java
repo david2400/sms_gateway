@@ -38,6 +38,12 @@ public class SmsDispatch {
     /** Llave de idempotencia enviada por el cliente (header {@code Idempotency-Key}). */
     String idempotencyKey;
 
+    /**
+     * Cuenta pedida por el cliente ({@code sms_cuenta.codigo}). Opcional: si viene, el motor la usa
+     * primero y luego continúa con el resto de la ruta como respaldo.
+     */
+    String accountCode;
+
     /** Datos propios del proveedor enviados en el request (ej. templateId de Inalambria). */
     @Singular
     Map<String, String> providerOptions;

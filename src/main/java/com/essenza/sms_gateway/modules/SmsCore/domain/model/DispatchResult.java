@@ -15,6 +15,7 @@ public class DispatchResult {
     public static final String ERROR_VALIDACION = "VALIDACION";
     public static final String ERROR_RUTA_NO_CONFIGURADA = "RUTA_NO_CONFIGURADA";
     public static final String ERROR_TODAS_FALLARON = "TODAS_LAS_CUENTAS_FALLARON";
+    public static final String ERROR_CUENTA_NO_VALIDA = "CUENTA_NO_VALIDA";
 
     UUID envioId;
     DispatchStatus status;
@@ -24,7 +25,8 @@ public class DispatchResult {
     String accountCode;
     Integer httpStatus;
     int attempts;
-    /** Código de error de negocio: {@link #ERROR_VALIDACION}, {@link #ERROR_RUTA_NO_CONFIGURADA}, {@link #ERROR_TODAS_FALLARON}. */
+    /** Código de error de negocio: {@link #ERROR_VALIDACION}, {@link #ERROR_RUTA_NO_CONFIGURADA}, {@link #ERROR_TODAS_FALLARON},
+     *  {@link #ERROR_CUENTA_NO_VALIDA}. */
     String errorCode;
     String detail;
 

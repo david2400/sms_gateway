@@ -128,7 +128,7 @@ public class Go4ClientsCampaignHttpAdapter implements Go4ClientsCampaignPort {
     }
 
     private static String credentialsMessage(ProviderAccount account) {
-        return "Cuenta " + account.getCode() + " sin credenciales: revise usuario (api key) y la variable de secret_ref (api secret)";
+        return "Cuenta " + account.getCode() + " sin credenciales: revise usuario (api key) y el api secret (clave_cifrada + SMS_CRYPTO_KEY, o la variable de secret_ref)";
     }
 
     private static String truncate(String value) {

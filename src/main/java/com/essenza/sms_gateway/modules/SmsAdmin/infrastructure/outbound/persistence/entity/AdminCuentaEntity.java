@@ -17,7 +17,7 @@ import lombok.Setter;
 /**
  * Tabla {@code sms_cuenta} vista por el módulo de administración.
  * Mapea la misma tabla que usa SmsCore; el nombre de entidad es distinto para no chocar en JPA.
- * La contraseña NO se guarda: {@code secretRef} es el nombre de la variable de entorno que la contiene.
+ * La contraseña se guarda cifrada en {@code claveCifrada}; {@code secretRef} (variable de entorno) es la alternativa.
  */
 @Entity(name = "AdminCuenta")
 @Table(name = "SmsCuenta")
@@ -42,8 +42,12 @@ public class AdminCuentaEntity {
     private String usuario;
 
     /** Nombre de la variable de entorno / propiedad con la contraseña. */
-    @Column(name = "secret_ref", length = 100, nullable = false)
+    @Column(name = "secret_ref", length = 100)
     private String secretRef;
+
+    /** Contraseña cifrada ({@code v1:...}); nunca sale en las respuestas. */
+    @Column(name = "clave_cifrada", length = 500)
+    private String claveCifrada;
 
     @Column(name = "remitente", length = 20)
     private String remitente;

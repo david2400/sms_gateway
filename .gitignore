@@ -31,3 +31,6 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Configuracion local (secretos: SMS_CRYPTO_KEY) ###
+/config/

@@ -9,6 +9,7 @@ import com.essenza.sms_gateway.modules.SmsCore.domain.model.RoutePlan;
 import com.essenza.sms_gateway.modules.SmsCore.domain.model.RouteStep;
 import com.essenza.sms_gateway.modules.SmsCore.domain.model.SendOutcome;
 import com.essenza.sms_gateway.modules.SmsCore.domain.model.SmsDispatch;
+import com.essenza.sms_gateway.modules.SmsCore.domain.ports.ProviderAccountQueryPort;
 import com.essenza.sms_gateway.modules.SmsCore.domain.ports.RoutingPolicyPort;
 import com.essenza.sms_gateway.modules.SmsCore.domain.ports.SmsDispatchLogPort;
 import com.essenza.sms_gateway.modules.SmsCore.domain.ports.SmsSenderPort;
@@ -36,6 +37,7 @@ class SmsDispatchServiceTest {
 
     private FakeRouting routing;
     private FakeLog log;
+    private FakeAccounts accounts;
     private ScriptedSender provA;
     private ScriptedSender provB;
     private SmsDispatchService service;
@@ -44,9 +46,10 @@ class SmsDispatchServiceTest {
     void setUp() {
         routing = new FakeRouting();
         log = new FakeLog();
+        accounts = new FakeAccounts();
         provA = new ScriptedSender("PROV_A");
         provB = new ScriptedSender("PROV_B");
-        service = new SmsDispatchService(routing, log, List.of(provA, provB)) {
+        service = new SmsDispatchService(routing, log, accounts, List.of(provA, provB)) {
             @Override
             protected boolean pause(long millis) {
                 return true; // sin esperas en pruebas
@@ -160,6 +163,101 @@ class SmsDispatchServiceTest {
         assertNull(log.attemptStatuses.get(0));
     }
 
+    // ============== cuenta solicitada en el request ==============
+
+    @Test
+    void cuentaSolicitadaExitosaNoUsaElRestoDeLaRuta() {
+        routing.plan = plan(step(1, "A_OTP", "PROV_A"), step(2, "B_OTP", "PROV_B"));
+        accounts.add(account(2, "B_OTP", "PROV_B"));
+        provB.script(200);
+
+        DispatchResult r = service.dispatch(msg().toBuilder().accountCode("B_OTP").build(), DispatchChannel.CENTRAL, null);
+
+        assertEquals(DispatchStatus.ENVIADO, r.getStatus());
+        assertEquals("B_OTP", r.getAccountCode());
+        assertEquals(1, r.getAttempts());
+        assertEquals(0, provA.calls);
+    }
+
+    @Test
+    void cuentaSolicitadaVaPrimeroYLuegoSigueLaRutaSinRepetirla() {
+        routing.plan = plan(step(1, "A_OTP", "PROV_A"), step(2, "B_OTP", "PROV_B"));
+        accounts.add(account(2, "B_OTP", "PROV_B"));
+        provB.script(500, 500, 500);
+        provA.script(200);
+
+        DispatchResult r = service.dispatch(msg().toBuilder().accountCode("B_OTP").build(), DispatchChannel.CENTRAL, null);
+
+        assertEquals(DispatchStatus.ENVIADO, r.getStatus());
+        assertEquals("A_OTP", r.getAccountCode());
+        assertEquals(4, r.getAttempts());
+        assertEquals(3, provB.calls);
+        assertEquals(List.of("B_OTP#1:false", "B_OTP#2:false", "B_OTP#3:false", "A_OTP#1:true"), log.attempts);
+        assertEquals(List.of(1, 1, 1, 2), log.attemptOrders);
+    }
+
+    @Test
+    void cuentaSolicitadaFueraDeLaRutaUsaIntentosPorDefecto() {
+        routing.plan = plan(step(1, "A_OTP", "PROV_A"));
+        accounts.add(account(9, "B_MASIVO", "PROV_B"));
+        provB.script(500, 500, 500);
+        provA.script(200);
+
+        DispatchResult r = service.dispatch(msg().toBuilder().accountCode("B_MASIVO").build(), DispatchChannel.CENTRAL, null);
+
+        assertEquals(DispatchStatus.ENVIADO, r.getStatus());
+        assertEquals(SmsDispatchService.DEFAULT_MAX_ATTEMPTS, provB.calls);
+        assertEquals("A_OTP", r.getAccountCode());
+    }
+
+    @Test
+    void cuentaSolicitadaSinRutaConfiguradaEnviaSoloConEsaCuenta() {
+        routing.plan = RoutePlan.empty(null, MessageType.OTP);
+        accounts.add(account(2, "B_OTP", "PROV_B"));
+        provB.script(500, 200);
+
+        DispatchResult r = service.dispatch(msg().toBuilder().accountCode("B_OTP").build(), DispatchChannel.CENTRAL, null);
+
+        assertEquals(DispatchStatus.ENVIADO, r.getStatus());
+        assertEquals("B_OTP", r.getAccountCode());
+        assertEquals(2, r.getAttempts());
+    }
+
+    @Test
+    void cuentaSolicitadaInexistenteNoEnvia() {
+        routing.plan = plan(step(1, "A_OTP", "PROV_A"));
+
+        DispatchResult r = service.dispatch(msg().toBuilder().accountCode("NO_EXISTE").build(), DispatchChannel.CENTRAL, null);
+
+        assertEquals(DispatchStatus.FALLIDO, r.getStatus());
+        assertEquals(DispatchResult.ERROR_CUENTA_NO_VALIDA, r.getErrorCode());
+        assertEquals(0, provA.calls);
+        assertTrue(log.attempts.isEmpty());
+    }
+
+    @Test
+    void cuentaDeOtroProveedorEnEndpointDeProveedorNoEnvia() {
+        routing.plan = plan(step(1, "A_OTP", "PROV_A"));
+        accounts.add(account(2, "B_OTP", "PROV_B"));
+
+        DispatchResult r = service.dispatch(msg().toBuilder().accountCode("B_OTP").build(), DispatchChannel.PROVEEDOR, "PROV_A");
+
+        assertEquals(DispatchResult.ERROR_CUENTA_NO_VALIDA, r.getErrorCode());
+        assertEquals("PROV_A", accounts.lastProvider);
+        assertEquals(0, provA.calls);
+        assertEquals(0, provB.calls);
+    }
+
+    @Test
+    void sinCuentaNoConsultaCuentas() {
+        routing.plan = plan(step(1, "A_OTP", "PROV_A"));
+        provA.script(200);
+
+        service.dispatch(msg().toBuilder().accountCode("  ").build(), DispatchChannel.CENTRAL, null);
+
+        assertEquals(0, accounts.queries);
+    }
+
     // ===================== fakes =====================
 
     private static SmsDispatch msg() {
@@ -172,9 +270,35 @@ class SmsDispatchServiceTest {
 
     private static RouteStep step(int order, String account, String provider) {
         return RouteStep.builder().order(order).maxAttempts(3).waitMs(10)
-                .account(ProviderAccount.builder().id((long) order).providerId((long) order)
-                        .code(account).providerCode(provider).build())
+                .account(account(order, account, provider))
                 .build();
+    }
+
+    private static ProviderAccount account(long id, String code, String provider) {
+        return ProviderAccount.builder().id(id).providerId(id).code(code).providerCode(provider).build();
+    }
+
+    static class FakeAccounts implements ProviderAccountQueryPort {
+        final Map<String, ProviderAccount> byCode = new HashMap<>();
+        String lastProvider;
+        int queries;
+
+        void add(ProviderAccount a) {
+            byCode.put(a.getCode(), a);
+        }
+
+        @Override
+        public Optional<ProviderAccount> findActive(String providerCode, String accountCode) {
+            queries++;
+            lastProvider = providerCode;
+            return Optional.ofNullable(byCode.get(accountCode))
+                    .filter(a -> providerCode == null || providerCode.equalsIgnoreCase(a.getProviderCode()));
+        }
+
+        @Override
+        public Optional<ProviderAccount> findFirstActive(String providerCode) {
+            return Optional.empty();
+        }
     }
 
     static class FakeRouting implements RoutingPolicyPort {
@@ -196,6 +320,7 @@ class SmsDispatchServiceTest {
         boolean started;
         final List<String> attempts = new ArrayList<>();
         final List<Integer> attemptStatuses = new ArrayList<>();
+        final List<Integer> attemptOrders = new ArrayList<>();
         final Map<String, DispatchResult> byKey = new HashMap<>();
         String finalAccount;
 
@@ -209,6 +334,7 @@ class SmsDispatchServiceTest {
         public void attempt(UUID envioId, RouteStep step, int attemptNumber, SendOutcome outcome) {
             attempts.add(step.getAccount().getCode() + "#" + attemptNumber + ":" + outcome.isSuccess());
             attemptStatuses.add(outcome.getHttpStatus());
+            attemptOrders.add(step.getOrder());
         }
 
         @Override

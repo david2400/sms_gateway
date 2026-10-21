@@ -47,7 +47,7 @@ public class RoutingPolicyJpaAdapter implements RoutingPolicyPort {
     private final Map<String, CachedPlan> cache = new ConcurrentHashMap<>();
 
     @Override
-    @Transactional(transactionManager = "maestraTransactionManager", readOnly = true)
+    @Transactional(readOnly = true)
     public RoutePlan resolve(String providerCode, MessageType type) {
         String key = (providerCode == null ? CENTRAL : providerCode.toUpperCase()) + "|" + type;
         long ttlMs = properties.getRoutingCacheTtlSeconds() * 1000L;

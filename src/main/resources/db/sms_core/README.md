@@ -19,6 +19,7 @@ En DBeaver ejecutar como **script** (Alt+X), no como sentencia (Ctrl+Enter).
 | 3 | `V3__seed_mock.sql` | Proveedor MOCK (pruebas) — opcional en producción |
 | 4 | `V4__seed_go4clients.sql` | Proveedor GO4CLIENTS, cuenta y rutas de `/v1/sms/go4clients/send` |
 | 5 | `V5__rutas_centrales.sql` | Rutas del endpoint central `/v1/sms/send` (proveedor_id NULL) |
+| 6 | `V6__claves_cifradas.sql` | Solo para BD existentes: agrega `clave_cifrada` y carga las contraseñas cifradas (UPDATE) |
 | — | `consultas/configuracion.sql` | Rutas efectivas, cuentas y variables de entorno requeridas |
 | — | `consultas/envios.sql` | Log: cómo se envió cada SMS, intentos, historial, resumen |
 
@@ -33,8 +34,13 @@ Crear `V6__seed_<proveedor>.sql` en **las dos carpetas**: proveedor → cuentas 
 Para usarlo en el central, agregar sus pasos en un script nuevo (no editar V5 ya ejecutado).
 
 ## Credenciales
-Nunca en BD. `secret_ref` = **nombre** de la variable de entorno con la contraseña;
-`usuario` puede ser `env:NOMBRE_VARIABLE`.
+- `clave_cifrada`: contraseña cifrada con AES-256-GCM (`v1:...`). Se descifra al enviar con la llave de
+  **`SMS_CRYPTO_KEY`** (variable de entorno, 32 bytes Base64). La llave nunca va en BD ni en git.
+- `secret_ref` (opcional): nombre de una variable de entorno con la contraseña; se usa si no hay `clave_cifrada`
+  o si no se puede descifrar.
+- Para cifrar una clave nueva: `PUT /v1/sms/admin/cuentas/{id}` con `"clave"` (la cifra el servidor), o
+  `ClaveCifradaCli cifrar` (clase `SmsCore/shared/crypto/ClaveCifradaCli`, requiere `SMS_CRYPTO_KEY`).
+- Si cambia la llave hay que volver a cifrar todas las claves.
 
 ## Notas
 - Nombres sincronizados con `Sms*Entity` / `Admin*Entity`. Si cambia una entidad, actualizar ambos `V1`.

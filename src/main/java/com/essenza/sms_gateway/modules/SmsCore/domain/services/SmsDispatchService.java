@@ -4,10 +4,12 @@ import com.essenza.sms_gateway.modules.SmsCore.domain.exception.DuplicateDispatc
 import com.essenza.sms_gateway.modules.SmsCore.domain.model.DispatchChannel;
 import com.essenza.sms_gateway.modules.SmsCore.domain.model.DispatchResult;
 import com.essenza.sms_gateway.modules.SmsCore.domain.model.DispatchStatus;
+import com.essenza.sms_gateway.modules.SmsCore.domain.model.ProviderAccount;
 import com.essenza.sms_gateway.modules.SmsCore.domain.model.RoutePlan;
 import com.essenza.sms_gateway.modules.SmsCore.domain.model.RouteStep;
 import com.essenza.sms_gateway.modules.SmsCore.domain.model.SendOutcome;
 import com.essenza.sms_gateway.modules.SmsCore.domain.model.SmsDispatch;
+import com.essenza.sms_gateway.modules.SmsCore.domain.ports.ProviderAccountQueryPort;
 import com.essenza.sms_gateway.modules.SmsCore.domain.ports.RoutingPolicyPort;
 import com.essenza.sms_gateway.modules.SmsCore.domain.ports.SmsDispatchLogPort;
 import com.essenza.sms_gateway.modules.SmsCore.domain.ports.SmsSenderPort;
@@ -28,6 +30,8 @@ import java.util.stream.Collectors;
  * <ol>
  *   <li>Valida el mensaje (si es inválido no gasta intentos).</li>
  *   <li>Resuelve la ruta (proveedor, tipo). {@code providerCode == null} = ruta central.</li>
+ *   <li>Si el request pide una cuenta ({@link SmsDispatch#getAccountCode()}), esa cuenta va primero y el
+ *       resto de la ruta queda como respaldo (sin repetir la cuenta pedida).</li>
  *   <li>Por cada paso de la ruta, en orden: hasta {@code maxAttempts} intentos (3 por defecto)
  *       contra esa cuenta. Al primer éxito (HTTP 2xx) termina.</li>
  *   <li>Si los intentos de una cuenta se agotan, pasa a la siguiente cuenta/proveedor.</li>
@@ -39,15 +43,22 @@ import java.util.stream.Collectors;
 @Service
 public class SmsDispatchService {
 
+    /** Intentos y espera para la cuenta pedida cuando no está en la ruta (mismos defaults de sms_ruta_paso). */
+    static final int DEFAULT_MAX_ATTEMPTS = 3;
+    static final long DEFAULT_WAIT_MS = 500;
+
     private final RoutingPolicyPort routingPolicy;
     private final SmsDispatchLogPort dispatchLog;
+    private final ProviderAccountQueryPort accountQuery;
     private final Map<String, SmsSenderPort> senders;
 
     public SmsDispatchService(RoutingPolicyPort routingPolicy,
                               SmsDispatchLogPort dispatchLog,
+                              ProviderAccountQueryPort accountQuery,
                               List<SmsSenderPort> senders) {
         this.routingPolicy = routingPolicy;
         this.dispatchLog = dispatchLog;
+        this.accountQuery = accountQuery;
         this.senders = senders.stream()
                 .collect(Collectors.toUnmodifiableMap(s -> s.providerCode().toUpperCase(), Function.identity()));
         log.info("[SMS-CORE] Proveedores registrados: {}", this.senders.keySet());
@@ -90,6 +101,26 @@ public class SmsDispatchService {
         }
 
         RoutePlan plan = routingPolicy.resolve(provider, message.getType());
+
+        String requestedAccount = blankToNull(message.getAccountCode());
+        if (requestedAccount != null) {
+            Optional<ProviderAccount> account = accountQuery.findActive(provider, requestedAccount);
+            if (account.isEmpty()) {
+                log.warn("[SMS-CORE] Cuenta solicitada {} no válida para {}", requestedAccount,
+                        provider == null ? "CENTRAL" : provider);
+                return close(DispatchResult.builder()
+                        .envioId(envioId).status(DispatchStatus.FALLIDO)
+                        .providerCode(provider)
+                        .accountCode(requestedAccount)
+                        .errorCode(DispatchResult.ERROR_CUENTA_NO_VALIDA)
+                        .detail("La cuenta " + requestedAccount + " no existe, está inactiva"
+                                + (provider != null ? " o no pertenece al proveedor " + provider : "")).build(), null);
+            }
+            plan = withRequestedAccount(plan, account.get());
+            log.info("[SMS-CORE] Envío {} usa la cuenta solicitada {}; respaldo: {} cuenta(s) de la ruta",
+                    envioId, account.get().getCode(), plan.getSteps().size() - 1);
+        }
+
         if (plan.isEmpty()) {
             log.error("[SMS-CORE] No hay ruta activa para proveedor={} tipo={}",
                     provider == null ? "CENTRAL" : provider, message.getType());
@@ -151,6 +182,49 @@ public class SmsDispatchService {
         }
 
         return close(failed(envioId, lastStep, lastOutcome, totalAttempts, null), lastStep);
+    }
+
+    /**
+     * Pone la cuenta pedida como primer paso y deja el resto de la ruta como respaldo, sin repetirla.
+     * Si la cuenta ya estaba en la ruta conserva sus intentos y espera; si no, usa los valores por defecto.
+     * Los pasos se renumeran en el orden en que se ejecutarán (es el {@code paso_orden} del log).
+     */
+    static RoutePlan withRequestedAccount(RoutePlan plan, ProviderAccount requested) {
+        List<RouteStep> routeSteps = plan.getSteps() != null ? plan.getSteps() : List.of();
+        RouteStep inRoute = routeSteps.stream()
+                .filter(s -> sameAccount(s.getAccount(), requested))
+                .findFirst().orElse(null);
+
+        RoutePlan.RoutePlanBuilder builder = RoutePlan.builder()
+                .routeId(plan.getRouteId())
+                .providerCode(plan.getProviderCode())
+                .messageType(plan.getMessageType());
+        int order = 1;
+        builder.step(RouteStep.builder()
+                .order(order++)
+                .account(requested)
+                .maxAttempts(inRoute != null ? inRoute.getMaxAttempts() : DEFAULT_MAX_ATTEMPTS)
+                .waitMs(inRoute != null ? inRoute.getWaitMs() : DEFAULT_WAIT_MS)
+                .build());
+        for (RouteStep step : routeSteps) {
+            if (!sameAccount(step.getAccount(), requested)) {
+                builder.step(RouteStep.builder()
+                        .order(order++)
+                        .account(step.getAccount())
+                        .maxAttempts(step.getMaxAttempts())
+                        .waitMs(step.getWaitMs())
+                        .build());
+            }
+        }
+        return builder.build();
+    }
+
+    private static boolean sameAccount(ProviderAccount a, ProviderAccount b) {
+        return a != null && b != null && a.getCode() != null && a.getCode().equalsIgnoreCase(b.getCode());
+    }
+
+    private static String blankToNull(String value) {
+        return value == null || value.isBlank() ? null : value.trim();
     }
 
     private DispatchResult failed(UUID envioId, RouteStep step, SendOutcome outcome, int attempts, String detail) {

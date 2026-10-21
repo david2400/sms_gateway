@@ -20,7 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@Transactional(transactionManager = "maestraTransactionManager")
+@Transactional
 public class ActualizarProveedorService implements ActualizarProveedorUseCase {
 
     private final ProveedorAdminPort proveedores;

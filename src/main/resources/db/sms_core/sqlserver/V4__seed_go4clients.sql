@@ -4,7 +4,7 @@
 
    Credenciales en variables de entorno (no en BD):
      SmsCuenta.usuario    = 'env:GO4CLIENTS_API_KEY'  -> api key
-     SmsCuenta.secret_ref = 'GO4CLIENTS_API_SECRET'   -> api secret
+     SmsCuenta.clave_cifrada = api secret cifrado (AES-256-GCM, llave SMS_CRYPTO_KEY)
    ===================================================================== */
 
 IF NOT EXISTS (SELECT 1 FROM dbo.SmsProveedor WHERE codigo = 'GO4CLIENTS')
@@ -15,8 +15,9 @@ GO
 DECLARE @prov BIGINT = (SELECT id_sms_proveedor FROM dbo.SmsProveedor WHERE codigo = 'GO4CLIENTS');
 
 IF NOT EXISTS (SELECT 1 FROM dbo.SmsCuenta WHERE codigo = 'GO4CLIENTS_PRINCIPAL')
-  INSERT INTO dbo.SmsCuenta (proveedor_id, codigo, usuario, secret_ref, remitente, parametros_json, activo)
-  VALUES (@prov, 'GO4CLIENTS_PRINCIPAL', 'env:GO4CLIENTS_API_KEY', 'GO4CLIENTS_API_SECRET', 'RANDOM', N'{"priority":"HIGH"}', 1);
+  INSERT INTO dbo.SmsCuenta (proveedor_id, codigo, usuario, secret_ref, clave_cifrada, remitente, parametros_json, activo)
+  VALUES (@prov, 'GO4CLIENTS_PRINCIPAL', 'env:GO4CLIENTS_API_KEY', NULL,
+         'v1:y8o3E8dikzW62ZxJyJAaUiOhQWHdvwwdYEb/UqlBdwtNumcQNzAo5Iyvnxc=', 'RANDOM', N'{"priority":"HIGH"}', 1);
 GO
 
 -- Rutas del endpoint propio  POST /v1/sms/go4clients/send

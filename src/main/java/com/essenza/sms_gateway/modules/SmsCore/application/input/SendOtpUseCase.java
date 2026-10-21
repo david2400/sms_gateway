@@ -10,7 +10,13 @@ public interface SendOtpUseCase {
 
     OtpSendResult send(SendOtpRequest request, String idempotencyKey);
 
-    OtpSendResult sendAutoGenerate(String phoneNumber, String message, Integer expirationMinutes);
+    /**
+     * @param cuenta código de cuenta a usar primero (opcional, {@code null} = solo la ruta OTP)
+     */
+    OtpSendResult sendAutoGenerate(String phoneNumber, String message, Integer expirationMinutes, String cuenta);
 
-    OtpSendResult sendWithDefaultMessage(String phoneNumber);
+    /**
+     * @param cuenta código de cuenta a usar primero (opcional, {@code null} = solo la ruta OTP)
+     */
+    OtpSendResult sendWithDefaultMessage(String phoneNumber, String cuenta);
 }

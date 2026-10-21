@@ -33,15 +33,13 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class SmsDispatchLogJpaAdapter implements SmsDispatchLogPort {
 
-    private static final String TX = "maestraTransactionManager";
-
     private final SmsEnvioRepository envioRepository;
     private final SmsEnvioIntentoRepository intentoRepository;
     private final SmsProveedorRepository proveedorRepository;
     private final SmsCuentaRepository cuentaRepository;
 
     @Override
-    @Transactional(transactionManager = TX, propagation = Propagation.REQUIRES_NEW)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public UUID start(SmsDispatch message, DispatchChannel channel, String requestedProvider) {
         SmsEnvioEntity envio = new SmsEnvioEntity();
         envio.setUuid(message.getId());
@@ -66,7 +64,7 @@ public class SmsDispatchLogJpaAdapter implements SmsDispatchLogPort {
     }
 
     @Override
-    @Transactional(transactionManager = TX, propagation = Propagation.REQUIRES_NEW)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void attempt(UUID envioId, RouteStep step, int attemptNumber, SendOutcome outcome) {
         SmsEnvioIntentoEntity intento = new SmsEnvioIntentoEntity();
         intento.setEnvio(envioRepository.findByUuid(envioId).orElseThrow());
@@ -83,7 +81,7 @@ public class SmsDispatchLogJpaAdapter implements SmsDispatchLogPort {
     }
 
     @Override
-    @Transactional(transactionManager = TX, propagation = Propagation.REQUIRES_NEW)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void finish(DispatchResult result, RouteStep lastStep) {
         envioRepository.findByUuid(result.getEnvioId()).ifPresent(envio -> {
             envio.setEstado(result.getStatus().name());
@@ -101,7 +99,7 @@ public class SmsDispatchLogJpaAdapter implements SmsDispatchLogPort {
     }
 
     @Override
-    @Transactional(transactionManager = TX, readOnly = true)
+    @Transactional(readOnly = true)
     public Optional<DispatchResult> findByIdempotencyKey(String idempotencyKey) {
         return envioRepository.findByIdempotencyKey(idempotencyKey)
                 .map(e -> DispatchResult.builder()

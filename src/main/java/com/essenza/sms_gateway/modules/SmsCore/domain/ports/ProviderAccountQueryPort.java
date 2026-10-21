@@ -12,7 +12,10 @@ import java.util.Optional;
 public interface ProviderAccountQueryPort {
 
     /**
-     * Cuenta activa por código, validando que pertenezca al proveedor indicado.
+     * Cuenta activa (cuenta y proveedor activos) por código.
+     *
+     * @param providerCode proveedor al que debe pertenecer la cuenta, o {@code null} para aceptar cualquier proveedor
+     * @param accountCode  código de la cuenta ({@code sms_cuenta.codigo})
      */
     Optional<ProviderAccount> findActive(String providerCode, String accountCode);
 

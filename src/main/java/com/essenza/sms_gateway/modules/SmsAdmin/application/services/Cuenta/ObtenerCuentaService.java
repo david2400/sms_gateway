@@ -10,7 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(transactionManager = "maestraTransactionManager", readOnly = true)
+@Transactional(readOnly = true)
 public class ObtenerCuentaService implements ObtenerCuentaUseCase {
 
     private final AdminFinder finder;

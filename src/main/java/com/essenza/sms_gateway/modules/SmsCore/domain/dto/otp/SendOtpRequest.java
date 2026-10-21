@@ -46,6 +46,11 @@ public class SendOtpRequest {
     
     @Schema(description = "ID de referencia para tracking", example = "REF-12345")
     private String referenceId;
+
+    @Size(max = 50)
+    @Schema(description = "Código de la cuenta a usar (SmsCuenta.codigo). Opcional: si se indica se usa primero "
+            + "esa cuenta y, si agota sus intentos, se continúa con el resto de la ruta", example = "INALAMBRIA_OTP")
+    private String cuenta;
     
     // ========== Campos opcionales para OTP con PIN ==========
     

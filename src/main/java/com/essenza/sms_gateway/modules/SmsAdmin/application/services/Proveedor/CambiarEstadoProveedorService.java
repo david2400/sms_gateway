@@ -16,7 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@Transactional(transactionManager = "maestraTransactionManager")
+@Transactional
 public class CambiarEstadoProveedorService implements CambiarEstadoProveedorUseCase {
 
     private final ProveedorAdminPort proveedores;

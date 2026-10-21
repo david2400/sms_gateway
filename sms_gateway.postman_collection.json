@@ -1,0 +1,2110 @@
+{
+  "info": {
+    "_postman_id": "5a3da50e-5b4e-4ffb-b8a0-8d8532ad1b5d",
+    "name": "sms_gateway",
+    "description": "Gateway SMS multi-proveedor (Comfenalco Quindío).\n\n- Prefijo: `/api/sms_gateway` (en `base_url`). JSON en **snake_case**.\n- Tipos de mensaje: `OTP`, `HABEAS_DATA`, `TEMPLATE`, `PERSONALIZED`, `NORMAL`, `MASIVO`.\n- Los envíos guardan `envio_id` automáticamente para consultar el log.\n- **Cuenta por envío:** los envíos usan `{{cuenta_central}}`, `{{cuenta_inalambria}}`, `{{cuenta_go4clients}}`, `{{cuenta_mock}}` y `{{cuenta_otp}}`. Vacías = se usa la ruta de BD; con un código (ej. `INALAMBRIA_OTP`) esa cuenta va primero y la ruta queda de respaldo. Códigos disponibles: *07 → Cuentas → Listar cuentas*. 422 `CUENTA_NO_VALIDA` si no existe, está inactiva o es de otro proveedor.\n- Swagger: `http://localhost:9002/swagger-ui.html`.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "01 - SMS Central (SmsCore)",
+      "description": "Endpoint centralizado: elige proveedor y cuenta según la **ruta central** en BD (`SmsRuta.proveedor_id = NULL`).\n3 intentos por cuenta y luego la siguiente cuenta/proveedor. Respuestas: 200 enviado, 400 request inválido, 422 sin ruta para el tipo, 502 todas las cuentas fallaron.\n\nCampo opcional `cuenta` (código de `SmsCuenta`): se usa primero esa cuenta y, si agota sus intentos, continúa con el resto de la ruta. 422 `CUENTA_NO_VALIDA` si no existe o está inactiva.",
+      "item": [
+        {
+          "name": "Enviar SMS - OTP",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}",
+                "disabled": true,
+                "description": "Opcional. Si se repite la misma llave no se reenvía el SMS."
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/sms/send",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "sms",
+                "send"
+              ]
+            },
+            "description": "Ruta central OTP: INALAMBRIA_OTP → INALAMBRIA_MASIVO.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo_mensaje\": \"OTP\",\n  \"to\": \"{{telefono}}\",\n  \"country_code\": \"57\",\n  \"message\": \"Su código de verificación es 123456\",\n  \"cuenta\": \"{{cuenta_central}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "const j = pm.response.json();",
+                  "if (j && j.envio_id !== undefined && j.envio_id !== null) {",
+                  "  pm.collectionVariables.set('envio_id', j.envio_id);",
+                  "  console.log('envio_id =', j.envio_id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Enviar SMS - NORMAL",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}",
+                "disabled": true,
+                "description": "Opcional. Si se repite la misma llave no se reenvía el SMS."
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/sms/send",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "sms",
+                "send"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo_mensaje\": \"NORMAL\",\n  \"to\": \"{{telefono}}\",\n  \"country_code\": \"57\",\n  \"message\": \"Comfenalco Quindío le informa: su solicitud fue aprobada.\",\n  \"cuenta\": \"{{cuenta_central}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "const j = pm.response.json();",
+                  "if (j && j.envio_id !== undefined && j.envio_id !== null) {",
+                  "  pm.collectionVariables.set('envio_id', j.envio_id);",
+                  "  console.log('envio_id =', j.envio_id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Enviar SMS - HABEAS_DATA",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}",
+                "disabled": true,
+                "description": "Opcional. Si se repite la misma llave no se reenvía el SMS."
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/sms/send",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "sms",
+                "send"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo_mensaje\": \"HABEAS_DATA\",\n  \"to\": \"{{telefono}}\",\n  \"country_code\": \"57\",\n  \"message\": \"Autoriza el tratamiento de sus datos personales? Responda SI\",\n  \"cuenta\": \"{{cuenta_central}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "const j = pm.response.json();",
+                  "if (j && j.envio_id !== undefined && j.envio_id !== null) {",
+                  "  pm.collectionVariables.set('envio_id', j.envio_id);",
+                  "  console.log('envio_id =', j.envio_id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Enviar SMS - con Idempotency-Key fija",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "prueba-idempotencia-001",
+                "disabled": false,
+                "description": "Opcional. Si se repite la misma llave no se reenvía el SMS."
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/sms/send",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "sms",
+                "send"
+              ]
+            },
+            "description": "Ejecútelo dos veces: la segunda devuelve el mismo envío sin mandar otro SMS.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo_mensaje\": \"OTP\",\n  \"to\": \"{{telefono}}\",\n  \"message\": \"Prueba de idempotencia\",\n  \"cuenta\": \"{{cuenta_central}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "const j = pm.response.json();",
+                  "if (j && j.envio_id !== undefined && j.envio_id !== null) {",
+                  "  pm.collectionVariables.set('envio_id', j.envio_id);",
+                  "  console.log('envio_id =', j.envio_id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Enviar SMS - eligiendo la cuenta",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}",
+                "disabled": true,
+                "description": "Opcional. Si se repite la misma llave no se reenvía el SMS."
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/sms/send",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "sms",
+                "send"
+              ]
+            },
+            "description": "Usa primero `INALAMBRIA_OTP` aunque la ruta del tipo diga otra cuenta; si falla 3 veces sigue con la ruta.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo_mensaje\": \"NORMAL\",\n  \"to\": \"{{telefono}}\",\n  \"country_code\": \"57\",\n  \"message\": \"Comfenalco Quindío le informa: su solicitud fue aprobada.\",\n  \"cuenta\": \"INALAMBRIA_OTP\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "const j = pm.response.json();",
+                  "if (j && j.envio_id !== undefined && j.envio_id !== null) {",
+                  "  pm.collectionVariables.set('envio_id', j.envio_id);",
+                  "  console.log('envio_id =', j.envio_id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Enviar SMS masivo (batch)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/sms/batch",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "sms",
+                "batch"
+              ]
+            },
+            "description": "Un envío del motor por destinatario (máx. 500), cada uno con reintentos y registro en el log.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo_mensaje\": \"MASIVO\",\n  \"message\": \"Recuerde su cita de mañana a las 10:00 AM\",\n  \"destinations\": [\n    {\n      \"to\": \"{{telefono}}\",\n      \"country_code\": \"57\"\n    },\n    {\n      \"to\": \"3001234567\",\n      \"country_code\": \"57\"\n    }\n  ],\n  \"cuenta\": \"{{cuenta_central}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 - OTP (SmsCore)",
+      "description": "Mismas URLs del servicio OTP anterior. Usa la ruta central `OTP`.\n\nCampo opcional `cuenta` (código de `SmsCuenta`): se usa primero esa cuenta y, si agota sus intentos, continúa con el resto de la ruta. 422 `CUENTA_NO_VALIDA` si no existe o está inactiva.",
+      "item": [
+        {
+          "name": "Enviar OTP personalizado",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}",
+                "disabled": true,
+                "description": "Opcional. Si se repite la misma llave no se reenvía el SMS."
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/otp/send",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "otp",
+                "send"
+              ]
+            },
+            "description": "El cliente envía el código; `{OTP}` en el mensaje se reemplaza.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone_number\": \"{{telefono}}\",\n  \"country_code\": \"57\",\n  \"otp_code\": \"456789\",\n  \"message\": \"Su código es: {OTP}\",\n  \"expiration_minutes\": 5,\n  \"reference_id\": \"REF-12345\",\n  \"cuenta\": \"{{cuenta_otp}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Enviar OTP auto-generado",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/otp/send-auto?phoneNumber={{telefono}}&message=Su código es: {OTP}&expirationMinutes=5&cuenta={{cuenta_otp}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "otp",
+                "send-auto"
+              ],
+              "query": [
+                {
+                  "key": "phoneNumber",
+                  "value": "{{telefono}}",
+                  "description": "Número destino"
+                },
+                {
+                  "key": "message",
+                  "value": "Su código es: {OTP}",
+                  "description": "Opcional"
+                },
+                {
+                  "key": "expirationMinutes",
+                  "value": "5",
+                  "description": "Opcional (default 5)"
+                },
+                {
+                  "key": "cuenta",
+                  "value": "{{cuenta_otp}}",
+                  "description": "Opcional: cuenta a usar primero (vacío = ruta OTP)"
+                }
+              ]
+            },
+            "description": "El servicio genera el código y lo devuelve en la respuesta."
+          }
+        },
+        {
+          "name": "Enviar OTP simple",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/otp/send-simple?phoneNumber={{telefono}}&cuenta={{cuenta_otp}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "otp",
+                "send-simple"
+              ],
+              "query": [
+                {
+                  "key": "phoneNumber",
+                  "value": "{{telefono}}",
+                  "description": "Número destino"
+                },
+                {
+                  "key": "cuenta",
+                  "value": "{{cuenta_otp}}",
+                  "description": "Opcional: cuenta a usar primero (vacío = ruta OTP)"
+                }
+              ]
+            },
+            "description": "Código auto-generado con mensaje por defecto."
+          }
+        },
+        {
+          "name": "Enviar OTP con PIN",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}",
+                "disabled": true,
+                "description": "Opcional. Si se repite la misma llave no se reenvía el SMS."
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/otp/send-with-pin",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "otp",
+                "send-with-pin"
+              ]
+            },
+            "description": "Genera el PIN, lo envía por SMS y lo actualiza en el servicio de usuarios (`USUARIO_SERVICE_URL`).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone_number\": \"{{telefono}}\",\n  \"tipo_identificacion\": \"CC\",\n  \"nro_identificacion\": \"123456789\",\n  \"nombre\": \"Juan Pérez\",\n  \"message\": \"Su código de acceso es: {OTP}\",\n  \"expiration_minutes\": 5,\n  \"cuenta\": \"{{cuenta_otp}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Estado del servicio OTP",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/otp/status",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "otp",
+                "status"
+              ]
+            },
+            "description": "Disponible si hay ruta central OTP con cuentas activas."
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 - Log de envíos (SmsCore)",
+      "description": "Consulta de cómo se envió cada SMS (proveedor y cuenta final + intentos).",
+      "item": [
+        {
+          "name": "Detalle de un envío",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/sms/envios/{{envio_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "sms",
+                "envios",
+                "{{envio_id}}"
+              ]
+            },
+            "description": "`envio_id` se llena solo al ejecutar cualquier request de envío."
+          }
+        },
+        {
+          "name": "Buscar envíos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/sms/envios?page=0&size=20",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "sms",
+                "envios"
+              ],
+              "query": [
+                {
+                  "key": "destino",
+                  "value": "{{telefono}}",
+                  "description": "Número",
+                  "disabled": true
+                },
+                {
+                  "key": "estado",
+                  "value": "ENVIADO",
+                  "description": "EN_PROCESO | ENVIADO | FALLIDO",
+                  "disabled": true
+                },
+                {
+                  "key": "tipo_mensaje",
+                  "value": "OTP",
+                  "description": "OTP | HABEAS_DATA | TEMPLATE | PERSONALIZED | NORMAL | MASIVO",
+                  "disabled": true
+                },
+                {
+                  "key": "proveedor",
+                  "value": "INALAMBRIA",
+                  "description": "Código del proveedor final",
+                  "disabled": true
+                },
+                {
+                  "key": "desde",
+                  "value": "2026-10-01T00:00:00",
+                  "description": "ISO date-time",
+                  "disabled": true
+                },
+                {
+                  "key": "hasta",
+                  "value": "2026-10-31T23:59:59",
+                  "description": "ISO date-time",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "0",
+                  "description": ""
+                },
+                {
+                  "key": "size",
+                  "value": "20",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Todos los filtros son opcionales."
+          }
+        },
+        {
+          "name": "Recargar caché de rutas",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/sms/admin/routing-cache/refresh",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "sms",
+                "admin",
+                "routing-cache",
+                "refresh"
+              ]
+            },
+            "description": "Toma de inmediato cambios hechos directo en BD (si no, se refresca cada 60 s)."
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 - INALAMBRIA",
+      "description": "Endpoint propio de Inalambria: usa las rutas `SmsRuta` con proveedor INALAMBRIA (no mezcla otros proveedores).\nCampos nativos opcionales: `template_id`, `message_pattern`, `flash_sms`, `url`.\n\nCampo opcional `cuenta` (código de `SmsCuenta`): se usa primero esa cuenta y, si agota sus intentos, continúa con el resto de la ruta. 422 `CUENTA_NO_VALIDA` si no existe o está inactiva.",
+      "item": [
+        {
+          "name": "Enviar - OTP",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}",
+                "disabled": true,
+                "description": "Opcional. Si se repite la misma llave no se reenvía el SMS."
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/sms/inalambria/send",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "sms",
+                "inalambria",
+                "send"
+              ]
+            },
+            "description": "Cuentas: INALAMBRIA_OTP → INALAMBRIA_MASIVO.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo_mensaje\": \"OTP\",\n  \"to\": \"{{telefono}}\",\n  \"country_code\": \"57\",\n  \"message\": \"Su código de verificación es 123456\",\n  \"cuenta\": \"{{cuenta_inalambria}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "const j = pm.response.json();",
+                  "if (j && j.envio_id !== undefined && j.envio_id !== null) {",
+                  "  pm.collectionVariables.set('envio_id', j.envio_id);",
+                  "  console.log('envio_id =', j.envio_id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Enviar - MASIVO",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}",
+                "disabled": true,
+                "description": "Opcional. Si se repite la misma llave no se reenvía el SMS."
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/sms/inalambria/send",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "sms",
+                "inalambria",
+                "send"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo_mensaje\": \"MASIVO\",\n  \"to\": \"{{telefono}}\",\n  \"country_code\": \"57\",\n  \"message\": \"Comfenalco Quindío: recuerde su cita de mañana.\",\n  \"cuenta\": \"{{cuenta_inalambria}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "const j = pm.response.json();",
+                  "if (j && j.envio_id !== undefined && j.envio_id !== null) {",
+                  "  pm.collectionVariables.set('envio_id', j.envio_id);",
+                  "  console.log('envio_id =', j.envio_id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Enviar - NORMAL",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}",
+                "disabled": true,
+                "description": "Opcional. Si se repite la misma llave no se reenvía el SMS."
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/sms/inalambria/send",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "sms",
+                "inalambria",
+                "send"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo_mensaje\": \"NORMAL\",\n  \"to\": \"{{telefono}}\",\n  \"country_code\": \"57\",\n  \"message\": \"Comfenalco Quindío le informa: su solicitud fue aprobada.\",\n  \"cuenta\": \"{{cuenta_inalambria}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "const j = pm.response.json();",
+                  "if (j && j.envio_id !== undefined && j.envio_id !== null) {",
+                  "  pm.collectionVariables.set('envio_id', j.envio_id);",
+                  "  console.log('envio_id =', j.envio_id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Enviar - HABEAS_DATA",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}",
+                "disabled": true,
+                "description": "Opcional. Si se repite la misma llave no se reenvía el SMS."
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/sms/inalambria/send",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "sms",
+                "inalambria",
+                "send"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo_mensaje\": \"HABEAS_DATA\",\n  \"to\": \"{{telefono}}\",\n  \"country_code\": \"57\",\n  \"message\": \"Autoriza el tratamiento de sus datos personales? Responda SI\",\n  \"cuenta\": \"{{cuenta_inalambria}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "const j = pm.response.json();",
+                  "if (j && j.envio_id !== undefined && j.envio_id !== null) {",
+                  "  pm.collectionVariables.set('envio_id', j.envio_id);",
+                  "  console.log('envio_id =', j.envio_id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Enviar - TEMPLATE",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}",
+                "disabled": true,
+                "description": "Opcional. Si se repite la misma llave no se reenvía el SMS."
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/sms/inalambria/send",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "sms",
+                "inalambria",
+                "send"
+              ]
+            },
+            "description": "Ajuste `template_id` al de la plantilla en Inalambria.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo_mensaje\": \"TEMPLATE\",\n  \"to\": \"{{telefono}}\",\n  \"country_code\": \"57\",\n  \"message\": \"Hola Juan, su cita es el 25/10\",\n  \"template_id\": 0,\n  \"message_pattern\": \"1\",\n  \"cuenta\": \"{{cuenta_inalambria}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "const j = pm.response.json();",
+                  "if (j && j.envio_id !== undefined && j.envio_id !== null) {",
+                  "  pm.collectionVariables.set('envio_id', j.envio_id);",
+                  "  console.log('envio_id =', j.envio_id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Enviar - PERSONALIZED",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}",
+                "disabled": true,
+                "description": "Opcional. Si se repite la misma llave no se reenvía el SMS."
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/sms/inalambria/send",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "sms",
+                "inalambria",
+                "send"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo_mensaje\": \"PERSONALIZED\",\n  \"to\": \"{{telefono}}\",\n  \"country_code\": \"57\",\n  \"message\": \"Hola Juan, su saldo es $10.000\",\n  \"message_pattern\": \"1\",\n  \"cuenta\": \"{{cuenta_inalambria}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "const j = pm.response.json();",
+                  "if (j && j.envio_id !== undefined && j.envio_id !== null) {",
+                  "  pm.collectionVariables.set('envio_id', j.envio_id);",
+                  "  console.log('envio_id =', j.envio_id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Enviar - Flash SMS",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}",
+                "disabled": true,
+                "description": "Opcional. Si se repite la misma llave no se reenvía el SMS."
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/sms/inalambria/send",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "sms",
+                "inalambria",
+                "send"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo_mensaje\": \"NORMAL\",\n  \"to\": \"{{telefono}}\",\n  \"country_code\": \"57\",\n  \"message\": \"Mensaje flash de prueba\",\n  \"flash_sms\": true,\n  \"cuenta\": \"{{cuenta_inalambria}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "const j = pm.response.json();",
+                  "if (j && j.envio_id !== undefined && j.envio_id !== null) {",
+                  "  pm.collectionVariables.set('envio_id', j.envio_id);",
+                  "  console.log('envio_id =', j.envio_id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Enviar - eligiendo la cuenta",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}",
+                "disabled": true,
+                "description": "Opcional. Si se repite la misma llave no se reenvía el SMS."
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/sms/inalambria/send",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "sms",
+                "inalambria",
+                "send"
+              ]
+            },
+            "description": "La cuenta debe ser de Inalambria (si es de otro proveedor responde 422 `CUENTA_NO_VALIDA`).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo_mensaje\": \"NORMAL\",\n  \"to\": \"{{telefono}}\",\n  \"country_code\": \"57\",\n  \"message\": \"Comfenalco Quindío le informa: su solicitud fue aprobada.\",\n  \"cuenta\": \"INALAMBRIA_OTP\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "const j = pm.response.json();",
+                  "if (j && j.envio_id !== undefined && j.envio_id !== null) {",
+                  "  pm.collectionVariables.set('envio_id', j.envio_id);",
+                  "  console.log('envio_id =', j.envio_id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "05 - GO4CLIENTS",
+      "description": "Proveedor Go4Clients. El envío pasa por el motor (reintentos + log); las campañas van directo, sin motor ni log.",
+      "item": [
+        {
+          "name": "Enviar SMS",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}",
+                "disabled": true,
+                "description": "Opcional. Si se repite la misma llave no se reenvía el SMS."
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/sms/go4clients/send",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "sms",
+                "go4clients",
+                "send"
+              ]
+            },
+            "description": "Rutas GO4CLIENTS (OTP, NORMAL, MASIVO) → cuenta GO4CLIENTS_PRINCIPAL. Crea una campaña por envío.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo_mensaje\": \"NORMAL\",\n  \"to\": \"{{telefono}}\",\n  \"country_code\": \"57\",\n  \"message\": \"Comfenalco Quindío le informa...\",\n  \"sender\": \"RANDOM\",\n  \"cuenta\": \"{{cuenta_go4clients}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "const j = pm.response.json();",
+                  "if (j && j.envio_id !== undefined && j.envio_id !== null) {",
+                  "  pm.collectionVariables.set('envio_id', j.envio_id);",
+                  "  console.log('envio_id =', j.envio_id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Campañas",
+          "description": "Flujo: crear campaña → enviar mensajes → reporte.",
+          "item": [
+            {
+              "name": "1. Crear campaña",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/v1/sms/go4clients/campaigns",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "sms",
+                    "go4clients",
+                    "campaigns"
+                  ]
+                },
+                "description": "Guarda `campaign_id` en las variables.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Recordatorio citas octubre\",\n  \"sender\": \"RANDOM\",\n  \"cuenta\": \"GO4CLIENTS_PRINCIPAL\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                      "const j = pm.response.json();",
+                      "if (j && j.campaign_id !== undefined && j.campaign_id !== null) {",
+                      "  pm.collectionVariables.set('campaign_id', j.campaign_id);",
+                      "  console.log('campaign_id =', j.campaign_id);",
+                      "}"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "2. Enviar mensajes de la campaña",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/v1/sms/go4clients/campaigns/{{campaign_id}}/messages",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "sms",
+                    "go4clients",
+                    "campaigns",
+                    "{{campaign_id}}",
+                    "messages"
+                  ]
+                },
+                "description": "Máx. 10000 destinatarios.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"message\": \"Recuerde su cita de mañana a las 10:00 AM\",\n  \"priority\": \"HIGH\",\n  \"cuenta\": \"GO4CLIENTS_PRINCIPAL\",\n  \"destinations\": [\n    {\n      \"phone_number\": \"{{telefono}}\",\n      \"country_code\": \"57\"\n    },\n    {\n      \"phone_number\": \"3001234567\",\n      \"country_code\": \"57\"\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "3. Reporte de campaña",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/v1/sms/go4clients/campaigns/{{campaign_id}}/report?cuenta=GO4CLIENTS_PRINCIPAL",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "sms",
+                    "go4clients",
+                    "campaigns",
+                    "{{campaign_id}}",
+                    "report"
+                  ],
+                  "query": [
+                    {
+                      "key": "cuenta",
+                      "value": "GO4CLIENTS_PRINCIPAL",
+                      "description": "Opcional"
+                    }
+                  ]
+                },
+                "description": "Totales de entregados, fallidos y pendientes."
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "06 - MOCK (pruebas)",
+      "description": "No hace llamadas HTTP. Sirve para probar reintentos y fallback sin gastar SMS.",
+      "item": [
+        {
+          "name": "Enviar - OTP (prueba de fallback)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}",
+                "disabled": true,
+                "description": "Opcional. Si se repite la misma llave no se reenvía el SMS."
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/sms/mock/send",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "sms",
+                "mock",
+                "send"
+              ]
+            },
+            "description": "Ruta MOCK OTP: MOCK_FALLA (3 intentos con HTTP 500) → MOCK_OK. Revise el detalle del envío: 4 intentos.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo_mensaje\": \"OTP\",\n  \"to\": \"{{telefono}}\",\n  \"message\": \"Prueba de fallback\",\n  \"cuenta\": \"{{cuenta_mock}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "const j = pm.response.json();",
+                  "if (j && j.envio_id !== undefined && j.envio_id !== null) {",
+                  "  pm.collectionVariables.set('envio_id', j.envio_id);",
+                  "  console.log('envio_id =', j.envio_id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Enviar - NORMAL (éxito)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}",
+                "disabled": true,
+                "description": "Opcional. Si se repite la misma llave no se reenvía el SMS."
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/sms/mock/send",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "sms",
+                "mock",
+                "send"
+              ]
+            },
+            "description": "Ruta MOCK NORMAL: MOCK_OK.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo_mensaje\": \"NORMAL\",\n  \"to\": \"{{telefono}}\",\n  \"message\": \"Prueba mock\",\n  \"cuenta\": \"{{cuenta_mock}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "const j = pm.response.json();",
+                  "if (j && j.envio_id !== undefined && j.envio_id !== null) {",
+                  "  pm.collectionVariables.set('envio_id', j.envio_id);",
+                  "  console.log('envio_id =', j.envio_id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Enviar - OTP eligiendo la cuenta",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}",
+                "disabled": true,
+                "description": "Opcional. Si se repite la misma llave no se reenvía el SMS."
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/sms/mock/send",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "sms",
+                "mock",
+                "send"
+              ]
+            },
+            "description": "Fuerza `MOCK_OK` primero: sale al primer intento sin pasar por `MOCK_FALLA`.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo_mensaje\": \"OTP\",\n  \"to\": \"{{telefono}}\",\n  \"message\": \"Prueba con cuenta elegida\",\n  \"cuenta\": \"MOCK_OK\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "const j = pm.response.json();",
+                  "if (j && j.envio_id !== undefined && j.envio_id !== null) {",
+                  "  pm.collectionVariables.set('envio_id', j.envio_id);",
+                  "  console.log('envio_id =', j.envio_id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "07 - Administración (SmsAdmin)",
+      "description": "CRUD de la configuración en BD. Cada escritura refresca la caché de rutas del motor.\n**Sin autenticación por ahora.** Proveedores y cuentas no se borran: se activan/desactivan.",
+      "item": [
+        {
+          "name": "Proveedores",
+          "description": "",
+          "item": [
+            {
+              "name": "Listar proveedores",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/v1/sms/admin/proveedores",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "sms",
+                    "admin",
+                    "proveedores"
+                  ]
+                },
+                "description": ""
+              }
+            },
+            {
+              "name": "Proveedores implementados",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/v1/sms/admin/proveedores/implementados",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "sms",
+                    "admin",
+                    "proveedores",
+                    "implementados"
+                  ]
+                },
+                "description": "Códigos con módulo `SmsSenderPort` en el código (INALAMBRIA, GO4CLIENTS, MOCK)."
+              }
+            },
+            {
+              "name": "Obtener proveedor",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/v1/sms/admin/proveedores/{{proveedor_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "sms",
+                    "admin",
+                    "proveedores",
+                    "{{proveedor_id}}"
+                  ]
+                },
+                "description": ""
+              }
+            },
+            {
+              "name": "Crear proveedor",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/v1/sms/admin/proveedores",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "sms",
+                    "admin",
+                    "proveedores"
+                  ]
+                },
+                "description": "El código debe coincidir con un módulo implementado para poder enviar. Guarda `proveedor_id`.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"codigo\": \"NUEVO_PROV\",\n  \"nombre\": \"Nuevo proveedor\",\n  \"base_url\": \"https://api.proveedor.com\",\n  \"connect_timeout_ms\": 3000,\n  \"read_timeout_ms\": 10000,\n  \"activo\": true\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                      "const j = pm.response.json();",
+                      "if (j && j.id !== undefined && j.id !== null) {",
+                      "  pm.collectionVariables.set('proveedor_id', j.id);",
+                      "  console.log('proveedor_id =', j.id);",
+                      "}"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Actualizar proveedor",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/v1/sms/admin/proveedores/{{proveedor_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "sms",
+                    "admin",
+                    "proveedores",
+                    "{{proveedor_id}}"
+                  ]
+                },
+                "description": "Campos opcionales en null conservan su valor.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"codigo\": \"NUEVO_PROV\",\n  \"nombre\": \"Nuevo proveedor (editado)\",\n  \"base_url\": \"https://api.proveedor.com\",\n  \"connect_timeout_ms\": 3000,\n  \"read_timeout_ms\": 15000\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Activar / desactivar proveedor",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/v1/sms/admin/proveedores/{{proveedor_id}}/estado",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "sms",
+                    "admin",
+                    "proveedores",
+                    "{{proveedor_id}}",
+                    "estado"
+                  ]
+                },
+                "description": "",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"activo\": false\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cuentas",
+          "description": "La contraseña va en `clave` y se guarda cifrada (nunca se devuelve). `secret_ref` es opcional: nombre de una variable de entorno con la contraseña.",
+          "item": [
+            {
+              "name": "Listar cuentas",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/v1/sms/admin/cuentas",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "sms",
+                    "admin",
+                    "cuentas"
+                  ],
+                  "query": [
+                    {
+                      "key": "proveedor_id",
+                      "value": "{{proveedor_id}}",
+                      "description": "Opcional",
+                      "disabled": true
+                    }
+                  ]
+                },
+                "description": ""
+              }
+            },
+            {
+              "name": "Obtener cuenta",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/v1/sms/admin/cuentas/{{cuenta_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "sms",
+                    "admin",
+                    "cuentas",
+                    "{{cuenta_id}}"
+                  ]
+                },
+                "description": ""
+              }
+            },
+            {
+              "name": "Crear cuenta",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/v1/sms/admin/cuentas",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "sms",
+                    "admin",
+                    "cuentas"
+                  ]
+                },
+                "description": "La `clave` se guarda cifrada (AES-256, requiere `SMS_CRYPTO_KEY` en el servidor) y nunca se devuelve; la respuesta trae `clave_configurada: true`. Alternativa: `secret_ref`. Guarda `cuenta_id`.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"proveedor_id\": {{proveedor_id}},\n  \"codigo\": \"INALAMBRIA_OTP_2\",\n  \"usuario\": \"COMFENALCOquindioOTP\",\n  \"clave\": \"<contraseña de la cuenta>\",\n  \"remitente\": null,\n  \"parametros\": {\n    \"type\": 1,\n    \"messagePattern\": \"0\",\n    \"templateId\": 0\n  },\n  \"activo\": true\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                      "const j = pm.response.json();",
+                      "if (j && j.id !== undefined && j.id !== null) {",
+                      "  pm.collectionVariables.set('cuenta_id', j.id);",
+                      "  console.log('cuenta_id =', j.id);",
+                      "}"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Actualizar cuenta",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/v1/sms/admin/cuentas/{{cuenta_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "sms",
+                    "admin",
+                    "cuentas",
+                    "{{cuenta_id}}"
+                  ]
+                },
+                "description": "Si no envía `clave` se conserva la actual. Para cambiarla, agregue `\"clave\": \"nueva\"`.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"proveedor_id\": {{proveedor_id}},\n  \"codigo\": \"INALAMBRIA_OTP_2\",\n  \"parametros\": {\n    \"type\": 1,\n    \"messagePattern\": \"1\",\n    \"templateId\": 0\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Activar / desactivar cuenta",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/v1/sms/admin/cuentas/{{cuenta_id}}/estado",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "sms",
+                    "admin",
+                    "cuentas",
+                    "{{cuenta_id}}",
+                    "estado"
+                  ]
+                },
+                "description": "",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"activo\": false\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Rutas",
+          "description": "Una ruta por (proveedor, tipo). `proveedor_id: null` = ruta del endpoint central.",
+          "item": [
+            {
+              "name": "Listar rutas",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/v1/sms/admin/rutas?central=false",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "sms",
+                    "admin",
+                    "rutas"
+                  ],
+                  "query": [
+                    {
+                      "key": "central",
+                      "value": "false",
+                      "description": "true = solo rutas del endpoint central"
+                    },
+                    {
+                      "key": "proveedor_id",
+                      "value": "{{proveedor_id}}",
+                      "description": "Opcional",
+                      "disabled": true
+                    },
+                    {
+                      "key": "tipo_mensaje",
+                      "value": "OTP",
+                      "description": "Opcional",
+                      "disabled": true
+                    }
+                  ]
+                },
+                "description": ""
+              }
+            },
+            {
+              "name": "Ruta efectiva (central)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/v1/sms/admin/rutas/efectiva?tipo_mensaje=OTP",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "sms",
+                    "admin",
+                    "rutas",
+                    "efectiva"
+                  ],
+                  "query": [
+                    {
+                      "key": "tipo_mensaje",
+                      "value": "OTP",
+                      "description": ""
+                    }
+                  ]
+                },
+                "description": "Pasos tal como los ve el motor, con validación de credenciales."
+              }
+            },
+            {
+              "name": "Ruta efectiva (por proveedor)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/v1/sms/admin/rutas/efectiva?proveedor=INALAMBRIA&tipo_mensaje=OTP",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "sms",
+                    "admin",
+                    "rutas",
+                    "efectiva"
+                  ],
+                  "query": [
+                    {
+                      "key": "proveedor",
+                      "value": "INALAMBRIA",
+                      "description": ""
+                    },
+                    {
+                      "key": "tipo_mensaje",
+                      "value": "OTP",
+                      "description": ""
+                    }
+                  ]
+                },
+                "description": ""
+              }
+            },
+            {
+              "name": "Obtener ruta",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/v1/sms/admin/rutas/{{ruta_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "sms",
+                    "admin",
+                    "rutas",
+                    "{{ruta_id}}"
+                  ]
+                },
+                "description": ""
+              }
+            },
+            {
+              "name": "Crear ruta con pasos",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/v1/sms/admin/rutas",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "sms",
+                    "admin",
+                    "rutas"
+                  ]
+                },
+                "description": "409 si ya existe ruta para ese (proveedor, tipo). Guarda `ruta_id`.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"proveedor_id\": {{proveedor_id}},\n  \"tipo_mensaje\": \"HABEAS_DATA\",\n  \"activo\": true,\n  \"pasos\": [\n    {\n      \"orden\": 1,\n      \"cuenta_id\": {{cuenta_id}},\n      \"max_intentos\": 3,\n      \"espera_ms\": 500\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                      "const j = pm.response.json();",
+                      "if (j && j.id !== undefined && j.id !== null) {",
+                      "  pm.collectionVariables.set('ruta_id', j.id);",
+                      "  console.log('ruta_id =', j.id);",
+                      "}"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Reemplazar pasos",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/v1/sms/admin/rutas/{{ruta_id}}/pasos",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "sms",
+                    "admin",
+                    "rutas",
+                    "{{ruta_id}}",
+                    "pasos"
+                  ]
+                },
+                "description": "Envía la lista completa en el orden deseado; reemplaza los pasos actuales.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"pasos\": [\n    {\n      \"orden\": 1,\n      \"cuenta_id\": {{cuenta_id}},\n      \"max_intentos\": 3,\n      \"espera_ms\": 500\n    },\n    {\n      \"orden\": 2,\n      \"cuenta_id\": 2,\n      \"max_intentos\": 3,\n      \"espera_ms\": 1000\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Activar / desactivar ruta",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/v1/sms/admin/rutas/{{ruta_id}}/estado",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "sms",
+                    "admin",
+                    "rutas",
+                    "{{ruta_id}}",
+                    "estado"
+                  ]
+                },
+                "description": "",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"activo\": false\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Eliminar ruta",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/v1/sms/admin/rutas/{{ruta_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "sms",
+                    "admin",
+                    "rutas",
+                    "{{ruta_id}}"
+                  ]
+                },
+                "description": "Borra la ruta y sus pasos (no afecta el log de envíos)."
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:9002/api/sms_gateway"
+    },
+    {
+      "key": "telefono",
+      "value": "3157132338"
+    },
+    {
+      "key": "envio_id",
+      "value": ""
+    },
+    {
+      "key": "campaign_id",
+      "value": ""
+    },
+    {
+      "key": "proveedor_id",
+      "value": "1"
+    },
+    {
+      "key": "cuenta_id",
+      "value": "1"
+    },
+    {
+      "key": "ruta_id",
+      "value": "1"
+    },
+    {
+      "key": "cuenta_central",
+      "value": ""
+    },
+    {
+      "key": "cuenta_inalambria",
+      "value": ""
+    },
+    {
+      "key": "cuenta_go4clients",
+      "value": ""
+    },
+    {
+      "key": "cuenta_mock",
+      "value": ""
+    },
+    {
+      "key": "cuenta_otp",
+      "value": ""
+    }
+  ]
+}

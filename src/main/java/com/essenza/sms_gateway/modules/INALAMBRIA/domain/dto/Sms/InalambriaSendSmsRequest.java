@@ -55,4 +55,9 @@ public class InalambriaSendSmsRequest {
 
     @Schema(description = "Url asociada al mensaje (si aplica)")
     private String url;
+
+    @Size(max = 50)
+    @Schema(description = "Código de una cuenta de Inalambria (SmsCuenta.codigo). Opcional: si se indica se usa primero "
+            + "esa cuenta y, si agota sus intentos, se continúa con el resto de la ruta", example = "INALAMBRIA_OTP")
+    private String cuenta;
 }

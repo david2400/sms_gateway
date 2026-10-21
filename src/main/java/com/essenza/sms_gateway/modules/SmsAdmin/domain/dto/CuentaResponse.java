@@ -21,6 +21,8 @@ public class CuentaResponse {
     private String secretRef;
     @Schema(description = "true si la variable de entorno de secret_ref está definida en el servidor")
     private boolean secretDefinido;
+    @Schema(description = "true si la cuenta tiene clave cifrada guardada (el valor nunca se devuelve)")
+    private boolean claveConfigurada;
     private String remitente;
     private Map<String, Object> parametros;
     private boolean activo;

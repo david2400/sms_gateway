@@ -52,7 +52,7 @@ public class CuentaAdminController {
         return obtenerCuenta.obtener(id);
     }
 
-    @Operation(summary = "Crear cuenta", description = "secret_ref es el NOMBRE de la variable de entorno con la contraseña")
+    @Operation(summary = "Crear cuenta", description = "La contraseña va en 'clave' y se guarda cifrada (AES-256, nunca se devuelve). Alternativa: secret_ref = nombre de una variable de entorno")
     @PostMapping
     public ResponseEntity<CuentaResponse> crear(@Valid @RequestBody CuentaRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(crearCuenta.crear(request));

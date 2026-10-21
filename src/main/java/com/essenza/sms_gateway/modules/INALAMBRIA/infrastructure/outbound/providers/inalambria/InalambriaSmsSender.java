@@ -47,7 +47,7 @@ public class InalambriaSmsSender implements SmsSenderPort {
 
         if (!account.hasCredentials() || account.getUsername() == null) {
             return SendOutcome.fail(null, "Cuenta " + account.getCode()
-                    + " sin credenciales: revise usuario y la variable de entorno de secret_ref", 0);
+                    + " sin credenciales: revise usuario y la clave (clave_cifrada + SMS_CRYPTO_KEY, o la variable de secret_ref)", 0);
         }
 
         String path = account.parameter("path") != null ? account.parameter("path") : DEFAULT_PATH;

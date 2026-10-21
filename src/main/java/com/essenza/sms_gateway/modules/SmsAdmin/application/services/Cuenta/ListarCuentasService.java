@@ -12,7 +12,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(transactionManager = "maestraTransactionManager", readOnly = true)
+@Transactional(readOnly = true)
 public class ListarCuentasService implements ListarCuentasUseCase {
 
     private final CuentaAdminPort cuentas;

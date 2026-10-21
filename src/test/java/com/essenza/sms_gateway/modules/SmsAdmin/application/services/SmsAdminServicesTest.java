@@ -32,17 +32,20 @@ import com.essenza.sms_gateway.modules.SmsAdmin.domain.services.PasoRutaValidato
 import com.essenza.sms_gateway.modules.SmsAdmin.application.services.support.CuentaResponseAssembler;
 import com.essenza.sms_gateway.modules.SmsAdmin.application.services.support.ProveedorResponseAssembler;
 import com.essenza.sms_gateway.modules.SmsAdmin.application.services.support.RutaResponseAssembler;
-import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.inbound.mappers.CuentaDtoMapperImpl;
-import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.inbound.mappers.ProveedorDtoMapperImpl;
-import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.inbound.mappers.RutaDtoMapperImpl;
-import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.inbound.mappers.RutaEfectivaDtoMapperImpl;
-import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.inbound.mappers.RutaPasoDtoMapper;
-import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.inbound.mappers.RutaPasoDtoMapperImpl;
+import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.mappers.CuentaMapperImpl;
+import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.mappers.ProveedorMapperImpl;
+import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.mappers.RutaMapperImpl;
+import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.mappers.RutaEfectivaMapperImpl;
+import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.mappers.RutaPasoMapper;
+import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.mappers.RutaPasoMapperImpl;
 import com.essenza.sms_gateway.modules.SmsCore.domain.model.MessageType;
 import com.essenza.sms_gateway.modules.SmsCore.domain.model.ProviderAccount;
 import com.essenza.sms_gateway.modules.SmsCore.domain.model.RoutePlan;
 import com.essenza.sms_gateway.modules.SmsCore.domain.model.RouteStep;
 import com.essenza.sms_gateway.modules.SmsCore.domain.ports.RoutingPolicyPort;
+import com.essenza.sms_gateway.modules.SmsCore.domain.ports.SecretCipherPort;
+import com.essenza.sms_gateway.modules.SmsCore.shared.crypto.AesGcmCipher;
+import com.essenza.sms_gateway.modules.SmsAdmin.domain.services.CredencialesCuenta;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -58,6 +61,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -68,6 +72,7 @@ class SmsAdminServicesTest {
 
     private MemProveedores proveedores;
     private MemCuentas cuentas;
+    private TestCipher cipher;
     private MemRutas rutas;
     private MemPasos pasos;
     private AtomicInteger refreshes;
@@ -91,6 +96,7 @@ class SmsAdminServicesTest {
     void setUp() {
         proveedores = new MemProveedores();
         cuentas = new MemCuentas(proveedores);
+        cipher = new TestCipher();
         rutas = new MemRutas(proveedores);
         pasos = new MemPasos(cuentas);
         refreshes = new AtomicInteger();
@@ -108,10 +114,10 @@ class SmsAdminServicesTest {
         };
 
         AdminFinder finder = new AdminFinder(proveedores, cuentas, rutas);
-        ProveedorDtoMapperImpl proveedorMapper = new ProveedorDtoMapperImpl();
-        CuentaDtoMapperImpl cuentaMapper = new CuentaDtoMapperImpl();
-        RutaPasoDtoMapper pasoMapper = new RutaPasoDtoMapperImpl();
-        RutaDtoMapperImpl rutaMapper = new RutaDtoMapperImpl(pasoMapper);
+        ProveedorMapperImpl proveedorMapper = new ProveedorMapperImpl();
+        CuentaMapperImpl cuentaMapper = new CuentaMapperImpl();
+        RutaPasoMapper pasoMapper = new RutaPasoMapperImpl();
+        RutaMapperImpl rutaMapper = new RutaMapperImpl(pasoMapper);
         ProveedorResponseAssembler proveedorAssembler = new ProveedorResponseAssembler(proveedorMapper, catalog, cuentas);
         CuentaResponseAssembler cuentaAssembler = new CuentaResponseAssembler(cuentaMapper, ref -> "INALAMBRIA_OTP_PASSWORD".equals(ref), pasos);
         RutaResponseAssembler rutaAssembler = new RutaResponseAssembler(rutaMapper, pasos);
@@ -119,12 +125,13 @@ class SmsAdminServicesTest {
 
         crearProveedor = new CrearProveedorService(proveedores, proveedorMapper, proveedorAssembler, cache);
         obtenerProveedor = new ObtenerProveedorService(finder, proveedorAssembler);
-        crearCuenta = new CrearCuentaService(cuentas, finder, cuentaMapper, cuentaAssembler, cache);
+        CredencialesCuenta credenciales = new CredencialesCuenta(cipher);
+        crearCuenta = new CrearCuentaService(cuentas, finder, cuentaMapper, credenciales, cuentaAssembler, cache);
         obtenerCuenta = new ObtenerCuentaService(finder, cuentaAssembler);
-        actualizarCuenta = new ActualizarCuentaService(cuentas, finder, new CambioProveedorCuentaValidator(pasos, rutas), cuentaMapper, cuentaAssembler, cache);
+        actualizarCuenta = new ActualizarCuentaService(cuentas, finder, new CambioProveedorCuentaValidator(pasos, rutas), cuentaMapper, credenciales, cuentaAssembler, cache);
         crearRuta = new CrearRutaService(rutas, pasos, finder, pasoValidator, rutaMapper, pasoMapper, rutaAssembler, cache);
         reemplazarPasos = new ReemplazarPasosRutaService(pasos, finder, pasoValidator, pasoMapper, rutaAssembler, cache);
-        rutaEfectiva = new ConsultarRutaEfectivaService(routing, catalog, new RutaEfectivaDtoMapperImpl());
+        rutaEfectiva = new ConsultarRutaEfectivaService(routing, catalog, new RutaEfectivaMapperImpl());
 
         inalambria = crearProveedor.crear(proveedor("inalambria")).getId();
         go4 = crearProveedor.crear(proveedor("GO4CLIENTS")).getId();
@@ -145,6 +152,63 @@ class SmsAdminServicesTest {
         assertTrue(p.isImplementado());
         assertEquals(1, p.getCuentas());
         assertFalse(crearProveedor.crear(proveedor("AWS_SNS")).isImplementado());
+    }
+
+    // ================= clave cifrada =================
+
+    @Test
+    void claveSeGuardaCifradaYLaRespuestaNoLaExpone() {
+        CuentaRequest r = cuenta(inalambria, "inalambria_masivo", null);
+        r.setClave("Secreto,123");
+        var resp = crearCuenta.crear(r);
+
+        Cuenta guardada = cuentas.data.get(resp.getId());
+        assertTrue(guardada.getClaveCifrada().startsWith(AesGcmCipher.PREFIX));
+        assertFalse(guardada.getClaveCifrada().contains("Secreto"));
+        assertEquals("Secreto,123", cipher.decrypt(guardada.getClaveCifrada()));
+        assertTrue(resp.isClaveConfigurada());
+        assertNull(guardada.getSecretRef());
+    }
+
+    @Test
+    void actualizarSinClaveConservaLaCifrada() {
+        CuentaRequest r = cuenta(inalambria, "INALAMBRIA_HD", null);
+        r.setClave("Mv.Prueba");
+        Long id = crearCuenta.crear(r).getId();
+        String antes = cuentas.data.get(id).getClaveCifrada();
+
+        CuentaRequest u = cuenta(inalambria, "INALAMBRIA_HD", null);
+        u.setUsuario("otro");
+        actualizarCuenta.actualizar(id, u);
+
+        assertEquals(antes, cuentas.data.get(id).getClaveCifrada());
+        assertEquals("otro", cuentas.data.get(id).getUsuario());
+    }
+
+    @Test
+    void actualizarConClaveNuevaLaReemplaza() {
+        CuentaRequest r = cuenta(inalambria, "INALAMBRIA_TPL", null);
+        r.setClave("vieja");
+        Long id = crearCuenta.crear(r).getId();
+
+        CuentaRequest u = cuenta(inalambria, "INALAMBRIA_TPL", null);
+        u.setClave("nueva");
+        actualizarCuenta.actualizar(id, u);
+
+        assertEquals("nueva", cipher.decrypt(cuentas.data.get(id).getClaveCifrada()));
+    }
+
+    @Test
+    void cuentaSinClaveNiSecretRefEsInvalida() {
+        assertThrows(AdminValidationException.class, () -> crearCuenta.crear(cuenta(inalambria, "SIN_CLAVE", null)));
+    }
+
+    @Test
+    void claveSinLlaveDeCifradoEsInvalida() {
+        cipher.configured = false;
+        CuentaRequest r = cuenta(inalambria, "SIN_LLAVE", null);
+        r.setClave("x");
+        assertThrows(AdminValidationException.class, () -> crearCuenta.crear(r));
     }
 
     @Test
@@ -247,6 +311,16 @@ class SmsAdminServicesTest {
         r.setOrden(orden);
         r.setCuentaId(cuentaId);
         return r;
+    }
+
+    /** Cifrador real AES-GCM con una llave de prueba. */
+    static class TestCipher implements SecretCipherPort {
+        final AesGcmCipher aes = new AesGcmCipher(AesGcmCipher.generateKey());
+        boolean configured = true;
+
+        public boolean isConfigured() { return configured; }
+        public String encrypt(String plain) { return aes.encrypt(plain); }
+        public String decrypt(String text) { return aes.decrypt(text); }
     }
 
     static class MemProveedores implements ProveedorAdminPort {

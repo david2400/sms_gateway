@@ -10,6 +10,7 @@ import com.essenza.sms_gateway.modules.SmsAdmin.domain.model.Proveedor;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.ports.CuentaAdminPort;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.ports.RoutingCacheAdminPort;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.services.AdminFinder;
+import com.essenza.sms_gateway.modules.SmsAdmin.domain.services.CredencialesCuenta;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.services.CambioProveedorCuentaValidator;
 import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.mappers.CuentaMapper;
 import com.essenza.sms_gateway.modules.SmsAdmin.shared.AdminCodigos;
@@ -22,13 +23,14 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@Transactional(transactionManager = "maestraTransactionManager")
+@Transactional
 public class ActualizarCuentaService implements ActualizarCuentaUseCase {
 
     private final CuentaAdminPort cuentas;
     private final AdminFinder finder;
     private final CambioProveedorCuentaValidator cambioProveedorValidator;
     private final CuentaMapper mapper;
+    private final CredencialesCuenta credenciales;
     private final CuentaResponseAssembler assembler;
     private final RoutingCacheAdminPort routingCache;
 
@@ -40,7 +42,7 @@ public class ActualizarCuentaService implements ActualizarCuentaUseCase {
         mapper.updateModel(request, cuenta);
         cuenta.setCodigo(AdminCodigos.normalizar(cuenta.getCodigo()));
         cuenta.setUsuario(AdminCodigos.blankToNull(cuenta.getUsuario()));
-        cuenta.setSecretRef(cuenta.getSecretRef().trim());
+        credenciales.aplicar(cuenta, request.getClave());
         cuenta.setRemitente(AdminCodigos.blankToNull(cuenta.getRemitente()));
         cuentas.findByCodigo(cuenta.getCodigo()).filter(c -> !c.getId().equals(id)).ifPresent(c -> {
             throw new AdminConflictException("El código " + c.getCodigo() + " ya lo usa la cuenta id " + c.getId());

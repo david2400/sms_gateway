@@ -53,16 +53,21 @@ public class OtpController {
     public ResponseEntity<OtpSendResult> sendOtpAutoGenerate(
             @RequestParam String phoneNumber,
             @RequestParam(required = false) String message,
-            @RequestParam(required = false, defaultValue = "5") Integer expirationMinutes) {
+            @RequestParam(required = false, defaultValue = "5") Integer expirationMinutes,
+            @Parameter(description = "Cuenta a usar primero (SmsCuenta.codigo); opcional")
+            @RequestParam(required = false) String cuenta) {
         String finalMessage = message != null && !message.isBlank()
                 ? message : "Your verification code is: {OTP}. Valid for " + expirationMinutes + " minutes.";
-        return toResponse(sendOtpUseCase.sendAutoGenerate(phoneNumber, finalMessage, expirationMinutes));
+        return toResponse(sendOtpUseCase.sendAutoGenerate(phoneNumber, finalMessage, expirationMinutes, cuenta));
     }
 
     @Operation(summary = "Enviar OTP simple", description = "Código auto-generado con mensaje por defecto")
     @PostMapping("/otp/send-simple")
-    public ResponseEntity<OtpSendResult> sendSimpleOtp(@RequestParam String phoneNumber) {
-        return toResponse(sendOtpUseCase.sendWithDefaultMessage(phoneNumber));
+    public ResponseEntity<OtpSendResult> sendSimpleOtp(
+            @RequestParam String phoneNumber,
+            @Parameter(description = "Cuenta a usar primero (SmsCuenta.codigo); opcional")
+            @RequestParam(required = false) String cuenta) {
+        return toResponse(sendOtpUseCase.sendWithDefaultMessage(phoneNumber, cuenta));
     }
 
     @Operation(summary = "Enviar OTP con PIN",

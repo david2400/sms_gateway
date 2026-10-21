@@ -23,6 +23,7 @@ public class Go4ClientsSendSmsService implements Go4ClientsSendSmsUseCase {
                 .text(request.getMessage())
                 .type(request.getTipoMensaje())
                 .sender(request.getSender())
+                .accountCode(request.getCuenta())
                 .idempotencyKey(idempotencyKey == null || idempotencyKey.isBlank() ? null : idempotencyKey.trim())
                 .build();
         return sendSmsByProvider.send(Go4ClientsSmsSender.PROVIDER_CODE, message);

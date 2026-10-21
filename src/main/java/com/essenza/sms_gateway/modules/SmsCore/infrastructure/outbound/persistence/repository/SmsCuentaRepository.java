@@ -9,6 +9,9 @@ import java.util.Optional;
 public interface SmsCuentaRepository extends JpaRepository<SmsCuentaEntity, Long> {
 
     @EntityGraph(attributePaths = "proveedor")
+    Optional<SmsCuentaEntity> findByCodigo(String codigo);
+
+    @EntityGraph(attributePaths = "proveedor")
     Optional<SmsCuentaEntity> findByCodigoAndProveedor_Codigo(String codigo, String proveedorCodigo);
 
     @EntityGraph(attributePaths = "proveedor")

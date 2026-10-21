@@ -12,4 +12,7 @@ public class SmsCoreProperties {
 
     /** Segundos que se cachean las rutas leídas de BD. 0 = sin caché. */
     private long routingCacheTtlSeconds = 60;
+
+    /** Llave AES-256 (32 bytes en Base64) para {@code SmsCuenta.clave_cifrada}. Viene de SMS_CRYPTO_KEY; nunca en el repo. */
+    private String cryptoKey;
 }

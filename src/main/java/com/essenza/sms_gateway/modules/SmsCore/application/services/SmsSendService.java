@@ -37,6 +37,7 @@ public class SmsSendService implements SendSmsUseCase, SendSmsByProviderUseCase,
                 .text(request.getMessage())
                 .type(request.getTipoMensaje())
                 .sender(request.getSender())
+                .accountCode(request.getCuenta())
                 .idempotencyKey(blankToNull(idempotencyKey))
                 .build();
         return dispatchService.dispatch(message, DispatchChannel.CENTRAL, null);
@@ -63,6 +64,7 @@ public class SmsSendService implements SendSmsUseCase, SendSmsByProviderUseCase,
                     .text(request.getMessage())
                     .type(request.getTipoMensaje())
                     .sender(request.getSender())
+                    .accountCode(request.getCuenta())
                     .build();
             resultados.add(SmsEnvioResponse.from(dispatchService.dispatch(message, DispatchChannel.CENTRAL, null)));
         }

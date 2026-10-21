@@ -28,13 +28,13 @@ public class OtpSendService implements SendOtpUseCase, SmsAvailabilityUseCase {
     }
 
     @Override
-    public OtpSendResult sendAutoGenerate(String phoneNumber, String message, Integer expirationMinutes) {
-        return otpService.sendAutoGenerate(phoneNumber, message, expirationMinutes);
+    public OtpSendResult sendAutoGenerate(String phoneNumber, String message, Integer expirationMinutes, String cuenta) {
+        return otpService.sendAutoGenerate(phoneNumber, message, expirationMinutes, cuenta);
     }
 
     @Override
-    public OtpSendResult sendWithDefaultMessage(String phoneNumber) {
-        return otpService.sendAutoGenerate(phoneNumber, DEFAULT_MESSAGE, 5);
+    public OtpSendResult sendWithDefaultMessage(String phoneNumber, String cuenta) {
+        return otpService.sendAutoGenerate(phoneNumber, DEFAULT_MESSAGE, 5, cuenta);
     }
 
     @Override

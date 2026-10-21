@@ -37,7 +37,8 @@ CREATE TABLE dbo.SmsCuenta (
   proveedor_id    BIGINT        NOT NULL CONSTRAINT fk_sms_cuenta_proveedor REFERENCES dbo.SmsProveedor(id_sms_proveedor),
   codigo          VARCHAR(50)   NOT NULL CONSTRAINT uq_sms_cuenta_codigo UNIQUE,
   usuario         VARCHAR(100)  NULL,          -- valor literal, o 'env:NOMBRE_VARIABLE'
-  secret_ref      VARCHAR(100)  NOT NULL,      -- NOMBRE de la variable de entorno con la contraseña (nunca la contraseña)
+  secret_ref      VARCHAR(100)  NULL,          -- alternativa: NOMBRE de la variable de entorno con la contraseña
+  clave_cifrada   VARCHAR(500)  NULL,          -- contraseña cifrada AES-256-GCM ('v1:...'); llave en SMS_CRYPTO_KEY
   remitente       VARCHAR(20)   NULL,
   parametros_json NVARCHAR(MAX) NULL,          -- parámetros propios de cada proveedor
   activo          BIT           NOT NULL CONSTRAINT df_sms_cuenta_activo DEFAULT 1
@@ -64,6 +65,13 @@ CREATE TABLE dbo.SmsRutaPaso (
   activo           BIT    NOT NULL CONSTRAINT df_sms_ruta_paso_activo   DEFAULT 1,
   CONSTRAINT uq_sms_ruta_paso UNIQUE (ruta_id, orden)
 );
+GO
+
+/* MIGRACIÓN: tablas creadas antes de clave_cifrada */
+IF COL_LENGTH('dbo.SmsCuenta', 'clave_cifrada') IS NULL
+  ALTER TABLE dbo.SmsCuenta ADD clave_cifrada VARCHAR(500) NULL;
+GO
+ALTER TABLE dbo.SmsCuenta ALTER COLUMN secret_ref VARCHAR(100) NULL;
 GO
 
 /* ------------------------------ LOG DE ENVÍOS ------------------------------ */

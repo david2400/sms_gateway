@@ -21,7 +21,7 @@ import java.util.List;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@Transactional(transactionManager = "maestraTransactionManager")
+@Transactional
 public class ReemplazarPasosRutaService implements ReemplazarPasosRutaUseCase {
 
     private final RutaPasoAdminPort pasos;

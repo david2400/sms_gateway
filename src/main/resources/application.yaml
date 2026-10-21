@@ -51,13 +51,17 @@ spring:
 server:
   port: 9002
 
-#eureka:
+# En dev no hay servidor Eureka local: se deshabilita el cliente para evitar
+# los reintentos a localhost:8761. En producción quitar "enabled: false" y
+# definir EUREKA_INSTANCE.
+eureka:
+  client:
+    enabled: false
+#    serviceUrl:
+#      defaultZone: http://${EUREKA_INSTANCE}:8761/eureka
 #  instance:
 #    prefer-ip-address: true
 #    ip-address: ${EUREKA_INSTANCE}
-  client:
-    serviceUrl:
-      defaultZone: http://${EUREKA_INSTANCE}:8761/eureka
 
 # ============================================================
 # SMS multi-proveedor (módulo SmsCore)
@@ -69,6 +73,8 @@ server:
 sms:
   core:
     routing-cache-ttl-seconds: 60
+    # Llave AES-256 (Base64, 32 bytes) para descifrar SmsCuenta.clave_cifrada. Solo por variable de entorno.
+    crypto-key: ${SMS_CRYPTO_KEY:iJwYfk792WyGasoAbvty+2dD6f8KWH/lL1eHj4gnKfw=}
 
   # Servicio externo de usuarios (actualización de PIN en /otp/send-with-pin)
   usuario-service:

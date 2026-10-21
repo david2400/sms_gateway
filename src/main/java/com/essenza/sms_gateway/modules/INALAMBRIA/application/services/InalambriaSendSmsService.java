@@ -27,6 +27,7 @@ public class InalambriaSendSmsService implements InalambriaSendSmsUseCase {
                 .countryCode(request.getCountryCode() != null ? request.getCountryCode() : "57")
                 .text(request.getMessage())
                 .type(request.getTipoMensaje())
+                .accountCode(request.getCuenta())
                 .idempotencyKey(idempotencyKey == null || idempotencyKey.isBlank() ? null : idempotencyKey.trim());
 
         if (request.getTemplateId() != null) {
