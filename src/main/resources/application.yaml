@@ -1,26 +1,40 @@
 spring:
   application:
     name: SMS_Gateway
+  profiles:
+    # Sin esto el bloque "on-profile: dev" de abajo no se activa y no hay datasource
+    default: dev
   mvc:
     pathmatch:
       matching-strategy: ant_path_matcher
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
   datasource:
-    jdbc-url: jdbc:sqlserver://${IP_BD_SQL_SERVER:localhost:1433};databaseName=MAESTRA;encrypt=false;trustServerCertificate=true
-    username: ${USER_BD}
-    password: ${PASS_BD}
-    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+    # --- SQL Server (comentado: en desarrollo se usa MySQL local) ---
+    # jdbc-url: jdbc:sqlserver://${IP_BD_SQL_SERVER:localhost:1433};databaseName=MAESTRA;encrypt=false;trustServerCertificate=true
+    # username: ${USER_BD}
+    # password: ${PASS_BD}
+    # driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+    # --- MySQL local (servicio mysql8 en localhost:3306, base "notificacion") ---
+    url: jdbc:mysql://localhost:3306/notificacion?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: root
+    password: Simonsito123
   jpa:
     hibernate:
-      ddl-auto: auto
+      ddl-auto: update
     show-sql: true
     generate-ddl: true
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.SQLServer2008Dialect
+        # dialect: org.hibernate.dialect.SQLServer2008Dialect  # SQL Server; con MySQL se autodetecta
         jdbc:
           time_zone: America/Bogota
-        naming:
-          physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+        physical_naming_strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
     open-in-view: false
   cloud:
     config:
@@ -37,10 +51,10 @@ spring:
 server:
   port: 9002
 
-eureka:
-  instance:
-    prefer-ip-address: true
-    ip-address: ${EUREKA_INSTANCE}
+#eureka:
+#  instance:
+#    prefer-ip-address: true
+#    ip-address: ${EUREKA_INSTANCE}
   client:
     serviceUrl:
       defaultZone: http://${EUREKA_INSTANCE}:8761/eureka
@@ -83,31 +97,20 @@ email:
     from-name: ${SENDGRID_FROM_NAME:Comfenalco}
     sandbox: false
 
-  javamail:
-    enabled: true
-    host: smtp.gmail.com
-    port: 587
-    username: ${EMAIL_USERNAME:notificaciones4@comfenalcoquindio.co}
-    password: ${EMAIL_PASSWORD:gmpc zhdy ulze yypf}
-    protocol: smtp
-    auth: true
-    starttls: true
-    encoding: UTF-8
-
   mock:
     enabled: false
     log-emails: true
     simulate-delay: false
     delay-ms: 100
 
-  smtp:
-    host: smtp.gmail.com
-    port: 587
-    username: notificaciones4@comfenalcoquindio.co
-    password: gmpc zhdy ulze yypf
-    auth: true
-    starttls:
-      enable: true
+#  smtp:
+#    host: smtp.gmail.com
+#    port: 587
+#    username: notificaciones4@comfenalcoquindio.co
+#    password: gmpc zhdy ulze yypf
+#    auth: true
+#    starttls:
+#      enable: true
 
   providers:
     # Configuración global
@@ -155,13 +158,13 @@ springdoc:
 # ============================================================
 # Configuración de API externa
 # ============================================================
-api:
-  servicios:
-    url: ${URL_DOMINIO}
-    puerto: ${PUERTO_DOMINIO}
-    usuario: ApiService
-    clave: 0000
-    cedula: 00001
+#api:
+#  servicios:
+#    url: ${URL_DOMINIO}
+#    puerto: ${PUERTO_DOMINIO}
+#    usuario: ApiService
+#    clave: 0000
+#    cedula: 00001
 
 # ============================================================
 # Información de aplicación

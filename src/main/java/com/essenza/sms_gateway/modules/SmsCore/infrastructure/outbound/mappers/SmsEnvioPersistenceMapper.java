@@ -14,7 +14,7 @@ import java.util.List;
 @Mapper(componentModel = "spring")
 public interface SmsEnvioPersistenceMapper {
 
-    @Mapping(target = "envioId", source = "id")
+    @Mapping(target = "envioId", source = "uuid")
     @Mapping(target = "proveedorFinal", source = "proveedorFinal.codigo")
     @Mapping(target = "cuentaFinal", source = "cuentaFinal.codigo")
     @Mapping(target = "intentos", ignore = true)

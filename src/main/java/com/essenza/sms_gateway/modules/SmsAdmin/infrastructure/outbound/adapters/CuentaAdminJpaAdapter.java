@@ -24,13 +24,13 @@ public class CuentaAdminJpaAdapter implements CuentaAdminPort {
     public List<Cuenta> findAll(Long proveedorId) {
         List<AdminCuentaEntity> list = proveedorId == null
                 ? repository.findAllByOrderByCodigoAsc()
-                : repository.findByProveedor_IdOrderByCodigoAsc(proveedorId);
+                : repository.findByProveedor_IdSmsProveedorOrderByCodigoAsc(proveedorId);
         return list.stream().map(mapper::toModel).toList();
     }
 
     @Override
     public Optional<Cuenta> findById(Long id) {
-        return repository.findWithProveedorById(id).map(mapper::toModel);
+        return repository.findWithProveedorByIdSmsCuenta(id).map(mapper::toModel);
     }
 
     @Override
@@ -45,7 +45,7 @@ public class CuentaAdminJpaAdapter implements CuentaAdminPort {
                 : new AdminCuentaEntity();
         mapper.updateEntity(c, e);
         e.setProveedor(proveedorRepository.getReferenceById(c.getProveedorId()));
-        Long id = repository.saveAndFlush(e).getId();
-        return repository.findWithProveedorById(id).map(mapper::toModel).orElseThrow();
+        Long id = repository.saveAndFlush(e).getIdSmsCuenta();
+        return repository.findWithProveedorByIdSmsCuenta(id).map(mapper::toModel).orElseThrow();
     }
 }

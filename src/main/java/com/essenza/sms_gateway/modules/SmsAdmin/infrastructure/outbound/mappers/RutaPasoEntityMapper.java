@@ -10,13 +10,14 @@ import org.mapstruct.ReportingPolicy;
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.ERROR)
 public interface RutaPasoEntityMapper {
 
-    @Mapping(target = "rutaId", source = "ruta.id")
-    @Mapping(target = "cuentaId", source = "cuenta.id")
+    @Mapping(target = "id", source = "idSmsRutaPaso")
+    @Mapping(target = "rutaId", source = "ruta.idSmsRuta")
+    @Mapping(target = "cuentaId", source = "cuenta.idSmsCuenta")
     @Mapping(target = "cuentaCodigo", source = "cuenta.codigo")
     @Mapping(target = "proveedorCodigo", source = "cuenta.proveedor.codigo")
     Paso toModel(AdminRutaPasoEntity entity);
 
-    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "idSmsRutaPaso", ignore = true)
     @Mapping(target = "ruta", ignore = true)
     @Mapping(target = "cuenta", ignore = true)
     AdminRutaPasoEntity toEntity(Paso paso);

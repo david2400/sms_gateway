@@ -13,10 +13,10 @@ public interface AdminCuentaRepository extends JpaRepository<AdminCuentaEntity, 
     List<AdminCuentaEntity> findAllByOrderByCodigoAsc();
 
     @EntityGraph(attributePaths = "proveedor")
-    List<AdminCuentaEntity> findByProveedor_IdOrderByCodigoAsc(Long proveedorId);
+    List<AdminCuentaEntity> findByProveedor_IdSmsProveedorOrderByCodigoAsc(Long proveedorId);
 
     @EntityGraph(attributePaths = "proveedor")
-    Optional<AdminCuentaEntity> findWithProveedorById(Long id);
+    Optional<AdminCuentaEntity> findWithProveedorByIdSmsCuenta(Long id);
 
     @EntityGraph(attributePaths = "proveedor")
     Optional<AdminCuentaEntity> findByCodigo(String codigo);

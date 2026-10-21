@@ -9,5 +9,5 @@ import java.util.List;
 public interface SmsRutaPasoRepository extends JpaRepository<SmsRutaPasoEntity, Long> {
 
     @EntityGraph(attributePaths = {"cuenta", "cuenta.proveedor"})
-    List<SmsRutaPasoEntity> findByRuta_IdAndActivoTrueOrderByOrdenAsc(Long rutaId);
+    List<SmsRutaPasoEntity> findByRuta_IdSmsRutaAndActivoTrueOrderByOrdenAsc(Long rutaId);
 }

@@ -18,7 +18,7 @@ import lombok.Setter;
  * Paso de una ruta ({@code sms_ruta_paso}): orden, cuenta e intentos.
  */
 @Entity
-@Table(name = "sms_ruta_paso",
+@Table(name = "SmsRutaPaso",
         uniqueConstraints = @UniqueConstraint(name = "uq_sms_ruta_paso", columnNames = {"ruta_id", "orden"}))
 @Getter
 @Setter
@@ -27,8 +27,8 @@ public class SmsRutaPasoEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
-    private Long id;
+    @Column(name = "id_sms_ruta_paso")
+    private Long idSmsRutaPaso;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "ruta_id", nullable = false)

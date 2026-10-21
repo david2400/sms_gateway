@@ -7,6 +7,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Getter;
@@ -18,7 +19,7 @@ import lombok.Setter;
  * La contraseña NO se guarda: {@code secretRef} es el nombre de la variable de entorno que la contiene.
  */
 @Entity
-@Table(name = "sms_cuenta")
+@Table(name = "SmsCuenta")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -26,8 +27,8 @@ public class SmsCuentaEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
-    private Long id;
+    @Column(name = "id_sms_cuenta")
+    private Long idSmsCuenta;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "proveedor_id", nullable = false)
@@ -47,7 +48,8 @@ public class SmsCuentaEntity {
     private String remitente;
 
     /** JSON plano clave→valor con datos propios del proveedor. */
-    @Column(name = "parametros_json", columnDefinition = "NVARCHAR(MAX)")
+    @Lob
+    @Column(name = "parametros_json")
     private String parametrosJson;
 
     @Column(name = "activo", nullable = false)

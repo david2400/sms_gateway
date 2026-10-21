@@ -44,7 +44,7 @@ public class SmsDispatchLogJpaAdapter implements SmsDispatchLogPort {
     @Transactional(transactionManager = TX, propagation = Propagation.REQUIRES_NEW)
     public UUID start(SmsDispatch message, DispatchChannel channel, String requestedProvider) {
         SmsEnvioEntity envio = new SmsEnvioEntity();
-        envio.setId(message.getId());
+        envio.setUuid(message.getId());
         envio.setIdempotencyKey(message.getIdempotencyKey());
         envio.setCanal(channel.name());
         envio.setProveedorSolicitado(requestedProvider);
@@ -62,14 +62,14 @@ public class SmsDispatchLogJpaAdapter implements SmsDispatchLogPort {
             }
             throw e;
         }
-        return envio.getId();
+        return envio.getUuid();
     }
 
     @Override
     @Transactional(transactionManager = TX, propagation = Propagation.REQUIRES_NEW)
     public void attempt(UUID envioId, RouteStep step, int attemptNumber, SendOutcome outcome) {
         SmsEnvioIntentoEntity intento = new SmsEnvioIntentoEntity();
-        intento.setEnvio(envioRepository.getReferenceById(envioId));
+        intento.setEnvio(envioRepository.findByUuid(envioId).orElseThrow());
         intento.setPasoOrden(step.getOrder());
         intento.setNroIntento(attemptNumber);
         intento.setProveedor(proveedorRepository.getReferenceById(step.getAccount().getProviderId()));
@@ -85,7 +85,7 @@ public class SmsDispatchLogJpaAdapter implements SmsDispatchLogPort {
     @Override
     @Transactional(transactionManager = TX, propagation = Propagation.REQUIRES_NEW)
     public void finish(DispatchResult result, RouteStep lastStep) {
-        envioRepository.findById(result.getEnvioId()).ifPresent(envio -> {
+        envioRepository.findByUuid(result.getEnvioId()).ifPresent(envio -> {
             envio.setEstado(result.getStatus().name());
             envio.setTotalIntentos(result.getAttempts());
             envio.setHttpStatusFinal(result.getHttpStatus());
@@ -105,7 +105,7 @@ public class SmsDispatchLogJpaAdapter implements SmsDispatchLogPort {
     public Optional<DispatchResult> findByIdempotencyKey(String idempotencyKey) {
         return envioRepository.findByIdempotencyKey(idempotencyKey)
                 .map(e -> DispatchResult.builder()
-                        .envioId(e.getId())
+                        .envioId(e.getUuid())
                         .status(DispatchStatus.valueOf(e.getEstado()))
                         .providerCode(e.getProveedorFinal() != null ? e.getProveedorFinal().getCodigo() : null)
                         .accountCode(e.getCuentaFinal() != null ? e.getCuentaFinal().getCodigo() : null)

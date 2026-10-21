@@ -37,10 +37,10 @@ class SmsAdminMappersTest {
     @Test
     void cuentaEntidadAModeloYDeVuelta() {
         AdminProveedorEntity proveedor = new AdminProveedorEntity();
-        proveedor.setId(7L);
+        proveedor.setIdSmsProveedor(7L);
         proveedor.setCodigo("INALAMBRIA");
         AdminCuentaEntity entity = new AdminCuentaEntity();
-        entity.setId(3L);
+        entity.setIdSmsCuenta(3L);
         entity.setProveedor(proveedor);
         entity.setCodigo("INALAMBRIA_OTP");
         entity.setSecretRef("INALAMBRIA_OTP_PASSWORD");
@@ -54,7 +54,7 @@ class SmsAdminMappersTest {
 
         AdminCuentaEntity destino = new AdminCuentaEntity();
         cuentaPersistence.updateEntity(cuenta, destino);
-        assertNull(destino.getId());
+        assertNull(destino.getIdSmsCuenta());
         assertNull(destino.getProveedor());
         assertEquals("{\"type\":1,\"messagePattern\":\"0\"}", destino.getParametrosJson());
     }

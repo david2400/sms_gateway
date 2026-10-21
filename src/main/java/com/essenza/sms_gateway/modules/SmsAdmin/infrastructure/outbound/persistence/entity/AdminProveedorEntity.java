@@ -26,8 +26,8 @@ public class AdminProveedorEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
-    private Long id;
+    @Column(name = "id_sms_proveedor")
+    private Long idSmsProveedor;
 
     @Column(name = "codigo", length = 30, nullable = false, unique = true)
     private String codigo;

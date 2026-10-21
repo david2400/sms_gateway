@@ -8,11 +8,13 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import java.util.Optional;
 import java.util.UUID;
 
-public interface SmsEnvioRepository extends JpaRepository<SmsEnvioEntity, UUID>, JpaSpecificationExecutor<SmsEnvioEntity> {
+public interface SmsEnvioRepository extends JpaRepository<SmsEnvioEntity, Long>, JpaSpecificationExecutor<SmsEnvioEntity> {
 
     @EntityGraph(attributePaths = {"proveedorFinal", "cuentaFinal"})
     Optional<SmsEnvioEntity> findByIdempotencyKey(String idempotencyKey);
 
     @EntityGraph(attributePaths = {"proveedorFinal", "cuentaFinal"})
-    Optional<SmsEnvioEntity> findWithFinalById(UUID id);
+    Optional<SmsEnvioEntity> findWithFinalByUuid(UUID uuid);
+
+    Optional<SmsEnvioEntity> findByUuid(UUID uuid);
 }

@@ -80,11 +80,11 @@ public class RoutingPolicyJpaAdapter implements RoutingPolicyPort {
         }
 
         RoutePlan.RoutePlanBuilder builder = RoutePlan.builder()
-                .routeId(ruta.get().getId())
+                .routeId(ruta.get().getIdSmsRuta())
                 .providerCode(providerCode)
                 .messageType(type);
 
-        for (SmsRutaPasoEntity paso : pasoRepository.findByRuta_IdAndActivoTrueOrderByOrdenAsc(ruta.get().getId())) {
+        for (SmsRutaPasoEntity paso : pasoRepository.findByRuta_IdSmsRutaAndActivoTrueOrderByOrdenAsc(ruta.get().getIdSmsRuta())) {
             SmsCuentaEntity cuenta = paso.getCuenta();
             SmsProveedorEntity proveedor = cuenta.getProveedor();
 
@@ -93,7 +93,7 @@ public class RoutingPolicyJpaAdapter implements RoutingPolicyPort {
             }
             if (providerCode != null && !providerCode.equalsIgnoreCase(proveedor.getCodigo())) {
                 log.warn("[SMS-CORE] Ruta {} de {} tiene la cuenta {} de otro proveedor ({}); se ignora",
-                        ruta.get().getId(), providerCode, cuenta.getCodigo(), proveedor.getCodigo());
+                        ruta.get().getIdSmsRuta(), providerCode, cuenta.getCodigo(), proveedor.getCodigo());
                 continue;
             }
 

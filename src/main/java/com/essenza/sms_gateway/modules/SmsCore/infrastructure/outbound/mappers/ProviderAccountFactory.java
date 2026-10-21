@@ -36,9 +36,9 @@ public class ProviderAccountFactory {
     public ProviderAccount toAccount(SmsCuentaEntity cuenta) {
         SmsProveedorEntity proveedor = cuenta.getProveedor();
         return ProviderAccount.builder()
-                .id(cuenta.getId())
+                .id(cuenta.getIdSmsCuenta())
                 .code(cuenta.getCodigo())
-                .providerId(proveedor.getId())
+                .providerId(proveedor.getIdSmsProveedor())
                 .providerCode(proveedor.getCodigo())
                 .baseUrl(proveedor.getBaseUrl())
                 .connectTimeoutMs(proveedor.getConnectTimeoutMs() != null ? proveedor.getConnectTimeoutMs() : 2000)

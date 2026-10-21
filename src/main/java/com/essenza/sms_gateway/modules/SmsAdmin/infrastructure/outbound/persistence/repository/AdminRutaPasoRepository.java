@@ -12,13 +12,13 @@ import java.util.List;
 public interface AdminRutaPasoRepository extends JpaRepository<AdminRutaPasoEntity, Long> {
 
     @EntityGraph(attributePaths = {"cuenta", "cuenta.proveedor"})
-    List<AdminRutaPasoEntity> findByRuta_IdOrderByOrdenAsc(Long rutaId);
+    List<AdminRutaPasoEntity> findByRuta_IdSmsRutaOrderByOrdenAsc(Long rutaId);
 
     /** Borrado inmediato (antes de insertar los nuevos pasos, por el UNIQUE ruta_id+orden). */
     @Modifying(flushAutomatically = true, clearAutomatically = true)
-    @Query("delete from AdminRutaPaso p where p.ruta.id = :rutaId")
+    @Query("delete from AdminRutaPaso p where p.ruta.idSmsRuta = :rutaId")
     int deleteByRutaId(@Param("rutaId") Long rutaId);
 
-    @Query("select distinct p.ruta.id from AdminRutaPaso p where p.cuenta.id = :cuentaId order by p.ruta.id")
+    @Query("select distinct p.ruta.idSmsRuta from AdminRutaPaso p where p.cuenta.idSmsCuenta = :cuentaId order by p.ruta.idSmsRuta")
     List<Long> findRutaIdsByCuentaId(@Param("cuentaId") Long cuentaId);
 }

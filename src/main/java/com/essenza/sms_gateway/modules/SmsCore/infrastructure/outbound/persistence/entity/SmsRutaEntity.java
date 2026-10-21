@@ -18,7 +18,7 @@ import lombok.Setter;
  * {@code proveedor == null} es la ruta del endpoint central.
  */
 @Entity
-@Table(name = "sms_ruta")
+@Table(name = "SmsRuta")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -26,8 +26,8 @@ public class SmsRutaEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
-    private Long id;
+    @Column(name = "id_sms_ruta")
+    private Long idSmsRuta;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "proveedor_id")

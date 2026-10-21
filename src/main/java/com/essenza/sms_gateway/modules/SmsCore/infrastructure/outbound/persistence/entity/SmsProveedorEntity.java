@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
  * Proveedor de SMS ({@code sms_proveedor}).
  */
 @Entity
-@Table(name = "sms_proveedor")
+@Table(name = "SmsProveedor")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -25,8 +25,8 @@ public class SmsProveedorEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
-    private Long id;
+    @Column(name = "id_sms_proveedor")
+    private Long idSmsProveedor;
 
     /** Debe coincidir con {@code SmsSenderPort.providerCode()}. */
     @Column(name = "codigo", length = 30, nullable = false, unique = true)

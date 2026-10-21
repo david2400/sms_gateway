@@ -27,8 +27,8 @@ public class AdminRutaPasoEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
-    private Long id;
+    @Column(name = "id_sms_ruta_paso")
+    private Long idSmsRutaPaso;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "ruta_id", nullable = false)

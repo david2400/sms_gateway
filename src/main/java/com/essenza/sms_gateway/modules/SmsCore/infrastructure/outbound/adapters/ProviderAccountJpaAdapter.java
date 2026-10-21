@@ -31,7 +31,7 @@ public class ProviderAccountJpaAdapter implements ProviderAccountQueryPort {
     @Override
     @Transactional(transactionManager = "maestraTransactionManager", readOnly = true)
     public Optional<ProviderAccount> findFirstActive(String providerCode) {
-        return cuentaRepository.findFirstByProveedor_CodigoAndActivoTrueOrderByIdAsc(providerCode.toUpperCase())
+        return cuentaRepository.findFirstByProveedor_CodigoAndActivoTrueOrderByIdSmsCuentaAsc(providerCode.toUpperCase())
                 .filter(accountFactory::isUsable)
                 .map(accountFactory::toAccount);
     }

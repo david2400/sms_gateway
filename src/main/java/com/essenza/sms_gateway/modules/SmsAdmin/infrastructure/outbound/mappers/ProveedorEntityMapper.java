@@ -11,10 +11,11 @@ import org.mapstruct.ReportingPolicy;
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.ERROR)
 public interface ProveedorEntityMapper {
 
+    @Mapping(target = "id", source = "idSmsProveedor")
     Proveedor toModel(AdminProveedorEntity entity);
 
     /** id y fecha de creación los gestiona la BD/JPA. */
-    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "idSmsProveedor", ignore = true)
     @Mapping(target = "fechaCreacion", ignore = true)
     void updateEntity(Proveedor source, @MappingTarget AdminProveedorEntity target);
 }

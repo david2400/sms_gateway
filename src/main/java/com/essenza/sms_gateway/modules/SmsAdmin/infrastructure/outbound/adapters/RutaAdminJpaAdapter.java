@@ -24,7 +24,7 @@ public class RutaAdminJpaAdapter implements RutaAdminPort {
 
     @Override
     public List<Ruta> findAll(Long proveedorId, boolean soloCentral, String tipoMensaje) {
-        return rutaRepository.findAllByOrderByIdAsc().stream()
+        return rutaRepository.findAllByOrderByIdSmsRutaAsc().stream()
                 .map(mapper::toModel)
                 .filter(r -> !soloCentral || r.isCentral())
                 .filter(r -> proveedorId == null || Objects.equals(proveedorId, r.getProveedorId()))
@@ -34,14 +34,14 @@ public class RutaAdminJpaAdapter implements RutaAdminPort {
 
     @Override
     public Optional<Ruta> findById(Long id) {
-        return rutaRepository.findWithProveedorById(id).map(mapper::toModel);
+        return rutaRepository.findWithProveedorByIdSmsRuta(id).map(mapper::toModel);
     }
 
     @Override
     public Optional<Ruta> findByProveedorAndTipo(Long proveedorId, String tipoMensaje) {
         return (proveedorId == null
                 ? rutaRepository.findFirstByProveedorIsNullAndTipoMensaje(tipoMensaje)
-                : rutaRepository.findFirstByProveedor_IdAndTipoMensaje(proveedorId, tipoMensaje))
+                : rutaRepository.findFirstByProveedor_IdSmsProveedorAndTipoMensaje(proveedorId, tipoMensaje))
                 .map(mapper::toModel);
     }
 
@@ -50,8 +50,8 @@ public class RutaAdminJpaAdapter implements RutaAdminPort {
         AdminRutaEntity e = r.getId() != null ? rutaRepository.findById(r.getId()).orElseThrow() : new AdminRutaEntity();
         mapper.updateEntity(r, e);
         e.setProveedor(r.getProveedorId() != null ? proveedorRepository.getReferenceById(r.getProveedorId()) : null);
-        Long id = rutaRepository.saveAndFlush(e).getId();
-        return rutaRepository.findWithProveedorById(id).map(mapper::toModel).orElseThrow();
+        Long id = rutaRepository.saveAndFlush(e).getIdSmsRuta();
+        return rutaRepository.findWithProveedorByIdSmsRuta(id).map(mapper::toModel).orElseThrow();
     }
 
     @Override

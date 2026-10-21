@@ -12,12 +12,13 @@ import org.mapstruct.ReportingPolicy;
 @Mapper(componentModel = "spring", uses = ParametrosJsonMapper.class, injectionStrategy = InjectionStrategy.CONSTRUCTOR, unmappedTargetPolicy = ReportingPolicy.ERROR)
 public interface CuentaEntityMapper {
 
-    @Mapping(target = "proveedorId", source = "proveedor.id")
+    @Mapping(target = "id", source = "idSmsCuenta")
+    @Mapping(target = "proveedorId", source = "proveedor.idSmsProveedor")
     @Mapping(target = "proveedorCodigo", source = "proveedor.codigo")
     @Mapping(target = "parametros", source = "parametrosJson", qualifiedByName = "jsonToMap")
     Cuenta toModel(AdminCuentaEntity entity);
 
-    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "idSmsCuenta", ignore = true)
     @Mapping(target = "proveedor", ignore = true)
     @Mapping(target = "parametrosJson", source = "parametros", qualifiedByName = "mapToJson")
     void updateEntity(Cuenta source, @MappingTarget AdminCuentaEntity target);

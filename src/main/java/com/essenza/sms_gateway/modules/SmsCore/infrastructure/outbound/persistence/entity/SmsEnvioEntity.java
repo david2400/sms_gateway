@@ -1,13 +1,6 @@
 package com.essenza.sms_gateway.modules.SmsCore.infrastructure.outbound.persistence.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Index;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -20,7 +13,7 @@ import java.util.UUID;
  * con el proveedor y la cuenta con los que finalmente se envió.
  */
 @Entity
-@Table(name = "sms_envio", indexes = {
+@Table(name = "SmsEnvio", indexes = {
         @Index(name = "ix_sms_envio_destino", columnList = "destino, fecha_creacion"),
         @Index(name = "ix_sms_envio_estado", columnList = "estado, fecha_creacion")
 })
@@ -30,8 +23,12 @@ import java.util.UUID;
 public class SmsEnvioEntity {
 
     @Id
-    @Column(name = "id", columnDefinition = "UNIQUEIDENTIFIER")
-    private UUID id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id_sms_envio")
+    private Long idSmsEnvio;
+
+    @Column(name = "uuid", nullable = false, unique = true)
+    private UUID uuid;
 
     /** Único cuando no es null (índice filtrado creado por el script SQL). */
     @Column(name = "idempotency_key", length = 100)
@@ -49,7 +46,7 @@ public class SmsEnvioEntity {
     @Column(name = "destino", length = 20, nullable = false)
     private String destino;
 
-    @Column(name = "mensaje", length = 1600, nullable = false, columnDefinition = "NVARCHAR(1600)")
+    @Column(name = "mensaje", length = 1600, nullable = false)
     private String mensaje;
 
     @Column(name = "estado", length = 20, nullable = false)
@@ -72,7 +69,7 @@ public class SmsEnvioEntity {
     @Column(name = "codigo_error", length = 50)
     private String codigoError;
 
-    @Column(name = "detalle_error", length = 1000, columnDefinition = "NVARCHAR(1000)")
+    @Column(name = "detalle_error", length = 1000)
     private String detalleError;
 
     @Column(name = "fecha_creacion", nullable = false)

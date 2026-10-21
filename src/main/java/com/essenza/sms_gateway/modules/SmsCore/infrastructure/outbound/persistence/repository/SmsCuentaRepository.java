@@ -12,5 +12,5 @@ public interface SmsCuentaRepository extends JpaRepository<SmsCuentaEntity, Long
     Optional<SmsCuentaEntity> findByCodigoAndProveedor_Codigo(String codigo, String proveedorCodigo);
 
     @EntityGraph(attributePaths = "proveedor")
-    Optional<SmsCuentaEntity> findFirstByProveedor_CodigoAndActivoTrueOrderByIdAsc(String proveedorCodigo);
+    Optional<SmsCuentaEntity> findFirstByProveedor_CodigoAndActivoTrueOrderByIdSmsCuentaAsc(String proveedorCodigo);
 }

@@ -37,9 +37,9 @@ public class SmsEnvioQueryJpaAdapter implements SmsEnvioQueryPort {
     @Override
     @Transactional(transactionManager = "maestraTransactionManager", readOnly = true)
     public Optional<SmsEnvioDetalleResponse> findById(UUID envioId) {
-        return envioRepository.findWithFinalById(envioId).map(entity -> {
+        return envioRepository.findWithFinalByUuid(envioId).map(entity -> {
             SmsEnvioDetalleResponse detalle = mapper.toDetalle(entity);
-            detalle.setIntentos(mapper.toIntentos(intentoRepository.findByEnvio_IdOrderByIdAsc(envioId)));
+            detalle.setIntentos(mapper.toIntentos(intentoRepository.findByEnvio_UuidOrderByIdSmsEnvioIntentoAsc(envioId)));
             return detalle;
         });
     }

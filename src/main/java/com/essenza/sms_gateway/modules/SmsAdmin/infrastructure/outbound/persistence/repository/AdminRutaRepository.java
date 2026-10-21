@@ -10,14 +10,14 @@ import java.util.Optional;
 public interface AdminRutaRepository extends JpaRepository<AdminRutaEntity, Long> {
 
     @EntityGraph(attributePaths = "proveedor")
-    List<AdminRutaEntity> findAllByOrderByIdAsc();
+    List<AdminRutaEntity> findAllByOrderByIdSmsRutaAsc();
 
     @EntityGraph(attributePaths = "proveedor")
-    Optional<AdminRutaEntity> findWithProveedorById(Long id);
+    Optional<AdminRutaEntity> findWithProveedorByIdSmsRuta(Long id);
 
     @EntityGraph(attributePaths = "proveedor")
     Optional<AdminRutaEntity> findFirstByProveedorIsNullAndTipoMensaje(String tipoMensaje);
 
     @EntityGraph(attributePaths = "proveedor")
-    Optional<AdminRutaEntity> findFirstByProveedor_IdAndTipoMensaje(Long proveedorId, String tipoMensaje);
+    Optional<AdminRutaEntity> findFirstByProveedor_IdSmsProveedorAndTipoMensaje(Long proveedorId, String tipoMensaje);
 }

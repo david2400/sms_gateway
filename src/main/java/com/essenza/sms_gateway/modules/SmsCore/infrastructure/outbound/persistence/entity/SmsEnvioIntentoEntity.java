@@ -20,7 +20,7 @@ import java.time.LocalDateTime;
  * Intento de envío contra una cuenta ({@code sms_envio_intento}).
  */
 @Entity
-@Table(name = "sms_envio_intento", indexes = @Index(name = "ix_sms_intento_envio", columnList = "envio_id"))
+@Table(name = "SmsEnvioIntento", indexes = @Index(name = "ix_sms_intento_envio", columnList = "envio_id"))
 @Getter
 @Setter
 @NoArgsConstructor
@@ -28,8 +28,8 @@ public class SmsEnvioIntentoEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
-    private Long id;
+    @Column(name = "id_sms_envio_intento")
+    private Long idSmsEnvioIntento;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "envio_id", nullable = false)
@@ -57,7 +57,7 @@ public class SmsEnvioIntentoEntity {
     @Column(name = "http_status")
     private Integer httpStatus;
 
-    @Column(name = "detalle", length = 1000, columnDefinition = "NVARCHAR(1000)")
+    @Column(name = "detalle", length = 1000)
     private String detalle;
 
     @Column(name = "duracion_ms", nullable = false)
