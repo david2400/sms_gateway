@@ -18,6 +18,9 @@ import com.essenza.sms_gateway.modules.SmsAdmin.domain.ports.ProveedorCatalogPor
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.ports.RoutingCacheAdminPort;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.ports.RutaAdminPort;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.ports.RutaPasoAdminPort;
+import com.essenza.sms_gateway.modules.SmsAdmin.domain.ports.TipoMensajeAdminPort;
+import com.essenza.sms_gateway.modules.SmsAdmin.domain.model.TipoMensaje;
+import com.essenza.sms_gateway.modules.SmsCore.domain.model.CanalMensaje;
 import com.essenza.sms_gateway.modules.SmsAdmin.application.services.Cuenta.ActualizarCuentaService;
 import com.essenza.sms_gateway.modules.SmsAdmin.application.services.Cuenta.CrearCuentaService;
 import com.essenza.sms_gateway.modules.SmsAdmin.application.services.Cuenta.ObtenerCuentaService;
@@ -74,6 +77,7 @@ class SmsAdminServicesTest {
     private MemProveedores proveedores;
     private MemCuentas cuentas;
     private TestCipher cipher;
+    private MemTipos tipos;
     private MemRutas rutas;
     private MemPasos pasos;
     private AtomicInteger refreshes;
@@ -98,6 +102,7 @@ class SmsAdminServicesTest {
         proveedores = new MemProveedores();
         cuentas = new MemCuentas(proveedores);
         cipher = new TestCipher();
+        tipos = new MemTipos();
         rutas = new MemRutas(proveedores);
         pasos = new MemPasos(cuentas);
         refreshes = new AtomicInteger();
@@ -130,7 +135,7 @@ class SmsAdminServicesTest {
         crearCuenta = new CrearCuentaService(cuentas, finder, cuentaMapper, credenciales, cuentaAssembler, cache);
         obtenerCuenta = new ObtenerCuentaService(finder, cuentaAssembler);
         actualizarCuenta = new ActualizarCuentaService(cuentas, finder, new CambioProveedorCuentaValidator(pasos, rutas), cuentaMapper, credenciales, cuentaAssembler, cache);
-        crearRuta = new CrearRutaService(rutas, pasos, finder, pasoValidator, rutaMapper, pasoMapper, rutaAssembler, cache);
+        crearRuta = new CrearRutaService(rutas, pasos, tipos, finder, pasoValidator, rutaMapper, pasoMapper, rutaAssembler, cache);
         reemplazarPasos = new ReemplazarPasosRutaService(pasos, finder, pasoValidator, pasoMapper, rutaAssembler, cache);
         rutaEfectiva = new ConsultarRutaEfectivaService(routing, catalog, new RutaEfectivaMapperImpl());
 
@@ -302,7 +307,7 @@ class SmsAdminServicesTest {
     private static RutaRequest ruta(Long proveedorId, MessageType tipo, List<PasoRequest> pasos) {
         RutaRequest r = new RutaRequest();
         r.setProveedorId(proveedorId);
-        r.setTipoMensaje(tipo);
+        r.setTipoMensajeId(MemTipos.idDe(tipo.name()));
         r.setPasos(pasos);
         return r;
     }
@@ -371,8 +376,8 @@ class SmsAdminServicesTest {
 
         public List<Ruta> findAll(Long pid, boolean central, String tipo) { return new ArrayList<>(data.values()); }
         public Optional<Ruta> findById(Long id) { return Optional.ofNullable(data.get(id)); }
-        public Optional<Ruta> findByProveedorAndTipo(Long pid, String tipo) {
-            return data.values().stream().filter(r -> Objects.equals(pid, r.getProveedorId()) && r.getTipoMensaje().equals(tipo)).findFirst();
+        public Optional<Ruta> findByProveedorAndTipo(Long pid, Long tipoId) {
+            return data.values().stream().filter(r -> Objects.equals(pid, r.getProveedorId()) && Objects.equals(tipoId, r.getTipoMensajeId())).findFirst();
         }
         public Ruta save(Ruta r) {
             if (r.getId() == null) {
@@ -402,5 +407,28 @@ class SmsAdminServicesTest {
         public List<Long> rutasQueUsanCuenta(Long cid) {
             return data.entrySet().stream().filter(e -> e.getValue().stream().anyMatch(p -> p.getCuentaId().equals(cid))).map(Map.Entry::getKey).toList();
         }
+    }
+
+    /** Catálogo de tipos en memoria: mismo orden que el seed V6 (OTP=1, HABEAS_DATA=2, ...). */
+    static class MemTipos implements TipoMensajeAdminPort {
+        static final Map<String, Long> IDS = Map.of(
+                "OTP", 1L, "HABEAS_DATA", 2L, "TEMPLATE", 3L,
+                "PERSONALIZED", 4L, "NORMAL", 5L, "MASIVO", 6L);
+
+        static Long idDe(String codigo) { return IDS.get(codigo); }
+
+        public List<TipoMensaje> findAll(CanalMensaje canal, Boolean otp, Boolean masivo) {
+            return IDS.entrySet().stream()
+                    .map(e -> new TipoMensaje(e.getValue(), e.getKey(), null, CanalMensaje.SMS, "OTP".equals(e.getKey()), "NORMAL".equals(e.getKey()) || "MASIVO".equals(e.getKey()), true))
+                    .toList();
+        }
+        public Optional<TipoMensaje> findById(Long id) {
+            return findAll(null, null, null).stream().filter(t -> t.getId().equals(id)).findFirst();
+        }
+        public Optional<TipoMensaje> findByCodigo(String codigo) {
+            return findById(IDS.get(codigo));
+        }
+        public TipoMensaje save(TipoMensaje t) { return t; }
+        public void delete(Long id) { }
     }
 }

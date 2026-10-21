@@ -23,15 +23,18 @@ public interface RutaMapper {
 
     // ---------- API ----------
 
-    /** Los pasos del request se convierten aparte con {@link RutaPasoMapper#toModels}. */
+    /** Los pasos del request se convierten aparte con {@link RutaPasoMapper#toModels};
+     *  el código del tipo lo resuelve el service desde {@code tipoMensajeId}. */
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "proveedorCodigo", ignore = true)
+    @Mapping(target = "tipoMensaje", ignore = true)
     Ruta toModel(RutaRequest request);
 
     /** {@code nombre} = "CENTRAL" o el código del proveedor. */
     @Mapping(target = "id", source = "ruta.id")
     @Mapping(target = "proveedorId", source = "ruta.proveedorId")
     @Mapping(target = "proveedorCodigo", source = "nombre")
+    @Mapping(target = "tipoMensajeId", source = "ruta.tipoMensajeId")
     @Mapping(target = "tipoMensaje", source = "ruta.tipoMensaje")
     @Mapping(target = "activo", source = "ruta.activo")
     @Mapping(target = "pasos", source = "pasos")
@@ -42,9 +45,12 @@ public interface RutaMapper {
     @Mapping(target = "id", source = "idSmsRuta")
     @Mapping(target = "proveedorId", source = "proveedor.idSmsProveedor")
     @Mapping(target = "proveedorCodigo", source = "proveedor.codigo")
+    @Mapping(target = "tipoMensajeId", source = "tipoMensaje.idSmsTipoMensaje")
+    @Mapping(target = "tipoMensaje", source = "tipoMensaje.codigo")
     Ruta toModel(AdminRutaEntity entity);
 
     @Mapping(target = "idSmsRuta", ignore = true)
     @Mapping(target = "proveedor", ignore = true)
+    @Mapping(target = "tipoMensaje", ignore = true)
     void updateEntity(Ruta source, @MappingTarget AdminRutaEntity target);
 }

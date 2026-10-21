@@ -32,8 +32,9 @@ public class AdminRutaEntity {
     @JoinColumn(name = "proveedor_id")
     private AdminProveedorEntity proveedor;
 
-    @Column(name = "tipo_mensaje", length = 30, nullable = false)
-    private String tipoMensaje;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "tipo_mensaje_id", nullable = false)
+    private AdminTipoMensajeEntity tipoMensaje;
 
     @Column(name = "activo", nullable = false)
     private Boolean activo;

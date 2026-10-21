@@ -19,19 +19,21 @@ INSERT INTO tmp_sms_pasos VALUES
  -- Opcional, Go4Clients como respaldo (requiere V4): agregar a la lista
  -- (NULL, 'OTP', 3, 'GO4CLIENTS_PRINCIPAL'), (NULL, 'NORMAL', 2, 'GO4CLIENTS_PRINCIPAL'), (NULL, 'MASIVO', 2, 'GO4CLIENTS_PRINCIPAL')
 
-INSERT INTO SmsRuta (proveedor_id, tipo_mensaje, activo)
-SELECT DISTINCT pr.id_sms_proveedor, p.tipo, b'1'
+INSERT INTO SmsRuta (proveedor_id, tipo_mensaje_id, activo)
+SELECT DISTINCT pr.id_sms_proveedor, tm.id_sms_tipo_mensaje, b'1'
 FROM tmp_sms_pasos p
+JOIN SmsTipoMensaje tm ON tm.codigo = p.tipo
 LEFT JOIN SmsProveedor pr ON pr.codigo = p.proveedor
 WHERE (p.proveedor IS NULL OR pr.id_sms_proveedor IS NOT NULL)
   AND NOT EXISTS (SELECT 1 FROM SmsRuta r
-                  WHERE r.tipo_mensaje = p.tipo AND r.proveedor_id <=> pr.id_sms_proveedor);
+                  WHERE r.tipo_mensaje_id = tm.id_sms_tipo_mensaje AND r.proveedor_id <=> pr.id_sms_proveedor);
 
 INSERT INTO SmsRutaPaso (ruta_id, orden, cuenta_id, max_intentos, espera_ms, activo)
 SELECT r.id_sms_ruta, p.orden, c.id_sms_cuenta, 3, 500, b'1'
 FROM tmp_sms_pasos p
+JOIN SmsTipoMensaje tm ON tm.codigo = p.tipo
 LEFT JOIN SmsProveedor pr ON pr.codigo = p.proveedor
-JOIN SmsRuta r   ON r.tipo_mensaje = p.tipo AND r.proveedor_id <=> pr.id_sms_proveedor
+JOIN SmsRuta r   ON r.tipo_mensaje_id = tm.id_sms_tipo_mensaje AND r.proveedor_id <=> pr.id_sms_proveedor
 JOIN SmsCuenta c ON c.codigo = p.cuenta
 WHERE (p.proveedor IS NULL OR pr.id_sms_proveedor IS NOT NULL)
   AND NOT EXISTS (SELECT 1 FROM SmsRutaPaso x WHERE x.ruta_id = r.id_sms_ruta AND x.orden = p.orden);

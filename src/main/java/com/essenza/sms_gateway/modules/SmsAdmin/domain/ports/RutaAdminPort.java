@@ -14,8 +14,8 @@ public interface RutaAdminPort {
      */
     List<Ruta> findAll(Long proveedorId, boolean soloCentral, String tipoMensaje);
     Optional<Ruta> findById(Long id);
-    /** @param proveedorId null = ruta central */
-    Optional<Ruta> findByProveedorAndTipo(Long proveedorId, String tipoMensaje);
+    /** @param proveedorId null = ruta central; {@code tipoMensajeId} = id de {@code sms_tipo_mensaje} */
+    Optional<Ruta> findByProveedorAndTipo(Long proveedorId, Long tipoMensajeId);
     Ruta save(Ruta ruta);
     /** Borra la ruta (los pasos deben borrarse antes con {@link RutaPasoAdminPort#deleteByRuta}). */
     void delete(Long rutaId);

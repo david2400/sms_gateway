@@ -17,6 +17,9 @@ public class RutaResponse {
     private Long proveedorId;
     @Schema(description = "CENTRAL o código del proveedor")
     private String proveedorCodigo;
+    @Schema(description = "Id del tipo de mensaje (sms_tipo_mensaje)")
+    private Long tipoMensajeId;
+    @Schema(description = "Código del tipo de mensaje (ej. OTP)")
     private String tipoMensaje;
     private boolean activo;
     private List<Paso> pasos;

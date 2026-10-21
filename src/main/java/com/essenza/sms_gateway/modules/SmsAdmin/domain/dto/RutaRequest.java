@@ -1,6 +1,5 @@
 package com.essenza.sms_gateway.modules.SmsAdmin.domain.dto;
 
-import com.essenza.sms_gateway.modules.SmsCore.domain.model.MessageType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -21,8 +20,8 @@ public class RutaRequest {
     private Long proveedorId;
 
     @NotNull
-    @Schema(example = "OTP")
-    private MessageType tipoMensaje;
+    @Schema(description = "Id del tipo de mensaje (sms_tipo_mensaje; ver GET /v1/sms/admin/tipos-mensaje)", example = "1")
+    private Long tipoMensajeId;
 
     @Schema(description = "Activa (por defecto true)", example = "true")
     private Boolean activo;

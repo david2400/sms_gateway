@@ -72,8 +72,8 @@ public class RoutingPolicyJpaAdapter implements RoutingPolicyPort {
 
     private RoutePlan load(String providerCode, MessageType type) {
         Optional<SmsRutaEntity> ruta = providerCode == null
-                ? rutaRepository.findFirstByProveedorIsNullAndTipoMensajeAndActivoTrue(type.name())
-                : rutaRepository.findFirstByProveedor_CodigoAndTipoMensajeAndActivoTrue(providerCode.toUpperCase(), type.name());
+                ? rutaRepository.findFirstByProveedorIsNullAndTipoMensaje_CodigoAndActivoTrue(type.name())
+                : rutaRepository.findFirstByProveedor_CodigoAndTipoMensaje_CodigoAndActivoTrue(providerCode.toUpperCase(), type.name());
 
         if (ruta.isEmpty()) {
             return RoutePlan.empty(providerCode, type);

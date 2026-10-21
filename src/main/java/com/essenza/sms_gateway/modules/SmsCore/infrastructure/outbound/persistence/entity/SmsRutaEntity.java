@@ -33,8 +33,9 @@ public class SmsRutaEntity {
     @JoinColumn(name = "proveedor_id")
     private SmsProveedorEntity proveedor;
 
-    @Column(name = "tipo_mensaje", length = 30, nullable = false)
-    private String tipoMensaje;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "tipo_mensaje_id", nullable = false)
+    private SmsTipoMensajeEntity tipoMensaje;
 
     @Column(name = "activo", nullable = false)
     private Boolean activo = Boolean.TRUE;

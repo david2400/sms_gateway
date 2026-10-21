@@ -5,10 +5,14 @@ import com.essenza.sms_gateway.modules.SmsAdmin.application.services.support.Rut
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.dto.RutaRequest;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.dto.RutaResponse;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.exception.AdminConflictException;
+import com.essenza.sms_gateway.modules.SmsAdmin.domain.exception.AdminNotFoundException;
+import com.essenza.sms_gateway.modules.SmsAdmin.domain.exception.AdminValidationException;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.model.Ruta;
+import com.essenza.sms_gateway.modules.SmsAdmin.domain.model.TipoMensaje;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.ports.RoutingCacheAdminPort;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.ports.RutaAdminPort;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.ports.RutaPasoAdminPort;
+import com.essenza.sms_gateway.modules.SmsAdmin.domain.ports.TipoMensajeAdminPort;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.services.AdminFinder;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.services.PasoRutaValidator;
 import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.mappers.RutaMapper;
@@ -27,6 +31,7 @@ public class CrearRutaService implements CrearRutaUseCase {
 
     private final RutaAdminPort rutas;
     private final RutaPasoAdminPort pasos;
+    private final TipoMensajeAdminPort tipos;
     private final AdminFinder finder;
     private final PasoRutaValidator pasoValidator;
     private final RutaMapper rutaMapper;
@@ -39,11 +44,17 @@ public class CrearRutaService implements CrearRutaUseCase {
         if (request.getProveedorId() != null) {
             finder.proveedorReferenciado(request.getProveedorId());
         }
+        TipoMensaje tipo = tipos.findById(request.getTipoMensajeId())
+                .orElseThrow(() -> new AdminNotFoundException("Tipo de mensaje no encontrado: " + request.getTipoMensajeId()));
+        if (!Boolean.TRUE.equals(tipo.getActivo())) {
+            throw new AdminValidationException("El tipo de mensaje " + tipo.getCodigo() + " está inactivo");
+        }
         Ruta ruta = rutaMapper.toModel(request);
+        ruta.setTipoMensaje(tipo.getCodigo());
         if (ruta.getActivo() == null) {
             ruta.setActivo(Boolean.TRUE);
         }
-        rutas.findByProveedorAndTipo(ruta.getProveedorId(), ruta.getTipoMensaje()).ifPresent(r -> {
+        rutas.findByProveedorAndTipo(ruta.getProveedorId(), ruta.getTipoMensajeId()).ifPresent(r -> {
             throw new AdminConflictException("Ya existe la ruta " + RutaResponseAssembler.nombre(r) + "/" + r.getTipoMensaje()
                     + " (id " + r.getId() + "); modifique sus pasos con PUT /rutas/" + r.getId() + "/pasos");
         });

@@ -12,6 +12,9 @@ public class Ruta {
     private Long id;
     private Long proveedorId;
     private String proveedorCodigo;
+    /** FK a {@code sms_tipo_mensaje}. */
+    private Long tipoMensajeId;
+    /** Código del tipo (derivado; ej. OTP). */
     private String tipoMensaje;
     private Boolean activo;
 

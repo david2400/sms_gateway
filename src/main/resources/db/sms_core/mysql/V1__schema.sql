@@ -41,13 +41,26 @@ CREATE TABLE IF NOT EXISTS SmsCuenta (
   CONSTRAINT fk_sms_cuenta_proveedor FOREIGN KEY (proveedor_id) REFERENCES SmsProveedor (id_sms_proveedor)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+CREATE TABLE IF NOT EXISTS SmsTipoMensaje (
+  id_sms_tipo_mensaje BIGINT       NOT NULL AUTO_INCREMENT,
+  codigo              VARCHAR(30)  NOT NULL,   -- valor de tipo_mensaje en las APIs (OTP, NORMAL, ...)
+  descripcion         VARCHAR(255) NULL,
+  canal               VARCHAR(20)  NOT NULL,   -- SMS | WHATSAPP
+  otp                 BIT(1)       NOT NULL DEFAULT b'0',
+  masivo              BIT(1)       NOT NULL DEFAULT b'0',
+  activo              BIT(1)       NOT NULL DEFAULT b'1',
+  CONSTRAINT pk_sms_tipo_mensaje PRIMARY KEY (id_sms_tipo_mensaje),
+  CONSTRAINT uq_sms_tipo_mensaje_codigo UNIQUE (codigo)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE IF NOT EXISTS SmsRuta (
-  id_sms_ruta   BIGINT      NOT NULL AUTO_INCREMENT,
-  proveedor_id  BIGINT      NULL,          -- NULL = endpoint CENTRAL
-  tipo_mensaje  VARCHAR(30) NOT NULL,      -- OTP, HABEAS_DATA, TEMPLATE, PERSONALIZED, NORMAL, MASIVO
-  activo        BIT(1)      NOT NULL DEFAULT b'1',
+  id_sms_ruta     BIGINT      NOT NULL AUTO_INCREMENT,
+  proveedor_id    BIGINT      NULL,          -- NULL = endpoint CENTRAL
+  tipo_mensaje_id BIGINT      NOT NULL,      -- FK -> sms_tipo_mensaje
+  activo          BIT(1)      NOT NULL DEFAULT b'1',
   CONSTRAINT pk_sms_ruta PRIMARY KEY (id_sms_ruta),
-  CONSTRAINT fk_sms_ruta_proveedor FOREIGN KEY (proveedor_id) REFERENCES SmsProveedor (id_sms_proveedor)
+  CONSTRAINT fk_sms_ruta_proveedor    FOREIGN KEY (proveedor_id)    REFERENCES SmsProveedor (id_sms_proveedor),
+  CONSTRAINT fk_sms_ruta_tipo_mensaje FOREIGN KEY (tipo_mensaje_id) REFERENCES SmsTipoMensaje (id_sms_tipo_mensaje)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS SmsRutaPaso (
@@ -131,7 +144,7 @@ PREPARE st FROM @sql; EXECUTE st; DEALLOCATE PREPARE st;
 
 SET @sql = IF((SELECT COUNT(*) FROM information_schema.statistics
                WHERE table_schema = DATABASE() AND LOWER(table_name) = 'smsruta' AND index_name = 'ux_sms_ruta') = 0,
-  'CREATE UNIQUE INDEX ux_sms_ruta ON SmsRuta (proveedor_key, tipo_mensaje)',
+  'CREATE UNIQUE INDEX ux_sms_ruta ON SmsRuta (proveedor_key, tipo_mensaje_id)',
   'DO 0');
 PREPARE st FROM @sql; EXECUTE st; DEALLOCATE PREPARE st;
 
