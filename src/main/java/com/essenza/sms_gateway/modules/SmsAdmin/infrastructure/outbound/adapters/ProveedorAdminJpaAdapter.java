@@ -2,7 +2,7 @@ package com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.adapter
 
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.model.Proveedor;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.ports.ProveedorAdminPort;
-import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.mappers.ProveedorEntityMapper;
+import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.mappers.ProveedorMapper;
 import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.persistence.repository.AdminProveedorRepository;
 import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.persistence.entity.AdminProveedorEntity;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +16,7 @@ import java.util.Optional;
 public class ProveedorAdminJpaAdapter implements ProveedorAdminPort {
 
     private final AdminProveedorRepository repository;
-    private final ProveedorEntityMapper mapper;
+    private final ProveedorMapper mapper;
 
     @Override
     public List<Proveedor> findAll() {

@@ -4,16 +4,24 @@ import com.essenza.sms_gateway.modules.SmsAdmin.domain.dto.RutaRequest;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.dto.RutaResponse;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.model.Paso;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.model.Ruta;
+import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.persistence.entity.AdminRutaEntity;
 import org.mapstruct.InjectionStrategy;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 import org.mapstruct.ReportingPolicy;
 
 import java.util.List;
 
-/** API de rutas: request → modelo y ruta + pasos → respuesta. Los pasos los convierte {@link RutaPasoMapper}. */
+/**
+ * Mapper único de rutas:
+ * API (request → modelo, ruta + pasos → respuesta) y persistencia ({@code sms_ruta} ↔ modelo).
+ * El proveedor de la entidad lo asigna el adapter (null = ruta central) y los pasos los convierte {@link RutaPasoMapper}.
+ */
 @Mapper(componentModel = "spring", uses = RutaPasoMapper.class, injectionStrategy = InjectionStrategy.CONSTRUCTOR, unmappedTargetPolicy = ReportingPolicy.ERROR)
 public interface RutaMapper {
+
+    // ---------- API ----------
 
     /** Los pasos del request se convierten aparte con {@link RutaPasoMapper#toModels}. */
     @Mapping(target = "id", ignore = true)
@@ -28,4 +36,15 @@ public interface RutaMapper {
     @Mapping(target = "activo", source = "ruta.activo")
     @Mapping(target = "pasos", source = "pasos")
     RutaResponse toResponse(Ruta ruta, String nombre, List<Paso> pasos);
+
+    // ---------- Persistencia ----------
+
+    @Mapping(target = "id", source = "idSmsRuta")
+    @Mapping(target = "proveedorId", source = "proveedor.idSmsProveedor")
+    @Mapping(target = "proveedorCodigo", source = "proveedor.codigo")
+    Ruta toModel(AdminRutaEntity entity);
+
+    @Mapping(target = "idSmsRuta", ignore = true)
+    @Mapping(target = "proveedor", ignore = true)
+    void updateEntity(Ruta source, @MappingTarget AdminRutaEntity target);
 }

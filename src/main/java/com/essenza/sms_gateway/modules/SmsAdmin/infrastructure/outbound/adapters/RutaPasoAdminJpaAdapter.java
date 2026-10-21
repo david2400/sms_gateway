@@ -2,7 +2,7 @@ package com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.adapter
 
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.model.Paso;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.ports.RutaPasoAdminPort;
-import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.mappers.RutaPasoEntityMapper;
+import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.mappers.RutaPasoMapper;
 import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.persistence.entity.AdminRutaPasoEntity;
 import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.persistence.repository.AdminCuentaRepository;
 import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.persistence.repository.AdminRutaPasoRepository;
@@ -20,7 +20,7 @@ public class RutaPasoAdminJpaAdapter implements RutaPasoAdminPort {
     private final AdminRutaPasoRepository pasoRepository;
     private final AdminRutaRepository rutaRepository;
     private final AdminCuentaRepository cuentaRepository;
-    private final RutaPasoEntityMapper mapper;
+    private final RutaPasoMapper mapper;
 
     @Override
     public List<Paso> findByRuta(Long rutaId) {

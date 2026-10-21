@@ -33,6 +33,7 @@ import com.essenza.sms_gateway.modules.SmsAdmin.application.services.support.Cue
 import com.essenza.sms_gateway.modules.SmsAdmin.application.services.support.ProveedorResponseAssembler;
 import com.essenza.sms_gateway.modules.SmsAdmin.application.services.support.RutaResponseAssembler;
 import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.mappers.CuentaMapperImpl;
+import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.mappers.ParametrosJsonMapper;
 import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.mappers.ProveedorMapperImpl;
 import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.mappers.RutaMapperImpl;
 import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.mappers.RutaEfectivaMapperImpl;
@@ -115,7 +116,7 @@ class SmsAdminServicesTest {
 
         AdminFinder finder = new AdminFinder(proveedores, cuentas, rutas);
         ProveedorMapperImpl proveedorMapper = new ProveedorMapperImpl();
-        CuentaMapperImpl cuentaMapper = new CuentaMapperImpl();
+        CuentaMapperImpl cuentaMapper = new CuentaMapperImpl(new ParametrosJsonMapper());
         RutaPasoMapper pasoMapper = new RutaPasoMapperImpl();
         RutaMapperImpl rutaMapper = new RutaMapperImpl(pasoMapper);
         ProveedorResponseAssembler proveedorAssembler = new ProveedorResponseAssembler(proveedorMapper, catalog, cuentas);

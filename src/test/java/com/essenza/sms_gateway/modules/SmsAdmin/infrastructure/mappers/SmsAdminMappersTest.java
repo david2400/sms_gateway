@@ -10,8 +10,6 @@ import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.mappers.
 import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.mappers.CuentaMapperImpl;
 import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.mappers.ProveedorMapper;
 import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.mappers.ProveedorMapperImpl;
-import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.mappers.CuentaEntityMapper;
-import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.mappers.CuentaEntityMapperImpl;
 import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.mappers.ParametrosJsonMapper;
 import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.persistence.entity.AdminCuentaEntity;
 import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.persistence.entity.AdminProveedorEntity;
@@ -30,9 +28,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class SmsAdminMappersTest {
 
     private final ParametrosJsonMapper parametros = new ParametrosJsonMapper();
-    private final CuentaEntityMapper cuentaPersistence = new CuentaEntityMapperImpl(parametros);
+    private final CuentaMapper cuentaPersistence = new CuentaMapperImpl(parametros);
     private final ProveedorMapper proveedorDto = new ProveedorMapperImpl();
-    private final CuentaMapper cuentaDto = new CuentaMapperImpl();
+    private final CuentaMapper cuentaDto = new CuentaMapperImpl(parametros);
 
     @Test
     void cuentaEntidadAModeloYDeVuelta() {
