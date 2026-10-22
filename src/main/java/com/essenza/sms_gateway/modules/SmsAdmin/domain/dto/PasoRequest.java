@@ -1,18 +1,21 @@
 package com.essenza.sms_gateway.modules.SmsAdmin.domain.dto;
 
+import com.essenza.sms_gateway.shared.common.domain.dto.AuditInfoDto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(callSuper = true)
 @Schema(description = "Paso de una ruta: cuenta y política de intentos")
-public class PasoRequest {
+public class PasoRequest extends AuditInfoDto {
 
     @NotNull @Min(1) @Max(99)
     @Schema(description = "1 = principal, 2.. = respaldo", example = "1")
@@ -29,7 +32,4 @@ public class PasoRequest {
     @Min(0) @Max(60000)
     @Schema(description = "Espera entre intentos en ms (por defecto 500)", example = "500")
     private Integer esperaMs;
-
-    @Schema(example = "true")
-    private Boolean activo;
 }

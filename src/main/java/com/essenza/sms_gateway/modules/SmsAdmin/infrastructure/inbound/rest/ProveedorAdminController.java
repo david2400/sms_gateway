@@ -77,6 +77,6 @@ public class ProveedorAdminController {
             description = "Desactivado, el motor salta todas sus cuentas. No hay borrado porque el log de envíos lo referencia.")
     @PatchMapping("/{id}/estado")
     public ProveedorResponse estado(@PathVariable Long id, @Valid @RequestBody EstadoRequest request) {
-        return cambiarEstadoProveedor.cambiarEstado(id, request.getActivo());
+        return cambiarEstadoProveedor.cambiarEstado(id, request.isEliminado());
     }
 }

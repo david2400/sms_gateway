@@ -5,6 +5,7 @@ import com.essenza.sms_gateway.modules.SmsAdmin.domain.dto.TipoMensajeResponse;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.model.TipoMensaje;
 import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.persistence.entity.AdminTipoMensajeEntity;
 import org.mapstruct.BeanMapping;
+import org.mapstruct.Builder;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
@@ -15,7 +16,7 @@ import org.mapstruct.ReportingPolicy;
  * Mapper único de tipos de mensaje:
  * API (request → modelo, modelo → respuesta) y persistencia ({@code sms_tipo_mensaje} ↔ modelo).
  */
-@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.ERROR)
+@Mapper(componentModel = "spring", builder = @Builder(disableBuilder = true), unmappedTargetPolicy = ReportingPolicy.ERROR)
 public interface TipoMensajeMapper {
 
     // ---------- API ----------
@@ -30,6 +31,10 @@ public interface TipoMensajeMapper {
     @Mapping(target = "codigo", ignore = true)
     void updateModel(TipoMensajeRequest request, @MappingTarget TipoMensaje tipo);
 
+    @Mapping(target = "usrCrea", ignore = true)
+    @Mapping(target = "usrMod", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
     TipoMensajeResponse toResponse(TipoMensaje tipo);
 
     // ---------- Persistencia ----------
@@ -39,5 +44,9 @@ public interface TipoMensajeMapper {
 
     /** id lo gestiona la BD/JPA. */
     @Mapping(target = "idSmsTipoMensaje", ignore = true)
+    @Mapping(target = "usrCrea", ignore = true)
+    @Mapping(target = "usrMod", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
     void updateEntity(TipoMensaje source, @MappingTarget AdminTipoMensajeEntity target);
 }

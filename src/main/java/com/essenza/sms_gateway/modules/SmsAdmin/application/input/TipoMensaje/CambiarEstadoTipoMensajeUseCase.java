@@ -6,5 +6,5 @@ import com.essenza.sms_gateway.modules.SmsAdmin.domain.dto.TipoMensajeResponse;
 public interface CambiarEstadoTipoMensajeUseCase {
 
     /** @throws com.essenza.sms_gateway.modules.SmsAdmin.domain.exception.AdminNotFoundException si no existe */
-    TipoMensajeResponse cambiarEstado(Long id, Boolean activo);
+    TipoMensajeResponse cambiarEstado(Long id, boolean eliminado);
 }

@@ -21,6 +21,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -43,7 +44,7 @@ class SmsAdminMappersTest {
         entity.setCodigo("INALAMBRIA_OTP");
         entity.setSecretRef("INALAMBRIA_OTP_PASSWORD");
         entity.setParametrosJson("{\"type\":1,\"messagePattern\":\"0\"}");
-        entity.setActivo(true);
+        entity.setEliminado(false);
 
         Cuenta cuenta = cuentaPersistence.toModel(entity);
         assertEquals(7L, cuenta.getProveedorId());
@@ -66,7 +67,7 @@ class SmsAdminMappersTest {
 
     @Test
     void actualizarNoPisaConNulls() {
-        Proveedor actual = new Proveedor(1L, "INALAMBRIA", "Inalambria", "https://a", 3000, 10000, true, null);
+        Proveedor actual = new Proveedor(1L, "INALAMBRIA", "Inalambria", "https://a", 3000, 10000, false, null);
         ProveedorRequest request = new ProveedorRequest();
         request.setCodigo("INALAMBRIA");
         request.setNombre("Inalambria SA");
@@ -77,7 +78,7 @@ class SmsAdminMappersTest {
         assertEquals("Inalambria SA", actual.getNombre());
         assertEquals("https://b", actual.getBaseUrl());
         assertEquals(3000, actual.getConnectTimeoutMs());
-        assertTrue(actual.getActivo());
+        assertFalse(actual.getEliminado());
         assertEquals(1L, actual.getId());
     }
 

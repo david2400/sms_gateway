@@ -5,6 +5,7 @@ import com.essenza.sms_gateway.modules.SmsAdmin.domain.dto.RutaResponse;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.model.Paso;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.model.Ruta;
 import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.persistence.entity.AdminRutaEntity;
+import org.mapstruct.Builder;
 import org.mapstruct.InjectionStrategy;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -18,7 +19,8 @@ import java.util.List;
  * API (request → modelo, ruta + pasos → respuesta) y persistencia ({@code sms_ruta} ↔ modelo).
  * El proveedor de la entidad lo asigna el adapter (null = ruta central) y los pasos los convierte {@link RutaPasoMapper}.
  */
-@Mapper(componentModel = "spring", uses = RutaPasoMapper.class, injectionStrategy = InjectionStrategy.CONSTRUCTOR, unmappedTargetPolicy = ReportingPolicy.ERROR)
+@Mapper(componentModel = "spring", uses = RutaPasoMapper.class, injectionStrategy = InjectionStrategy.CONSTRUCTOR,
+        builder = @Builder(disableBuilder = true), unmappedTargetPolicy = ReportingPolicy.ERROR)
 public interface RutaMapper {
 
     // ---------- API ----------
@@ -36,8 +38,11 @@ public interface RutaMapper {
     @Mapping(target = "proveedorCodigo", source = "nombre")
     @Mapping(target = "tipoMensajeId", source = "ruta.tipoMensajeId")
     @Mapping(target = "tipoMensaje", source = "ruta.tipoMensaje")
-    @Mapping(target = "activo", source = "ruta.activo")
     @Mapping(target = "pasos", source = "pasos")
+    @Mapping(target = "usrCrea", ignore = true)
+    @Mapping(target = "usrMod", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
     RutaResponse toResponse(Ruta ruta, String nombre, List<Paso> pasos);
 
     // ---------- Persistencia ----------
@@ -52,5 +57,9 @@ public interface RutaMapper {
     @Mapping(target = "idSmsRuta", ignore = true)
     @Mapping(target = "proveedor", ignore = true)
     @Mapping(target = "tipoMensaje", ignore = true)
+    @Mapping(target = "usrCrea", ignore = true)
+    @Mapping(target = "usrMod", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
     void updateEntity(Ruta source, @MappingTarget AdminRutaEntity target);
 }

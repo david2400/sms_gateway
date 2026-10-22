@@ -1,8 +1,10 @@
 package com.essenza.sms_gateway.modules.SmsAdmin.domain.dto;
 
+import com.essenza.sms_gateway.shared.common.domain.dto.AuditInfoDto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
@@ -11,8 +13,9 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(callSuper = true)
 @Schema(description = "Ruta efectiva que usará el motor de envío")
-public class RutaEfectivaResponse {
+public class RutaEfectivaResponse extends AuditInfoDto {
     private String proveedor;
     private String tipoMensaje;
     @Schema(description = "false si no hay ruta activa con pasos: el envío respondería 422")
@@ -24,7 +27,8 @@ public class RutaEfectivaResponse {
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class Paso {
+    @EqualsAndHashCode(callSuper = true)
+    public static class Paso extends AuditInfoDto {
         private int orden;
         private String proveedor;
         private String cuenta;

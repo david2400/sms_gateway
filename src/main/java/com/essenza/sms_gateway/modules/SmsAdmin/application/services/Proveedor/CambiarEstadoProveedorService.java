@@ -25,11 +25,11 @@ public class CambiarEstadoProveedorService implements CambiarEstadoProveedorUseC
     private final RoutingCacheAdminPort routingCache;
 
     @Override
-    public ProveedorResponse cambiarEstado(Long id, boolean activo) {
+    public ProveedorResponse cambiarEstado(Long id, boolean eliminado) {
         Proveedor proveedor = finder.proveedor(id);
-        proveedor.setActivo(activo);
+        proveedor.setEliminado(eliminado);
         Proveedor saved = proveedores.save(proveedor);
-        log.info("[SMS-ADMIN] Proveedor {} {}", saved.getCodigo(), activo ? "activado" : "desactivado");
+        log.info("[SMS-ADMIN] Proveedor {} {}", saved.getCodigo(), eliminado ? "desactivado" : "activado");
         routingCache.invalidarAlConfirmar();
         return assembler.toResponse(saved);
     }

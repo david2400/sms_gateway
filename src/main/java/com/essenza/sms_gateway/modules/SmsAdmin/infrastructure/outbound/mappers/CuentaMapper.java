@@ -5,6 +5,7 @@ import com.essenza.sms_gateway.modules.SmsAdmin.domain.dto.CuentaResponse;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.model.Cuenta;
 import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.persistence.entity.AdminCuentaEntity;
 import org.mapstruct.BeanMapping;
+import org.mapstruct.Builder;
 import org.mapstruct.InjectionStrategy;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -19,7 +20,8 @@ import java.util.List;
  * API (request → modelo, modelo → respuesta) y persistencia ({@code sms_cuenta} ↔ modelo).
  * El proveedor de la entidad lo asigna el adapter (getReferenceById) y las contraseñas nunca salen en la respuesta.
  */
-@Mapper(componentModel = "spring", uses = ParametrosJsonMapper.class, injectionStrategy = InjectionStrategy.CONSTRUCTOR, unmappedTargetPolicy = ReportingPolicy.ERROR)
+@Mapper(componentModel = "spring", uses = ParametrosJsonMapper.class, injectionStrategy = InjectionStrategy.CONSTRUCTOR,
+        builder = @Builder(disableBuilder = true), unmappedTargetPolicy = ReportingPolicy.ERROR)
 public interface CuentaMapper {
 
     // ---------- API ----------
@@ -40,6 +42,10 @@ public interface CuentaMapper {
     @Mapping(target = "secretDefinido", source = "secretDefinido")
     @Mapping(target = "rutas", source = "rutas")
     @Mapping(target = "claveConfigurada", expression = "java(cuenta.getClaveCifrada() != null && !cuenta.getClaveCifrada().isBlank())")
+    @Mapping(target = "usrCrea", ignore = true)
+    @Mapping(target = "usrMod", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
     CuentaResponse toResponse(Cuenta cuenta, boolean secretDefinido, List<Long> rutas);
 
     // ---------- Persistencia ----------
@@ -53,5 +59,9 @@ public interface CuentaMapper {
     @Mapping(target = "idSmsCuenta", ignore = true)
     @Mapping(target = "proveedor", ignore = true)
     @Mapping(target = "parametrosJson", source = "parametros", qualifiedByName = "mapToJson")
+    @Mapping(target = "usrCrea", ignore = true)
+    @Mapping(target = "usrMod", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
     void updateEntity(Cuenta source, @MappingTarget AdminCuentaEntity target);
 }

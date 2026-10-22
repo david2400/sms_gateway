@@ -1,5 +1,6 @@
 package com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.persistence.entity;
 
+import com.essenza.sms_gateway.shared.common.domain.entity.AuditInfo;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -21,7 +22,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class AdminRutaEntity {
+public class AdminRutaEntity extends AuditInfo {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -35,7 +36,4 @@ public class AdminRutaEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tipo_mensaje_id", nullable = false)
     private AdminTipoMensajeEntity tipoMensaje;
-
-    @Column(name = "activo", nullable = false)
-    private Boolean activo;
 }

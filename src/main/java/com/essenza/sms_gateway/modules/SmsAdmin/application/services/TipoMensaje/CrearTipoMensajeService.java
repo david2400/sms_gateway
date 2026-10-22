@@ -26,8 +26,8 @@ public class CrearTipoMensajeService implements CrearTipoMensajeUseCase {
         tipo.setCodigo(AdminCodigos.normalizar(request.getCodigo()));
         tipo.setOtp(Boolean.TRUE.equals(tipo.getOtp()));
         tipo.setMasivo(Boolean.TRUE.equals(tipo.getMasivo()));
-        if (tipo.getActivo() == null) {
-            tipo.setActivo(true);
+        if (tipo.getEliminado() == null) {
+            tipo.setEliminado(false);
         }
         tipos.findByCodigo(tipo.getCodigo()).ifPresent(t -> {
             throw new AdminConflictException("Ya existe el tipo de mensaje " + tipo.getCodigo());

@@ -4,6 +4,7 @@ import com.essenza.sms_gateway.modules.SmsAdmin.domain.dto.PasoRequest;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.dto.RutaResponse;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.model.Paso;
 import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.persistence.entity.AdminRutaPasoEntity;
+import org.mapstruct.Builder;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.ReportingPolicy;
@@ -15,7 +16,7 @@ import java.util.List;
  * API (request → modelo, modelo → respuesta) y persistencia ({@code sms_ruta_paso} ↔ modelo).
  * Ruta y cuenta de la entidad las asigna el adapter (getReferenceById); los defaults los aplica PasoRutaValidator.
  */
-@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.ERROR)
+@Mapper(componentModel = "spring", builder = @Builder(disableBuilder = true), unmappedTargetPolicy = ReportingPolicy.ERROR)
 public interface RutaPasoMapper {
 
     // ---------- API ----------
@@ -28,6 +29,10 @@ public interface RutaPasoMapper {
 
     List<Paso> toModels(List<PasoRequest> requests);
 
+    @Mapping(target = "usrCrea", ignore = true)
+    @Mapping(target = "usrMod", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
     RutaResponse.Paso toResponse(Paso paso);
 
     List<RutaResponse.Paso> toResponses(List<Paso> pasos);
@@ -44,5 +49,9 @@ public interface RutaPasoMapper {
     @Mapping(target = "idSmsRutaPaso", ignore = true)
     @Mapping(target = "ruta", ignore = true)
     @Mapping(target = "cuenta", ignore = true)
+    @Mapping(target = "usrCrea", ignore = true)
+    @Mapping(target = "usrMod", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
     AdminRutaPasoEntity toEntity(Paso paso);
 }

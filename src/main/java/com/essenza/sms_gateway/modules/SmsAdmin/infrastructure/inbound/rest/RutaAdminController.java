@@ -87,7 +87,7 @@ public class RutaAdminController {
     @Operation(summary = "Activar / desactivar ruta")
     @PatchMapping("/{id}/estado")
     public RutaResponse estado(@PathVariable Long id, @Valid @RequestBody EstadoRequest request) {
-        return cambiarEstadoRuta.cambiarEstado(id, request.getActivo());
+        return cambiarEstadoRuta.cambiarEstado(id, request.isEliminado());
     }
 
     @Operation(summary = "Eliminar ruta", description = "Borra la ruta y sus pasos (no afecta el log de envíos)")

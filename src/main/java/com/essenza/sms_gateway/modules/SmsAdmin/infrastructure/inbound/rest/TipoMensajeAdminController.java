@@ -80,7 +80,7 @@ public class TipoMensajeAdminController {
     @Operation(summary = "Activar / desactivar tipo de mensaje")
     @PatchMapping("/{id}/estado")
     public TipoMensajeResponse estado(@PathVariable Long id, @Valid @RequestBody EstadoRequest request) {
-        return cambiarEstadoTipoMensaje.cambiarEstado(id, request.getActivo());
+        return cambiarEstadoTipoMensaje.cambiarEstado(id, request.isEliminado());
     }
 
     @Operation(summary = "Eliminar tipo de mensaje", description = "No se puede eliminar si existen rutas que lo usan")

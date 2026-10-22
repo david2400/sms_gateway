@@ -17,5 +17,5 @@ public class Paso {
     private String proveedorCodigo;
     private Integer maxIntentos;
     private Integer esperaMs;
-    private Boolean activo;
+    private Boolean eliminado;
 }

@@ -5,6 +5,7 @@ import com.essenza.sms_gateway.modules.SmsAdmin.domain.dto.ProveedorResponse;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.model.Proveedor;
 import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.persistence.entity.AdminProveedorEntity;
 import org.mapstruct.BeanMapping;
+import org.mapstruct.Builder;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
@@ -15,7 +16,7 @@ import org.mapstruct.ReportingPolicy;
  * Mapper único de proveedores:
  * API (request → modelo, modelo → respuesta) y persistencia ({@code sms_proveedor} ↔ modelo).
  */
-@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.ERROR)
+@Mapper(componentModel = "spring", builder = @Builder(disableBuilder = true), unmappedTargetPolicy = ReportingPolicy.ERROR)
 public interface ProveedorMapper {
 
     // ---------- API ----------
@@ -33,6 +34,10 @@ public interface ProveedorMapper {
 
     @Mapping(target = "implementado", source = "implementado")
     @Mapping(target = "cuentas", source = "cuentas")
+    @Mapping(target = "usrCrea", ignore = true)
+    @Mapping(target = "usrMod", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
     ProveedorResponse toResponse(Proveedor proveedor, boolean implementado, int cuentas);
 
     // ---------- Persistencia ----------
@@ -43,5 +48,9 @@ public interface ProveedorMapper {
     /** id y fecha de creación los gestiona la BD/JPA. */
     @Mapping(target = "idSmsProveedor", ignore = true)
     @Mapping(target = "fechaCreacion", ignore = true)
+    @Mapping(target = "usrCrea", ignore = true)
+    @Mapping(target = "usrMod", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
     void updateEntity(Proveedor source, @MappingTarget AdminProveedorEntity target);
 }

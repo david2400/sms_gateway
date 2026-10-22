@@ -45,8 +45,8 @@ public class CrearCuentaService implements CrearCuentaUseCase {
         if (cuenta.getParametros() == null) {
             cuenta.setParametros(new LinkedHashMap<>());
         }
-        if (cuenta.getActivo() == null) {
-            cuenta.setActivo(Boolean.TRUE);
+        if (cuenta.getEliminado() == null) {
+            cuenta.setEliminado(Boolean.FALSE);
         }
         cuentas.findByCodigo(cuenta.getCodigo()).ifPresent(c -> {
             throw new AdminConflictException("Ya existe la cuenta " + c.getCodigo() + " (id " + c.getId() + ")");

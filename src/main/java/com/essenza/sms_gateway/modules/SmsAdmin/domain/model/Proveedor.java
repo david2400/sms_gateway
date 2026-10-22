@@ -17,6 +17,6 @@ public class Proveedor {
     private String baseUrl;
     private Integer connectTimeoutMs;
     private Integer readTimeoutMs;
-    private Boolean activo;
+    private Boolean eliminado;
     private LocalDateTime fechaCreacion;
 }

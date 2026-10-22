@@ -42,8 +42,8 @@ public class CrearProveedorService implements CrearProveedorUseCase {
         if (proveedor.getReadTimeoutMs() == null) {
             proveedor.setReadTimeoutMs(DEFAULT_READ_TIMEOUT_MS);
         }
-        if (proveedor.getActivo() == null) {
-            proveedor.setActivo(Boolean.TRUE);
+        if (proveedor.getEliminado() == null) {
+            proveedor.setEliminado(Boolean.FALSE);
         }
         proveedores.findByCodigo(proveedor.getCodigo()).ifPresent(p -> {
             throw new AdminConflictException("Ya existe el proveedor " + p.getCodigo() + " (id " + p.getId() + ")");

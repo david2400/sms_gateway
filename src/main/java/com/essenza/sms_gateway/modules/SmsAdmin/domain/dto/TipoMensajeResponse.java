@@ -1,17 +1,20 @@
 package com.essenza.sms_gateway.modules.SmsAdmin.domain.dto;
 
 import com.essenza.sms_gateway.modules.SmsCore.domain.model.CanalMensaje;
+import com.essenza.sms_gateway.shared.common.domain.dto.AuditInfoDto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 /** Tipo de mensaje con sus capacidades. */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(callSuper = true)
 @Schema(description = "Tipo de mensaje y sus capacidades")
-public class TipoMensajeResponse {
+public class TipoMensajeResponse extends AuditInfoDto {
 
     private Long id;
 
@@ -29,7 +32,4 @@ public class TipoMensajeResponse {
 
     @Schema(description = "Apto para envíos masivos", example = "false")
     private Boolean masivo;
-
-    @Schema(example = "true")
-    private Boolean activo;
 }

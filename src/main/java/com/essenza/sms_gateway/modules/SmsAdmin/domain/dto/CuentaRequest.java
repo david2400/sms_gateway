@@ -1,5 +1,6 @@
 package com.essenza.sms_gateway.modules.SmsAdmin.domain.dto;
 
+import com.essenza.sms_gateway.shared.common.domain.dto.AuditInfoDto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -7,6 +8,7 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
@@ -19,8 +21,9 @@ import java.util.Map;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(callSuper = true)
 @Schema(description = "Datos de una cuenta de proveedor")
-public class CuentaRequest {
+public class CuentaRequest extends AuditInfoDto {
 
     @NotNull
     @Schema(description = "Id del proveedor", example = "1")
@@ -53,7 +56,4 @@ public class CuentaRequest {
 
     @Schema(description = "Parámetros propios del proveedor (objeto JSON plano)", example = "{\"type\":1,\"messagePattern\":\"0\",\"templateId\":0}")
     private Map<String, Object> parametros;
-
-    @Schema(description = "Activa (por defecto true al crear)", example = "true")
-    private Boolean activo;
 }

@@ -16,7 +16,7 @@ public class Ruta {
     private Long tipoMensajeId;
     /** Código del tipo (derivado; ej. OTP). */
     private String tipoMensaje;
-    private Boolean activo;
+    private Boolean eliminado;
 
     public boolean isCentral() {
         return proveedorId == null;

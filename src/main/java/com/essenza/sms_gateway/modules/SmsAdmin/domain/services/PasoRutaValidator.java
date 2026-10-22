@@ -16,7 +16,7 @@ import java.util.Set;
  * <ul>
  *   <li>Orden y cuenta no se repiten.</li>
  *   <li>En una ruta de proveedor todas las cuentas son de ese proveedor (la central puede mezclar).</li>
- *   <li>Valores por defecto: 3 intentos, 500 ms de espera, activo.</li>
+ *   <li>Valores por defecto: 3 intentos, 500 ms de espera, no eliminado.</li>
  * </ul>
  */
 @Service
@@ -53,8 +53,8 @@ public class PasoRutaValidator {
             if (paso.getEsperaMs() == null) {
                 paso.setEsperaMs(DEFAULT_ESPERA_MS);
             }
-            if (paso.getActivo() == null) {
-                paso.setActivo(Boolean.TRUE);
+            if (paso.getEliminado() == null) {
+                paso.setEliminado(Boolean.FALSE);
             }
         }
         return pasos;

@@ -24,11 +24,11 @@ public class CambiarEstadoRutaService implements CambiarEstadoRutaUseCase {
     private final RoutingCacheAdminPort routingCache;
 
     @Override
-    public RutaResponse cambiarEstado(Long id, boolean activo) {
+    public RutaResponse cambiarEstado(Long id, boolean eliminado) {
         Ruta ruta = finder.ruta(id);
-        ruta.setActivo(activo);
+        ruta.setEliminado(eliminado);
         Ruta saved = rutas.save(ruta);
-        log.info("[SMS-ADMIN] Ruta {} {}", id, activo ? "activada" : "desactivada");
+        log.info("[SMS-ADMIN] Ruta {} {}", id, eliminado ? "desactivada" : "activada");
         routingCache.invalidarAlConfirmar();
         return assembler.toResponse(saved);
     }

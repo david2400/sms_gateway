@@ -1,5 +1,6 @@
 package com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.persistence.entity;
 
+import com.essenza.sms_gateway.shared.common.domain.entity.AuditInfo;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -22,7 +23,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @NoArgsConstructor
-public class AdminProveedorEntity {
+public class AdminProveedorEntity extends AuditInfo {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -44,14 +45,12 @@ public class AdminProveedorEntity {
     @Column(name = "read_timeout_ms", nullable = false)
     private Integer readTimeoutMs;
 
-    @Column(name = "activo", nullable = false)
-    private Boolean activo;
-
     @Column(name = "fecha_creacion", nullable = false, updatable = false)
     private LocalDateTime fechaCreacion;
 
+    /** Distinto nombre que el {@code prePersist} de {@link AuditInfo}: si coincide, lo sobrescribe. */
     @PrePersist
-    void prePersist() {
+    void asignarFechaCreacion() {
         if (fechaCreacion == null) {
             fechaCreacion = LocalDateTime.now();
         }

@@ -25,11 +25,11 @@ public class CambiarEstadoCuentaService implements CambiarEstadoCuentaUseCase {
     private final RoutingCacheAdminPort routingCache;
 
     @Override
-    public CuentaResponse cambiarEstado(Long id, boolean activo) {
+    public CuentaResponse cambiarEstado(Long id, boolean eliminado) {
         Cuenta cuenta = finder.cuenta(id);
-        cuenta.setActivo(activo);
+        cuenta.setEliminado(eliminado);
         Cuenta saved = cuentas.save(cuenta);
-        log.info("[SMS-ADMIN] Cuenta {} {}", saved.getCodigo(), activo ? "activada" : "desactivada");
+        log.info("[SMS-ADMIN] Cuenta {} {}", saved.getCodigo(), eliminado ? "desactivada" : "activada");
         routingCache.invalidarAlConfirmar();
         return assembler.toResponse(saved);
     }

@@ -21,5 +21,5 @@ public class Cuenta {
     private String claveCifrada;
     private String remitente;
     private Map<String, Object> parametros = new LinkedHashMap<>();
-    private Boolean activo;
+    private Boolean eliminado;
 }

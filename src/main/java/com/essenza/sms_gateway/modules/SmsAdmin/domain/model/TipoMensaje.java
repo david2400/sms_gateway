@@ -20,5 +20,5 @@ public class TipoMensaje {
     private CanalMensaje canal;
     private Boolean otp;
     private Boolean masivo;
-    private Boolean activo;
+    private Boolean eliminado;
 }

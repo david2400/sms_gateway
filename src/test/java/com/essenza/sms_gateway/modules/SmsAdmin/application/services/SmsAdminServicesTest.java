@@ -419,7 +419,7 @@ class SmsAdminServicesTest {
 
         public List<TipoMensaje> findAll(CanalMensaje canal, Boolean otp, Boolean masivo) {
             return IDS.entrySet().stream()
-                    .map(e -> new TipoMensaje(e.getValue(), e.getKey(), null, CanalMensaje.SMS, "OTP".equals(e.getKey()), "NORMAL".equals(e.getKey()) || "MASIVO".equals(e.getKey()), true))
+                    .map(e -> new TipoMensaje(e.getValue(), e.getKey(), null, CanalMensaje.SMS, "OTP".equals(e.getKey()), "NORMAL".equals(e.getKey()) || "MASIVO".equals(e.getKey()), false))
                     .toList();
         }
         public Optional<TipoMensaje> findById(Long id) {

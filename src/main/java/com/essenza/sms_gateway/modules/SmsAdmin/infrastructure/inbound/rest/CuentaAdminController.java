@@ -68,6 +68,6 @@ public class CuentaAdminController {
             description = "Desactivada, el motor la salta en todas las rutas. No hay borrado porque el log de envíos la referencia.")
     @PatchMapping("/{id}/estado")
     public CuentaResponse estado(@PathVariable Long id, @Valid @RequestBody EstadoRequest request) {
-        return cambiarEstadoCuenta.cambiarEstado(id, request.getActivo());
+        return cambiarEstadoCuenta.cambiarEstado(id, request.isEliminado());
     }
 }

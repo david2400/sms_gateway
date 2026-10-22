@@ -46,13 +46,13 @@ public class CrearRutaService implements CrearRutaUseCase {
         }
         TipoMensaje tipo = tipos.findById(request.getTipoMensajeId())
                 .orElseThrow(() -> new AdminNotFoundException("Tipo de mensaje no encontrado: " + request.getTipoMensajeId()));
-        if (!Boolean.TRUE.equals(tipo.getActivo())) {
+        if (Boolean.TRUE.equals(tipo.getEliminado())) {
             throw new AdminValidationException("El tipo de mensaje " + tipo.getCodigo() + " está inactivo");
         }
         Ruta ruta = rutaMapper.toModel(request);
         ruta.setTipoMensaje(tipo.getCodigo());
-        if (ruta.getActivo() == null) {
-            ruta.setActivo(Boolean.TRUE);
+        if (ruta.getEliminado() == null) {
+            ruta.setEliminado(Boolean.FALSE);
         }
         rutas.findByProveedorAndTipo(ruta.getProveedorId(), ruta.getTipoMensajeId()).ifPresent(r -> {
             throw new AdminConflictException("Ya existe la ruta " + RutaResponseAssembler.nombre(r) + "/" + r.getTipoMensaje()
