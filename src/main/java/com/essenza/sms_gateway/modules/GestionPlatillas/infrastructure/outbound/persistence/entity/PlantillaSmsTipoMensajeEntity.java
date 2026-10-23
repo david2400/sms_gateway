@@ -1,5 +1,6 @@
 package com.essenza.sms_gateway.modules.GestionPlatillas.infrastructure.outbound.persistence.entity;
 
+import com.essenza.sms_gateway.shared.common.domain.entity.AuditInfo;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -17,7 +18,7 @@ import org.hibernate.annotations.Immutable;
 @Immutable
 @Getter
 @NoArgsConstructor
-public class PlantillaSmsTipoMensajeEntity {
+public class PlantillaSmsTipoMensajeEntity extends AuditInfo {
 
     @Id
     @Column(name = "id_sms_tipo_mensaje")
@@ -25,7 +26,4 @@ public class PlantillaSmsTipoMensajeEntity {
 
     @Column(name = "codigo", length = 30, nullable = false)
     private String codigo;
-
-    @Column(name = "activo", nullable = false)
-    private Boolean activo;
 }

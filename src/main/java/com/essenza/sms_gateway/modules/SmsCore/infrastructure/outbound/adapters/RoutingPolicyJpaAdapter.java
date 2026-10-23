@@ -58,7 +58,8 @@ public class RoutingPolicyJpaAdapter implements RoutingPolicyPort {
         }
 
         RoutePlan plan = load(providerCode, type);
-        if (ttlMs > 0) {
+        // No se cachea un plan vacío: si la ruta se corrige en BD, el siguiente envío la toma sin esperar el TTL
+        if (ttlMs > 0 && !plan.isEmpty()) {
             cache.put(key, new CachedPlan(plan, Instant.now()));
         }
         return plan;
@@ -72,8 +73,8 @@ public class RoutingPolicyJpaAdapter implements RoutingPolicyPort {
 
     private RoutePlan load(String providerCode, MessageType type) {
         Optional<SmsRutaEntity> ruta = providerCode == null
-                ? rutaRepository.findFirstByProveedorIsNullAndTipoMensaje_CodigoAndActivoTrue(type.name())
-                : rutaRepository.findFirstByProveedor_CodigoAndTipoMensaje_CodigoAndActivoTrue(providerCode.toUpperCase(), type.name());
+                ? rutaRepository.findFirstByProveedorIsNullAndTipoMensaje_CodigoAndEliminadoFalse(type.name())
+                : rutaRepository.findFirstByProveedor_CodigoAndTipoMensaje_CodigoAndEliminadoFalse(providerCode.toUpperCase(), type.name());
 
         if (ruta.isEmpty()) {
             return RoutePlan.empty(providerCode, type);
@@ -84,11 +85,11 @@ public class RoutingPolicyJpaAdapter implements RoutingPolicyPort {
                 .providerCode(providerCode)
                 .messageType(type);
 
-        for (SmsRutaPasoEntity paso : pasoRepository.findByRuta_IdSmsRutaAndActivoTrueOrderByOrdenAsc(ruta.get().getIdSmsRuta())) {
+        for (SmsRutaPasoEntity paso : pasoRepository.findByRuta_IdSmsRutaAndEliminadoFalseOrderByOrdenAsc(ruta.get().getIdSmsRuta())) {
             SmsCuentaEntity cuenta = paso.getCuenta();
             SmsProveedorEntity proveedor = cuenta.getProveedor();
 
-            if (!Boolean.TRUE.equals(cuenta.getActivo()) || !Boolean.TRUE.equals(proveedor.getActivo())) {
+            if (!Boolean.FALSE.equals(cuenta.getEliminado()) || !Boolean.FALSE.equals(proveedor.getEliminado())) {
                 continue;
             }
             if (providerCode != null && !providerCode.equalsIgnoreCase(proveedor.getCodigo())) {

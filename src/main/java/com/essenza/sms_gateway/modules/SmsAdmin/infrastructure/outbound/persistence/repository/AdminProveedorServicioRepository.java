@@ -12,9 +12,9 @@ import java.util.List;
 public interface AdminProveedorServicioRepository extends JpaRepository<AdminProveedorServicioEntity, Long> {
 
     @EntityGraph(attributePaths = {"tipoMensaje"})
-    List<AdminProveedorServicioEntity> findByProveedor_IdSmsProveedorAndActivoTrueOrderByTipoMensaje_CodigoAsc(Long proveedorId);
+    List<AdminProveedorServicioEntity> findByProveedor_IdSmsProveedorAndEliminadoFalseOrderByTipoMensaje_CodigoAsc(Long proveedorId);
 
-    boolean existsByProveedor_IdSmsProveedorAndTipoMensaje_IdSmsTipoMensajeAndActivoTrue(Long proveedorId, Long tipoMensajeId);
+    boolean existsByProveedor_IdSmsProveedorAndTipoMensaje_IdSmsTipoMensajeAndEliminadoFalse(Long proveedorId, Long tipoMensajeId);
 
     /** Borrado físico (tabla de relación) antes de insertar la nueva lista. */
     @Modifying(flushAutomatically = true, clearAutomatically = true)

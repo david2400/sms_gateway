@@ -1,5 +1,6 @@
 package com.essenza.sms_gateway.modules.GestionPlatillas.infrastructure.outbound.persistence.entity;
 
+import com.essenza.sms_gateway.shared.common.domain.entity.AuditInfo;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -29,7 +30,7 @@ import java.util.List;
 @Getter
 @Setter
 @NoArgsConstructor
-public class PlantillaSmsEntity {
+public class PlantillaSmsEntity extends AuditInfo {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -55,15 +56,6 @@ public class PlantillaSmsEntity {
 
     @Column(name = "version", nullable = false)
     private Integer version = 1;
-
-    @Column(name = "activo", nullable = false)
-    private Boolean activo = Boolean.TRUE;
-
-    @Column(name = "fecha_creacion", nullable = false, updatable = false)
-    private LocalDateTime fechaCreacion = LocalDateTime.now();
-
-    @Column(name = "fecha_modificacion")
-    private LocalDateTime fechaModificacion;
 
     @OneToMany(mappedBy = "plantilla", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("orden ASC")

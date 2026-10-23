@@ -1,5 +1,6 @@
 package com.essenza.sms_gateway.modules.SmsCore.infrastructure.outbound.persistence.entity;
 
+import com.essenza.sms_gateway.shared.common.domain.entity.AuditInfo;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -24,7 +25,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @NoArgsConstructor
-public class SmsEnvioIntentoEntity {
+public class SmsEnvioIntentoEntity  extends AuditInfo {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

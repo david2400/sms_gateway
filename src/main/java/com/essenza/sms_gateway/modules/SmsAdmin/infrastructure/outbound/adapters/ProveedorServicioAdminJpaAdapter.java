@@ -28,7 +28,7 @@ public class ProveedorServicioAdminJpaAdapter implements ProveedorServicioAdminP
 
     @Override
     public List<TipoMensaje> tiposDe(Long proveedorId) {
-        return repository.findByProveedor_IdSmsProveedorAndActivoTrueOrderByTipoMensaje_CodigoAsc(proveedorId).stream()
+        return repository.findByProveedor_IdSmsProveedorAndEliminadoFalseOrderByTipoMensaje_CodigoAsc(proveedorId).stream()
                 .map(s -> tipoMapper.toModel(s.getTipoMensaje()))
                 .toList();
     }
@@ -36,7 +36,7 @@ public class ProveedorServicioAdminJpaAdapter implements ProveedorServicioAdminP
     @Override
     public boolean soporta(Long proveedorId, Long tipoMensajeId) {
         return proveedorId != null && tipoMensajeId != null
-                && repository.existsByProveedor_IdSmsProveedorAndTipoMensaje_IdSmsTipoMensajeAndActivoTrue(proveedorId, tipoMensajeId);
+                && repository.existsByProveedor_IdSmsProveedorAndTipoMensaje_IdSmsTipoMensajeAndEliminadoFalse(proveedorId, tipoMensajeId);
     }
 
     @Override
@@ -46,8 +46,7 @@ public class ProveedorServicioAdminJpaAdapter implements ProveedorServicioAdminP
             AdminProveedorServicioEntity e = new AdminProveedorServicioEntity();
             e.setProveedor(proveedores.getReferenceById(proveedorId));
             e.setTipoMensaje(tipos.getReferenceById(tipoId));
-            e.setActivo(Boolean.TRUE);
-            e.setFechaCreacion(LocalDateTime.now());
+
             return e;
         }).toList();
         repository.saveAllAndFlush(nuevos);

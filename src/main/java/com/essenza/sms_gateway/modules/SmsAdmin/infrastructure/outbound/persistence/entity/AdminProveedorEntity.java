@@ -45,14 +45,4 @@ public class AdminProveedorEntity extends AuditInfo {
     @Column(name = "read_timeout_ms", nullable = false)
     private Integer readTimeoutMs;
 
-    @Column(name = "fecha_creacion", nullable = false, updatable = false)
-    private LocalDateTime fechaCreacion;
-
-    /** Distinto nombre que el {@code prePersist} de {@link AuditInfo}: si coincide, lo sobrescribe. */
-    @PrePersist
-    void asignarFechaCreacion() {
-        if (fechaCreacion == null) {
-            fechaCreacion = LocalDateTime.now();
-        }
-    }
 }

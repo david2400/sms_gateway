@@ -54,9 +54,9 @@ public class ProviderAccountFactory {
     }
 
     public boolean isUsable(SmsCuentaEntity cuenta) {
-        return Boolean.TRUE.equals(cuenta.getActivo())
+        return Boolean.FALSE.equals(cuenta.getEliminado())
                 && cuenta.getProveedor() != null
-                && Boolean.TRUE.equals(cuenta.getProveedor().getActivo());
+                && Boolean.FALSE.equals(cuenta.getProveedor().getEliminado());
     }
 
     private String resolvePassword(SmsCuentaEntity cuenta) {

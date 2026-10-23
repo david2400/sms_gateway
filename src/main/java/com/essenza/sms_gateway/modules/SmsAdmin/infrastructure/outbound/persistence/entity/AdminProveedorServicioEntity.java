@@ -1,5 +1,6 @@
 package com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.persistence.entity;
 
+import com.essenza.sms_gateway.shared.common.domain.entity.AuditInfo;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -24,7 +25,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @NoArgsConstructor
-public class AdminProveedorServicioEntity {
+public class AdminProveedorServicioEntity extends AuditInfo {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -40,10 +41,4 @@ public class AdminProveedorServicioEntity {
     @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "tipo_mensaje_id", nullable = false)
     private AdminTipoMensajeEntity tipoMensaje;
-
-    @Column(name = "activo", nullable = false)
-    private Boolean activo = Boolean.TRUE;
-
-    @Column(name = "fecha_creacion", nullable = false)
-    private LocalDateTime fechaCreacion = LocalDateTime.now();
 }

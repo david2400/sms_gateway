@@ -2,6 +2,7 @@ package com.essenza.sms_gateway.modules.SmsCore.domain.dto;
 
 import com.essenza.sms_gateway.modules.SmsCore.domain.model.DispatchResult;
 import com.essenza.sms_gateway.modules.SmsCore.domain.model.DispatchStatus;
+import com.essenza.sms_gateway.shared.common.domain.dto.AuditInfoDto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -18,7 +19,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Schema(description = "Resultado de un envío de SMS")
-public class SmsEnvioResponse {
+public class SmsEnvioResponse extends AuditInfoDto {
 
     @Schema(description = "Id del envío (consultable en /v1/sms/envios/{id})")
     private UUID envioId;

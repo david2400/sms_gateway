@@ -72,7 +72,7 @@ public class ProviderServiceCatalogJpaAdapter implements ProviderServiceCatalogP
     private Snapshot load() {
         Map<String, Set<MessageType>> map = new HashMap<>();
         for (SmsProveedorServicioEntity ps : repository.findAllActive()) {
-            if (!Boolean.TRUE.equals(ps.getTipoMensaje().getActivo())) {
+            if (!Boolean.FALSE.equals(ps.getTipoMensaje().getEliminado())) {
                 continue;
             }
             Optional<MessageType> type = MessageType.fromCodigo(ps.getTipoMensaje().getCodigo());

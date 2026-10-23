@@ -1,5 +1,6 @@
 package com.essenza.sms_gateway.modules.SmsCore.infrastructure.outbound.persistence.entity;
 
+import com.essenza.sms_gateway.shared.common.domain.entity.AuditInfo;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -24,7 +25,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class SmsCuentaEntity {
+public class SmsCuentaEntity extends AuditInfo {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -57,6 +58,4 @@ public class SmsCuentaEntity {
     @Column(name = "parametros_json")
     private String parametrosJson;
 
-    @Column(name = "activo", nullable = false)
-    private Boolean activo = Boolean.TRUE;
 }

@@ -8,8 +8,8 @@ import java.util.Optional;
 public interface SmsRutaRepository extends JpaRepository<SmsRutaEntity, Long> {
 
     /** Ruta del endpoint central (sin proveedor); {@code codigo} = nombre del MessageType. */
-    Optional<SmsRutaEntity> findFirstByProveedorIsNullAndTipoMensaje_CodigoAndActivoTrue(String codigo);
+    Optional<SmsRutaEntity> findFirstByProveedorIsNullAndTipoMensaje_CodigoAndEliminadoFalse(String codigo);
 
     /** Ruta propia de un proveedor. */
-    Optional<SmsRutaEntity> findFirstByProveedor_CodigoAndTipoMensaje_CodigoAndActivoTrue(String proveedorCodigo, String codigo);
+    Optional<SmsRutaEntity> findFirstByProveedor_CodigoAndTipoMensaje_CodigoAndEliminadoFalse(String proveedorCodigo, String codigo);
 }

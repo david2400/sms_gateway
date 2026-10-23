@@ -1,5 +1,6 @@
 package com.essenza.sms_gateway.modules.SmsCore.infrastructure.outbound.persistence.entity;
 
+import com.essenza.sms_gateway.shared.common.domain.entity.AuditInfo;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -20,7 +21,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class SmsTipoMensajeEntity {
+public class SmsTipoMensajeEntity extends AuditInfo {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -39,6 +40,4 @@ public class SmsTipoMensajeEntity {
     @Column(name = "masivo", nullable = false)
     private Boolean masivo;
 
-    @Column(name = "activo", nullable = false)
-    private Boolean activo;
 }

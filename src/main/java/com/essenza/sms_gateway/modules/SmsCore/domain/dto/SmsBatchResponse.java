@@ -1,5 +1,6 @@
 package com.essenza.sms_gateway.modules.SmsCore.domain.dto;
 
+import com.essenza.sms_gateway.shared.common.domain.dto.AuditInfoDto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -16,7 +17,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Schema(description = "Resultado del envío masivo")
-public class SmsBatchResponse {
+public class SmsBatchResponse  extends AuditInfoDto {
     @Schema(description = "Id del lote (bulkId enviado al proveedor masivo)")
     private String loteId;
     @Schema(description = "Plantilla usada, si aplica")

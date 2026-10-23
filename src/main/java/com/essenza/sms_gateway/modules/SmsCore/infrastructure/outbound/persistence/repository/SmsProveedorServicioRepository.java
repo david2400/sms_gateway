@@ -10,6 +10,6 @@ public interface SmsProveedorServicioRepository extends JpaRepository<SmsProveed
 
     /** Servicios activos de proveedores activos (catálogo completo, es pequeño). */
     @Query("select ps from SmsProveedorServicioEntity ps join fetch ps.proveedor p join fetch ps.tipoMensaje t "
-            + "where ps.activo = true and p.activo = true")
+            + "where ps.eliminado = false and p.eliminado = false")
     List<SmsProveedorServicioEntity> findAllActive();
 }
