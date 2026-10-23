@@ -4,13 +4,14 @@ import com.essenza.sms_gateway.modules.SmsCore.domain.model.MessageType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.Map;
 
 /**
  * Request del endpoint propio de Inalambria. Además de los datos comunes acepta
@@ -23,8 +24,8 @@ import lombok.NoArgsConstructor;
 @Schema(description = "Envío de SMS solo por cuentas de Inalambria")
 public class InalambriaSendSmsRequest {
 
-    @NotNull(message = "El tipo de mensaje es obligatorio")
-    @Schema(description = "Tipo de mensaje: define la ruta de cuentas de Inalambria", example = "OTP")
+    @Schema(description = "Tipo de mensaje: define la ruta de cuentas de Inalambria. Obligatorio con 'message'; "
+            + "con 'plantilla' es opcional (se usa el de la plantilla)", example = "OTP")
     private MessageType tipoMensaje;
 
     @NotBlank(message = "El destinatario es obligatorio")
@@ -36,10 +37,18 @@ public class InalambriaSendSmsRequest {
     @Schema(description = "Código de país cuando el número va sin prefijo", example = "57")
     private String countryCode;
 
-    @NotBlank(message = "El mensaje es obligatorio")
     @Size(max = 1600, message = "El mensaje no puede superar 1600 caracteres")
-    @Schema(description = "Texto del SMS", example = "Su código de verificación es 123456")
+    @Schema(description = "Texto del SMS. Excluyente con 'plantilla'", example = "Su código de verificación es 123456")
     private String message;
+
+    @Size(max = 50)
+    @Pattern(regexp = "[A-Za-z0-9_\\-]{2,50}", message = "Código de plantilla inválido")
+    @Schema(description = "Código de plantilla SMS propia (SmsPlantilla). Excluyente con 'message'", example = "RECORDATORIO_CITA")
+    private String plantilla;
+
+    @Size(max = 50)
+    @Schema(description = "Variables de la plantilla (validación estricta)")
+    private Map<String, String> variables;
 
     // ===== Campos nativos de Inalambria (opcionales) =====
 
@@ -55,6 +64,11 @@ public class InalambriaSendSmsRequest {
 
     @Schema(description = "Url asociada al mensaje (si aplica)")
     private String url;
+
+    @Size(max = 20)
+    @Schema(description = "Código corto de origen para tipo_mensaje BIDIRECCIONAL. Opcional: por defecto el remitente de la cuenta",
+            example = "12345")
+    private String shortCode;
 
     @Size(max = 50)
     @Schema(description = "Código de una cuenta de Inalambria (SmsCuenta.codigo). Opcional: si se indica se usa primero "

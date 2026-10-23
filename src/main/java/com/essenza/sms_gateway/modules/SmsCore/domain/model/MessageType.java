@@ -20,7 +20,11 @@ public enum MessageType {
     TEMPLATE(CanalMensaje.SMS, false, false, "Mensaje basado en plantilla del proveedor"),
     PERSONALIZED(CanalMensaje.SMS, false, false, "Mensaje con contenido personalizado por destinatario"),
     NORMAL(CanalMensaje.SMS, false, true, "Mensaje estándar / masivo"),
-    MASIVO(CanalMensaje.SMS, false, true, "Envío masivo");
+    MASIVO(CanalMensaje.SMS, false, true, "Envío masivo"),
+    /** SMS desde un código corto al que el destinatario puede responder (ej. "Responde 1 para Sí"). */
+    BIDIRECCIONAL(CanalMensaje.SMS, false, false, "SMS bidireccional desde código corto (el destinatario puede responder)"),
+    /** WhatsApp con plantilla aprobada por Meta (templateId + parámetros posicionales). */
+    WHATSAPP(CanalMensaje.WHATSAPP, false, true, "Mensaje de WhatsApp con plantilla aprobada por Meta");
 
     /** Canal físico por el que sale el mensaje. */
     private final CanalMensaje canal;

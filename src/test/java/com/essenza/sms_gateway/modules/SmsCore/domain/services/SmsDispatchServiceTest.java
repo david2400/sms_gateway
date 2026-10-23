@@ -10,6 +10,7 @@ import com.essenza.sms_gateway.modules.SmsCore.domain.model.RouteStep;
 import com.essenza.sms_gateway.modules.SmsCore.domain.model.SendOutcome;
 import com.essenza.sms_gateway.modules.SmsCore.domain.model.SmsDispatch;
 import com.essenza.sms_gateway.modules.SmsCore.domain.ports.ProviderAccountQueryPort;
+import com.essenza.sms_gateway.modules.SmsCore.domain.ports.ProviderServiceCatalogPort;
 import com.essenza.sms_gateway.modules.SmsCore.domain.ports.RoutingPolicyPort;
 import com.essenza.sms_gateway.modules.SmsCore.domain.ports.SmsDispatchLogPort;
 import com.essenza.sms_gateway.modules.SmsCore.domain.ports.SmsSenderPort;
@@ -19,10 +20,13 @@ import org.junit.jupiter.api.Test;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
+import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -38,6 +42,7 @@ class SmsDispatchServiceTest {
     private FakeRouting routing;
     private FakeLog log;
     private FakeAccounts accounts;
+    private FakeCatalog catalog;
     private ScriptedSender provA;
     private ScriptedSender provB;
     private SmsDispatchService service;
@@ -47,9 +52,10 @@ class SmsDispatchServiceTest {
         routing = new FakeRouting();
         log = new FakeLog();
         accounts = new FakeAccounts();
+        catalog = new FakeCatalog();
         provA = new ScriptedSender("PROV_A");
         provB = new ScriptedSender("PROV_B");
-        service = new SmsDispatchService(routing, log, accounts, List.of(provA, provB)) {
+        service = new SmsDispatchService(new DispatchPlanner(routing, accounts, catalog), log, List.of(provA, provB)) {
             @Override
             protected boolean pause(long millis) {
                 return true; // sin esperas en pruebas
@@ -258,7 +264,120 @@ class SmsDispatchServiceTest {
         assertEquals(0, accounts.queries);
     }
 
+    // ============== servicios por proveedor ==============
+
+    @Test
+    void proveedorSinElServicioRespondeServicioNoSoportado() {
+        routing.plan = plan(step(1, "B_OTP", "PROV_B"));
+        catalog.deny("PROV_B", MessageType.OTP);
+
+        DispatchResult r = service.dispatch(msg(), DispatchChannel.PROVEEDOR, "PROV_B");
+
+        assertEquals(DispatchResult.ERROR_SERVICIO_NO_SOPORTADO, r.getErrorCode());
+        assertTrue(r.getDetail().contains("PROV_B no cuenta con el servicio OTP"));
+        assertEquals(0, provB.calls);
+    }
+
+    @Test
+    void centralConProveedorPreferidoSinServicioNoEnvia() {
+        routing.plan = plan(step(1, "A_OTP", "PROV_A"));
+        catalog.deny("PROV_B", MessageType.OTP);
+
+        DispatchResult r = service.dispatch(msg().toBuilder().preferredProvider("prov_b").build(), DispatchChannel.CENTRAL, null);
+
+        assertEquals(DispatchResult.ERROR_SERVICIO_NO_SOPORTADO, r.getErrorCode());
+        assertEquals("PROV_B", r.getProviderCode());
+        assertEquals(0, provA.calls);
+    }
+
+    @Test
+    void centralConProveedorPreferidoLoUsaPrimeroYLuegoLaRuta() {
+        routing.plan = plan(step(1, "A_OTP", "PROV_A"), step(2, "B_OTP", "PROV_B"));
+        routing.byProvider.put("PROV_B", RoutePlan.empty("PROV_B", MessageType.OTP)); // sin ruta propia: usa sus cuentas de la central
+        provB.script(500, 500, 500);
+        provA.script(200);
+
+        DispatchResult r = service.dispatch(msg().toBuilder().preferredProvider("PROV_B").build(), DispatchChannel.CENTRAL, null);
+
+        assertEquals(DispatchStatus.ENVIADO, r.getStatus());
+        assertEquals(List.of("B_OTP#1:false", "B_OTP#2:false", "B_OTP#3:false", "A_OTP#1:true"), log.attempts);
+    }
+
+    @Test
+    void cuentaSolicitadaDeProveedorSinServicioNoEnvia() {
+        routing.plan = plan(step(1, "A_OTP", "PROV_A"));
+        accounts.add(account(2, "B_PRINCIPAL", "PROV_B"));
+        catalog.deny("PROV_B", MessageType.OTP);
+
+        DispatchResult r = service.dispatch(msg().toBuilder().accountCode("B_PRINCIPAL").build(), DispatchChannel.CENTRAL, null);
+
+        assertEquals(DispatchResult.ERROR_SERVICIO_NO_SOPORTADO, r.getErrorCode());
+        assertEquals("B_PRINCIPAL", r.getAccountCode());
+        assertEquals(0, provA.calls + provB.calls);
+    }
+
+    @Test
+    void fallbackSaltaProveedoresSinElMismoServicio() {
+        routing.plan = plan(step(1, "A_OTP", "PROV_A"), step(2, "B_OTP", "PROV_B"), step(3, "A_OTP2", "PROV_A"));
+        catalog.deny("PROV_B", MessageType.OTP);
+        provA.script(500, 500, 500, 200);
+
+        DispatchResult r = service.dispatch(msg(), DispatchChannel.CENTRAL, null);
+
+        assertEquals(DispatchStatus.ENVIADO, r.getStatus());
+        assertEquals("A_OTP2", r.getAccountCode());
+        assertEquals(0, provB.calls);
+        assertEquals(List.of(1, 1, 1, 2), log.attemptOrders);
+    }
+
+    @Test
+    void rutaSoloConProveedoresSinServicioEsServicioNoSoportado() {
+        routing.plan = plan(step(1, "B_OTP", "PROV_B"));
+        catalog.deny("PROV_B", MessageType.OTP);
+
+        DispatchResult r = service.dispatch(msg(), DispatchChannel.CENTRAL, null);
+
+        assertEquals(DispatchResult.ERROR_SERVICIO_NO_SOPORTADO, r.getErrorCode());
+    }
+
+    @Test
+    void errorPermanentePasaDeInmediatoALaSiguienteCuenta() {
+        routing.plan = plan(step(1, "A_OTP", "PROV_A"), step(2, "B_OTP", "PROV_B"));
+        provA.permanent = true;
+        provB.script(200);
+
+        DispatchResult r = service.dispatch(msg(), DispatchChannel.CENTRAL, null);
+
+        assertEquals(DispatchStatus.ENVIADO, r.getStatus());
+        assertEquals(1, provA.calls);
+        assertEquals(2, r.getAttempts());
+    }
+
     // ===================== fakes =====================
+
+    static class FakeCatalog implements ProviderServiceCatalogPort {
+        final Set<String> denied = new HashSet<>();
+
+        void deny(String provider, MessageType type) {
+            denied.add(provider.toUpperCase() + "|" + type);
+        }
+
+        @Override
+        public boolean supports(String providerCode, MessageType type) {
+            return providerCode != null && !denied.contains(providerCode.toUpperCase() + "|" + type);
+        }
+
+        @Override
+        public Set<MessageType> servicesOf(String providerCode) {
+            Set<MessageType> all = EnumSet.allOf(MessageType.class);
+            all.removeIf(t -> !supports(providerCode, t));
+            return all;
+        }
+
+        @Override
+        public void refresh() {
+        }
+    }
 
     private static SmsDispatch msg() {
         return SmsDispatch.builder().to("3157132338").text("Código 123456").type(MessageType.OTP).build();
@@ -303,12 +422,14 @@ class SmsDispatchServiceTest {
 
     static class FakeRouting implements RoutingPolicyPort {
         RoutePlan plan;
+        /** Rutas propias por proveedor (si no hay entrada se devuelve {@link #plan}). */
+        final Map<String, RoutePlan> byProvider = new HashMap<>();
         String lastProvider;
 
         @Override
         public RoutePlan resolve(String providerCode, MessageType type) {
             lastProvider = providerCode;
-            return plan;
+            return providerCode != null && byProvider.containsKey(providerCode) ? byProvider.get(providerCode) : plan;
         }
 
         @Override
@@ -353,6 +474,7 @@ class SmsDispatchServiceTest {
         private final Deque<Integer> statuses = new ArrayDeque<>();
         int calls;
         boolean throwAlways;
+        boolean permanent;
 
         ScriptedSender(String code) {
             this.code = code;
@@ -374,6 +496,9 @@ class SmsDispatchServiceTest {
             calls++;
             if (throwAlways) {
                 throw new IllegalStateException("boom");
+            }
+            if (permanent) {
+                return SendOutcome.permanentFail(401, "credenciales", 5);
             }
             int s = statuses.isEmpty() ? 500 : statuses.poll();
             if (s == -1) {

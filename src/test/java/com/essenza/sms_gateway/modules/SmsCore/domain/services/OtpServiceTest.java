@@ -120,7 +120,7 @@ class OtpServiceTest {
                 .providerCode("INALAMBRIA").accountCode("INALAMBRIA_OTP").httpStatus(200).attempts(1).build();
 
         FakeDispatch() {
-            super(null, null, null, List.of());
+            super(null, null, List.of());
         }
 
         @Override

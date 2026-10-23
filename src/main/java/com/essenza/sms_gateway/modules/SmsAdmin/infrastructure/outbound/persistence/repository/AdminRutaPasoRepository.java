@@ -1,5 +1,6 @@
 package com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.persistence.repository;
 
+import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.persistence.entity.AdminRutaEntity;
 import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.persistence.entity.AdminRutaPasoEntity;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -21,4 +22,9 @@ public interface AdminRutaPasoRepository extends JpaRepository<AdminRutaPasoEnti
 
     @Query("select distinct p.ruta.idSmsRuta from AdminRutaPaso p where p.cuenta.idSmsCuenta = :cuentaId order by p.ruta.idSmsRuta")
     List<Long> findRutaIdsByCuentaId(@Param("cuentaId") Long cuentaId);
+
+    /** Rutas del tipo que tienen pasos con cuentas del proveedor (para no quitar un servicio en uso). */
+    @Query("select distinct r from AdminRutaPaso p join p.ruta r left join fetch r.proveedor join fetch r.tipoMensaje "
+            + "where p.cuenta.proveedor.idSmsProveedor = :proveedorId and r.tipoMensaje.idSmsTipoMensaje = :tipoId")
+    List<AdminRutaEntity> findRutasByProveedorAndTipo(@Param("proveedorId") Long proveedorId, @Param("tipoId") Long tipoId);
 }

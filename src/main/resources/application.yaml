@@ -72,9 +72,26 @@ eureka:
 # ============================================================
 sms:
   core:
-    routing-cache-ttl-seconds: 60
+    routing-cache-ttl-seconds: 60          # rutas y servicios por proveedor (SmsProveedorServicio)
     # Llave AES-256 (Base64, 32 bytes) para descifrar SmsCuenta.clave_cifrada. Solo por variable de entorno.
     crypto-key: ${SMS_CRYPTO_KEY:iJwYfk792WyGasoAbvty+2dD6f8KWH/lL1eHj4gnKfw=}
+
+  # Módulo GestionPlatillas: plantillas SMS compiladas en caché
+  plantillas:
+    cache-ttl-seconds: 300
+
+  # Inalambria - API REST masiva (POST /mtmessage/massive). Credenciales: las de la cuenta (SmsCuenta).
+  # Por cuenta se puede sobrescribir con parametros_json: massiveUrl, massiveChunkSize, xAuth, notifyUrl.
+  inalambria:
+    massive:
+      url: ${INALAMBRIA_MASSIVE_URL:https://rest.inalambria.com/mtmessage/massive}
+      chunk-size: ${INALAMBRIA_MASSIVE_CHUNK_SIZE:500}
+    # WhatsApp (plantillas de Meta). Por cuenta: parametros_json.whatsappUrl / source (o SmsCuenta.remitente)
+    whatsapp:
+      url: ${INALAMBRIA_WHATSAPP_URL:https://multichannel.inalambria.com/MultiChannelInput/SendMessageMetaWhatsApp}
+    # SMS bidireccional desde código corto. Por cuenta: parametros_json.bidireccionalUrl / shortCode (o SmsCuenta.remitente)
+    bidireccional:
+      url: ${INALAMBRIA_BIDIRECCIONAL_URL:https://rest.inalambria.com/momessage}
 
   # Servicio externo de usuarios (actualización de PIN en /otp/send-with-pin)
   usuario-service:

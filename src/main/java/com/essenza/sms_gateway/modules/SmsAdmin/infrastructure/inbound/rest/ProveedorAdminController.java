@@ -6,6 +6,10 @@ import com.essenza.sms_gateway.modules.SmsAdmin.application.input.Proveedor.Crea
 import com.essenza.sms_gateway.modules.SmsAdmin.application.input.Proveedor.ActualizarProveedorUseCase;
 import com.essenza.sms_gateway.modules.SmsAdmin.application.input.Proveedor.CambiarEstadoProveedorUseCase;
 import com.essenza.sms_gateway.modules.SmsAdmin.application.input.Proveedor.ListarProveedoresImplementadosUseCase;
+import com.essenza.sms_gateway.modules.SmsAdmin.application.input.ProveedorServicio.ListarServiciosProveedorUseCase;
+import com.essenza.sms_gateway.modules.SmsAdmin.application.input.ProveedorServicio.ReemplazarServiciosProveedorUseCase;
+import com.essenza.sms_gateway.modules.SmsAdmin.domain.dto.ServiciosProveedorRequest;
+import com.essenza.sms_gateway.modules.SmsAdmin.domain.dto.ServiciosProveedorResponse;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.dto.EstadoRequest;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.dto.ProveedorRequest;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.dto.ProveedorResponse;
@@ -42,6 +46,8 @@ public class ProveedorAdminController {
     private final ActualizarProveedorUseCase actualizarProveedor;
     private final CambiarEstadoProveedorUseCase cambiarEstadoProveedor;
     private final ListarProveedoresImplementadosUseCase listarImplementados;
+    private final ListarServiciosProveedorUseCase listarServicios;
+    private final ReemplazarServiciosProveedorUseCase reemplazarServicios;
 
     @Operation(summary = "Listar proveedores")
     @GetMapping
@@ -78,5 +84,20 @@ public class ProveedorAdminController {
     @PatchMapping("/{id}/estado")
     public ProveedorResponse estado(@PathVariable Long id, @Valid @RequestBody EstadoRequest request) {
         return cambiarEstadoProveedor.cambiarEstado(id, request.isEliminado());
+    }
+
+    @Operation(summary = "Servicios del proveedor", description = "Tipos de mensaje que atiende (SmsProveedorServicio)")
+    @GetMapping("/{id}/servicios")
+    public ServiciosProveedorResponse servicios(@PathVariable Long id) {
+        return listarServicios.listar(id);
+    }
+
+    @Operation(summary = "Reemplazar servicios del proveedor",
+            description = "Lista completa de tipos de mensaje que atiende. El motor rechaza (422 SERVICIO_NO_SOPORTADO) los envíos "
+                    + "de otros tipos por este proveedor y lo salta en el fallback. 409 si se quita un tipo que usan rutas "
+                    + "con cuentas del proveedor.")
+    @PutMapping("/{id}/servicios")
+    public ServiciosProveedorResponse reemplazarServicios(@PathVariable Long id, @Valid @RequestBody ServiciosProveedorRequest request) {
+        return reemplazarServicios.reemplazar(id, request);
     }
 }

@@ -42,13 +42,15 @@ public class SmsCentralController {
     @Operation(summary = "Enviar SMS (central)",
             description = "Elige cuenta y proveedor según la ruta central configurada en BD para el tipo de mensaje. "
                     + "Hace hasta N intentos por cuenta (3 por defecto) y luego pasa a la siguiente. "
-                    + "Con el campo opcional 'cuenta' se usa primero esa cuenta y el resto de la ruta queda de respaldo. "
-                    + "422 si la cuenta no existe o está inactiva.")
+                    + "Texto directo ('message') o plantilla ('plantilla' + 'variables', validación estricta). "
+                    + "Opcionales: 'proveedor' (preferido) y 'cuenta': van primero y el resto de la ruta queda de respaldo. "
+                    + "El fallback solo usa proveedores que tienen el servicio del tipo de mensaje.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "SMS enviado",
                     content = @Content(schema = @Schema(implementation = SmsEnvioResponse.class))),
-            @ApiResponse(responseCode = "400", description = "Request inválido"),
-            @ApiResponse(responseCode = "422", description = "No hay ruta configurada para el tipo de mensaje"),
+            @ApiResponse(responseCode = "400", description = "Request inválido o variables de plantilla inválidas (lista de errores)"),
+            @ApiResponse(responseCode = "422", description = "Sin ruta, cuenta no válida, plantilla inexistente o el proveedor no "
+                    + "cuenta con el servicio (SERVICIO_NO_SOPORTADO)"),
             @ApiResponse(responseCode = "502", description = "Todas las cuentas/proveedores fallaron")
     })
     @PostMapping("/send")
@@ -56,17 +58,20 @@ public class SmsCentralController {
             @Valid @RequestBody SendSmsRequest request,
             @Parameter(description = "Llave para evitar envíos duplicados si el cliente repite el request")
             @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey) {
-        log.info("[SMS-CENTRAL] Envío tipo {} a ****{}", request.getTipoMensaje(), lastDigits(request.getTo()));
+        log.info("[SMS-CENTRAL] Envío tipo {} plantilla {} a ****{}", request.getTipoMensaje(), request.getPlantilla(),
+                lastDigits(request.getTo()));
         DispatchResult result = sendSmsUseCase.send(request, idempotencyKey);
         return SmsHttpStatusMapper.toResponse(result);
     }
 
     @Operation(summary = "Enviar SMS masivo (central)",
-            description = "Un envío del motor por destinatario (máx. 500), cada uno con sus reintentos y su registro en el log. "
-                    + "Responde 200 con el resultado de cada destinatario.")
+            description = "Hasta 5000 destinatarios. Texto igual ('message') o personalizado ('plantilla' + variables globales y "
+                    + "por destinatario; si alguno es inválido no se envía ninguno). Cada destinatario queda en el log; los "
+                    + "proveedores con API masiva (Inalambria) reciben lotes. Responde 200 con el resultado de cada destinatario.")
     @PostMapping("/batch")
     public ResponseEntity<SmsBatchResponse> sendBatch(@Valid @RequestBody SendSmsBatchRequest request) {
-        log.info("[SMS-CENTRAL] Envío masivo tipo {} a {} destinatarios", request.getTipoMensaje(), request.getDestinations().size());
+        log.info("[SMS-CENTRAL] Envío masivo tipo {} plantilla {} a {} destinatarios", request.getTipoMensaje(),
+                request.getPlantilla(), request.getDestinations().size());
         return ResponseEntity.ok(sendSmsBatchUseCase.send(request));
     }
 

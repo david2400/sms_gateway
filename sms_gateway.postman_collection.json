@@ -317,6 +317,138 @@
               }
             }
           }
+        },
+        {
+          "name": "Enviar SMS - con plantilla",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/sms/send",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "sms",
+                "send"
+              ]
+            },
+            "description": "Texto generado con la plantilla (tipo NORMAL por defecto de la plantilla). 400 VARIABLES_INVALIDAS con la lista de errores.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"to\": \"{{telefono}}\",\n  \"plantilla\": \"RECORDATORIO_CITA\",\n  \"variables\": {\n    \"nombre\": \"Ana\",\n    \"fecha\": \"2026-11-05\",\n    \"hora\": \"14:30\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Enviar SMS - proveedor preferido sin servicio (422)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/sms/send",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "sms",
+                "send"
+              ]
+            },
+            "description": "GO4CLIENTS no tiene OTP en SmsProveedorServicio → 422 SERVICIO_NO_SOPORTADO.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo_mensaje\": \"OTP\",\n  \"to\": \"{{telefono}}\",\n  \"message\": \"Su código es 123456\",\n  \"proveedor\": \"GO4CLIENTS\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Enviar SMS masivo - plantilla personalizada",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/sms/batch",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "sms",
+                "batch"
+              ]
+            },
+            "description": "Variables globales + por destinatario. Si un destinatario es inválido no se envía ninguno (400).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"plantilla\": \"RECORDATORIO_CITA\",\n  \"variables\": {\n    \"sede\": \"Sede Norte\"\n  },\n  \"destinations\": [\n    {\n      \"to\": \"{{telefono}}\",\n      \"variables\": {\n        \"nombre\": \"Ana\",\n        \"fecha\": \"2026-11-05\",\n        \"hora\": \"09:00\"\n      }\n    },\n    {\n      \"to\": \"3001234567\",\n      \"variables\": {\n        \"nombre\": \"Luis\",\n        \"fecha\": \"2026-11-06\",\n        \"hora\": \"15:30\"\n      }\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Enviar SMS - BIDIRECCIONAL",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/sms/send",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "sms",
+                "send"
+              ]
+            },
+            "description": "Sale por /momessage desde el código corto de INALAMBRIA_BIDIRECCIONAL (remitente). 'sender' sobrescribe el código corto.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo_mensaje\": \"BIDIRECCIONAL\",\n  \"to\": \"{{telefono}}\",\n  \"message\": \"Queremos contactarte. Responde 1 para Si, 2 para No\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
         }
       ]
     },
@@ -1055,6 +1187,108 @@
               }
             }
           ]
+        },
+        {
+          "name": "Masivo (API /mtmessage/massive) - texto igual",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/sms/inalambria/batch",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "sms",
+                "inalambria",
+                "batch"
+              ]
+            },
+            "description": "Lotes de sms.inalambria.massive.chunk-size (500). Cada destinatario queda en el log.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo_mensaje\": \"MASIVO\",\n  \"message\": \"Comfenalco: recuerde actualizar sus datos\",\n  \"destinations\": [\n    {\n      \"to\": \"{{telefono}}\"\n    },\n    {\n      \"to\": \"3001234567\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Masivo - plantilla personalizada",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/sms/inalambria/batch",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "sms",
+                "inalambria",
+                "batch"
+              ]
+            },
+            "description": "Tipo NORMAL (el de la plantilla) → ruta INALAMBRIA/NORMAL (cuenta INALAMBRIA_MASIVO) por la API masiva. Un texto distinto por destinatario.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"plantilla\": \"RECORDATORIO_CITA\",\n  \"destinations\": [\n    {\n      \"to\": \"{{telefono}}\",\n      \"variables\": {\n        \"nombre\": \"Ana\",\n        \"fecha\": \"2026-11-05\",\n        \"hora\": \"09:00\"\n      }\n    },\n    {\n      \"to\": \"3001234567\",\n      \"variables\": {\n        \"nombre\": \"Luis\",\n        \"fecha\": \"2026-11-06\",\n        \"hora\": \"15:30\",\n        \"sede\": \"Sede Norte\"\n      }\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Enviar - BIDIRECCIONAL (código corto)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/sms/inalambria/send",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "sms",
+                "inalambria",
+                "send"
+              ]
+            },
+            "description": "short_code opcional (por defecto el remitente de la cuenta).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo_mensaje\": \"BIDIRECCIONAL\",\n  \"to\": \"{{telefono}}\",\n  \"message\": \"Responde 1 para Si, 2 para No\",\n  \"short_code\": \"12345\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
         }
       ]
     },
@@ -1238,6 +1472,40 @@
               }
             }
           ]
+        },
+        {
+          "name": "Enviar OTP (sin servicio → 422)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/sms/go4clients/send",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "sms",
+                "go4clients",
+                "send"
+              ]
+            },
+            "description": "\"El proveedor GO4CLIENTS no cuenta con el servicio OTP\"",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo_mensaje\": \"OTP\",\n  \"to\": \"{{telefono}}\",\n  \"message\": \"Su código es 123456\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
         }
       ]
     },
@@ -1598,6 +1866,69 @@
                 "body": {
                   "mode": "raw",
                   "raw": "{\n  \"activo\": false\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Servicios del proveedor",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/v1/sms/admin/proveedores/{{proveedor_id}}/servicios",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "sms",
+                    "admin",
+                    "proveedores",
+                    "{{proveedor_id}}",
+                    "servicios"
+                  ]
+                },
+                "description": ""
+              }
+            },
+            {
+              "name": "Reemplazar servicios del proveedor",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/v1/sms/admin/proveedores/{{proveedor_id}}/servicios",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "sms",
+                    "admin",
+                    "proveedores",
+                    "{{proveedor_id}}",
+                    "servicios"
+                  ]
+                },
+                "description": "Lista completa. 409 si quita un tipo que usan rutas con cuentas del proveedor.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"tipos_mensaje\": [\n    \"NORMAL\",\n    \"MASIVO\"\n  ]\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -2055,6 +2386,392 @@
           ]
         }
       ]
+    },
+    {
+      "name": "08 - Plantillas SMS",
+      "item": [
+        {
+          "name": "Definición de plantilla",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/sms/plantillas/RECORDATORIO_CITA",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "sms",
+                "plantillas",
+                "RECORDATORIO_CITA"
+              ]
+            },
+            "description": "Variables que exige la plantilla"
+          }
+        },
+        {
+          "name": "Previsualizar plantilla",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/sms/plantillas/RECORDATORIO_CITA/previsualizar",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "sms",
+                "plantillas",
+                "RECORDATORIO_CITA",
+                "previsualizar"
+              ]
+            },
+            "description": "Texto, codificación (GSM7/UCS2) y partes. No envía.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"variables\": {\n    \"nombre\": \"Ana\",\n    \"fecha\": \"2026-11-05\",\n    \"hora\": \"14:30\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Admin - Listar plantillas",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/sms/admin/plantillas?activo=true",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "sms",
+                "admin",
+                "plantillas"
+              ],
+              "query": [
+                {
+                  "key": "activo",
+                  "value": "true"
+                }
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Admin - Obtener plantilla por código",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/sms/admin/plantillas/codigo/RECORDATORIO_CITA",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "sms",
+                "admin",
+                "plantillas",
+                "codigo",
+                "RECORDATORIO_CITA"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Admin - Crear plantilla",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/sms/admin/plantillas",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "sms",
+                "admin",
+                "plantillas"
+              ]
+            },
+            "description": "Sin 'variables' se crean desde el contenido (TEXTO, obligatorias).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"codigo\": \"PAGO_PENDIENTE\",\n  \"nombre\": \"Pago pendiente\",\n  \"tipo_mensaje\": \"NORMAL\",\n  \"contenido\": \"{{nombre}}, tiene un saldo de {{valor}} con vencimiento {{fecha}}. Pague en {{url}}\",\n  \"variables\": [\n    {\n      \"nombre\": \"nombre\",\n      \"longitud_max\": 30\n    },\n    {\n      \"nombre\": \"valor\",\n      \"tipo_dato\": \"MONEDA\"\n    },\n    {\n      \"nombre\": \"fecha\",\n      \"tipo_dato\": \"FECHA\"\n    },\n    {\n      \"nombre\": \"url\",\n      \"tipo_dato\": \"URL\",\n      \"obligatoria\": false,\n      \"valor_defecto\": \"https://www.comfenalcoquindio.com\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Admin - Actualizar plantilla",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/sms/admin/plantillas/{{plantilla_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "sms",
+                "admin",
+                "plantillas",
+                "{{plantilla_id}}"
+              ]
+            },
+            "description": "La versión sube en 1",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"codigo\": \"PAGO_PENDIENTE\",\n  \"nombre\": \"Pago pendiente\",\n  \"tipo_mensaje\": \"NORMAL\",\n  \"contenido\": \"{{nombre}}, su saldo es {{valor}}\",\n  \"variables\": [\n    {\n      \"nombre\": \"nombre\"\n    },\n    {\n      \"nombre\": \"valor\",\n      \"tipo_dato\": \"MONEDA\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Admin - Activar / desactivar plantilla",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/sms/admin/plantillas/{{plantilla_id}}/estado",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "sms",
+                "admin",
+                "plantillas",
+                "{{plantilla_id}}",
+                "estado"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"eliminado\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "09 - WhatsApp",
+      "item": [
+        {
+          "name": "Enviar WhatsApp (central)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}",
+                "disabled": true
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/whatsapp/send",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "whatsapp",
+                "send"
+              ]
+            },
+            "description": "Ruta central WHATSAPP → INALAMBRIA_WHATSAPP. template_id = plantilla aprobada por Meta; parameters en orden.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"to\": \"{{telefono}}\",\n  \"template_id\": \"ID_PLANTILLA_MARKETING\",\n  \"parameters\": [\n    \"https://example.com/imagen.png\",\n    \"Miguel\"\n  ],\n  \"datos_adicionales\": {}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Enviar WhatsApp por Inalambria",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}",
+                "disabled": true
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/whatsapp/inalambria/send",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "whatsapp",
+                "inalambria",
+                "send"
+              ]
+            },
+            "description": "Solo cuentas de Inalambria con canal WHATSAPP. 'source' opcional (por defecto el remitente de la cuenta).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"to\": \"{{telefono}}\",\n  \"template_id\": \"ID_PLANTILLA_MARKETING\",\n  \"parameters\": [\n    \"https://example.com/imagen.png\",\n    \"Miguel\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "WhatsApp por Go4Clients (sin servicio → 422)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}",
+                "disabled": true
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/whatsapp/send",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "whatsapp",
+                "send"
+              ]
+            },
+            "description": "SERVICIO_NO_SOPORTADO",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"to\": \"{{telefono}}\",\n  \"template_id\": \"T\",\n  \"parameters\": [],\n  \"proveedor\": \"GO4CLIENTS\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "WhatsApp por Mock (pruebas)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}",
+                "disabled": true
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/whatsapp/send",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "whatsapp",
+                "send"
+              ]
+            },
+            "description": "Ruta MOCK/WHATSAPP → MOCK_OK, sin llamada HTTP",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"to\": \"{{telefono}}\",\n  \"template_id\": \"T\",\n  \"parameters\": [\n    \"Ana\"\n  ],\n  \"proveedor\": \"MOCK\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
     }
   ],
   "variable": [
@@ -2105,6 +2822,10 @@
     {
       "key": "cuenta_otp",
       "value": ""
+    },
+    {
+      "key": "plantilla_id",
+      "value": "1"
     }
   ]
 }

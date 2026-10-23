@@ -34,7 +34,7 @@ public class SmsAdminExceptionHandler {
 
     @ExceptionHandler(AdminValidationException.class)
     public ResponseEntity<AdminErrorResponse> validation(AdminValidationException e) {
-        return error(HttpStatus.BAD_REQUEST, "VALIDACION", e.getMessage(), List.of());
+        return error(HttpStatus.BAD_REQUEST, "VALIDACION", e.getMessage(), e.getDetalles());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

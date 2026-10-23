@@ -4,12 +4,14 @@ import com.essenza.sms_gateway.modules.Go4Clients.domain.dto.Go4ClientsDestinata
 import com.essenza.sms_gateway.modules.Go4Clients.domain.model.Go4ClientsCampaignReport;
 import com.essenza.sms_gateway.modules.Go4Clients.domain.model.Go4ClientsCampaignResult;
 import com.essenza.sms_gateway.modules.Go4Clients.domain.ports.Go4ClientsCampaignPort;
-import com.essenza.sms_gateway.modules.Go4Clients.infrastructure.outbound.mappers.Go4ClientsPayloadMapper;
+import com.essenza.sms_gateway.modules.Go4Clients.infrastructure.outbound.mappers.Go4ClientsCampaignMapper;
+import com.essenza.sms_gateway.modules.Go4Clients.infrastructure.outbound.mappers.Go4ClientsMappingSupport;
+import com.essenza.sms_gateway.modules.Go4Clients.infrastructure.outbound.mappers.Go4ClientsMessageMapper;
+import com.essenza.sms_gateway.modules.Go4Clients.infrastructure.outbound.mappers.Go4ClientsReportMapper;
 import com.essenza.sms_gateway.modules.SmsCore.domain.model.ProviderAccount;
 import com.essenza.sms_gateway.modules.SmsCore.shared.ProviderRestTemplateFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -22,15 +24,17 @@ import java.util.Map;
 
 /**
  * Cliente HTTP de la API de campañas de Go4Clients. Un intento por llamada, sin excepciones hacia afuera.
+ * Request y respuesta de cada operación en su mapper: {@link Go4ClientsCampaignMapper}, {@link Go4ClientsMessageMapper},
+ * {@link Go4ClientsReportMapper}.
  */
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class Go4ClientsCampaignHttpAdapter implements Go4ClientsCampaignPort {
 
-    private static final int MAX_DETAIL = 500;
-
-    private final Go4ClientsPayloadMapper mapper;
+    private final Go4ClientsCampaignMapper campaignMapper;
+    private final Go4ClientsMessageMapper messageMapper;
+    private final Go4ClientsReportMapper reportMapper;
     private final ProviderRestTemplateFactory restTemplateFactory;
 
     @Override
@@ -39,24 +43,16 @@ public class Go4ClientsCampaignHttpAdapter implements Go4ClientsCampaignPort {
             return Go4ClientsCampaignResult.failure(account.getCode(), null, "SIN_CREDENCIALES", credentialsMessage(account));
         }
         try {
-            HttpEntity<Map<String, Object>> request =
-                    new HttpEntity<>(mapper.createCampaignPayload(account, name, sender), mapper.headers(account));
-            ResponseEntity<Map> response = rest(account).postForEntity(mapper.campaignsUrl(account), request, Map.class);
-            Map<?, ?> body = response.getBody();
-            log.info("[GO4CLIENTS] Campaña '{}' creada con cuenta {} (status {})", name, account.getCode(), response.getStatusCode().value());
-            return Go4ClientsCampaignResult.builder()
-                    .success(response.getStatusCode().is2xxSuccessful())
-                    .campaignId(mapper.text(body, "id"))
-                    .reference(mapper.text(body, "reference"))
-                    .cuenta(account.getCode())
-                    .httpStatus(response.getStatusCode().value())
-                    .build();
+            ResponseEntity<String> response = rest(account).postForEntity(campaignMapper.url(account),
+                    campaignMapper.toHttpRequest(account, name, sender), String.class);
+            Go4ClientsCampaignResult result = campaignMapper.toResult(campaignMapper.parseResponse(response.getBody()),
+                    response.getStatusCode().value(), account);
+            log.info("[GO4CLIENTS] Campaña '{}' creada con cuenta {} (status {})", name, account.getCode(), result.getHttpStatus());
+            return result;
         } catch (HttpStatusCodeException e) {
-            return Go4ClientsCampaignResult.failure(account.getCode(), e.getStatusCode().value(), "HTTP_ERROR",
-                    truncate(e.getResponseBodyAsString()));
+            return campaignMapper.toResult(campaignMapper.parseResponse(e.getResponseBodyAsString()), e.getStatusCode().value(), account);
         } catch (RestClientException e) {
-            return Go4ClientsCampaignResult.failure(account.getCode(), null, "COMMUNICATION_ERROR",
-                    e.getClass().getSimpleName() + ": " + truncate(e.getMessage()));
+            return communicationError(account, e);
         }
     }
 
@@ -68,25 +64,18 @@ public class Go4ClientsCampaignHttpAdapter implements Go4ClientsCampaignPort {
             return Go4ClientsCampaignResult.failure(account.getCode(), null, "SIN_CREDENCIALES", credentialsMessage(account));
         }
         try {
-            HttpEntity<Map<String, Object>> request = new HttpEntity<>(
-                    mapper.sendMessagesPayload(message, destinations, priority, landingCustomFields), mapper.headers(account));
-            ResponseEntity<Map> response = rest(account)
-                    .postForEntity(mapper.campaignsUrl(account) + "/" + campaignId, request, Map.class);
-            int generated = mapper.listSize(response.getBody(), "generatedIds");
-            log.info("[GO4CLIENTS] Campaña {}: {} mensajes generados (status {})", campaignId, generated, response.getStatusCode().value());
-            return Go4ClientsCampaignResult.builder()
-                    .success(response.getStatusCode().is2xxSuccessful())
-                    .campaignId(campaignId)
-                    .generatedMessages(generated)
-                    .cuenta(account.getCode())
-                    .httpStatus(response.getStatusCode().value())
-                    .build();
+            ResponseEntity<String> response = rest(account).postForEntity(messageMapper.url(account, campaignId),
+                    messageMapper.toHttpRequest(account, message, destinations, priority, landingCustomFields), String.class);
+            Go4ClientsCampaignResult result = messageMapper.toResult(messageMapper.parseResponse(response.getBody()),
+                    response.getStatusCode().value(), account, campaignId);
+            log.info("[GO4CLIENTS] Campaña {}: {} mensajes generados (status {})", campaignId, result.getGeneratedMessages(),
+                    result.getHttpStatus());
+            return result;
         } catch (HttpStatusCodeException e) {
-            return Go4ClientsCampaignResult.failure(account.getCode(), e.getStatusCode().value(), "HTTP_ERROR",
-                    truncate(e.getResponseBodyAsString()));
+            return messageMapper.toResult(messageMapper.parseResponse(e.getResponseBodyAsString()), e.getStatusCode().value(),
+                    account, campaignId);
         } catch (RestClientException e) {
-            return Go4ClientsCampaignResult.failure(account.getCode(), null, "COMMUNICATION_ERROR",
-                    e.getClass().getSimpleName() + ": " + truncate(e.getMessage()));
+            return communicationError(account, e);
         }
     }
 
@@ -96,31 +85,24 @@ public class Go4ClientsCampaignHttpAdapter implements Go4ClientsCampaignPort {
             return Go4ClientsCampaignReport.builder().campaignId(campaignId).errorMessage(credentialsMessage(account)).build();
         }
         try {
-            ResponseEntity<Map> response = rest(account).exchange(mapper.analyticsUrl(account, campaignId),
-                    HttpMethod.GET, new HttpEntity<>(mapper.headers(account)), Map.class);
-            Object data = response.getBody() != null ? response.getBody().get("data") : null;
-            Map<?, ?> d = data instanceof Map<?, ?> m ? m : Map.of();
-            int total = mapper.number(d, "totalMessages");
-            int delivered = mapper.number(d, "deliveredMessages");
-            int failed = mapper.number(d, "failedMessages");
-            return Go4ClientsCampaignReport.builder()
-                    .success(response.getStatusCode().is2xxSuccessful())
-                    .campaignId(campaignId)
-                    .total(total).delivered(delivered).failed(failed)
-                    .pending(Math.max(0, total - delivered - failed))
-                    .httpStatus(response.getStatusCode().value())
-                    .build();
+            ResponseEntity<String> response = rest(account).exchange(reportMapper.url(account, campaignId), HttpMethod.GET,
+                    reportMapper.toHttpRequest(account), String.class);
+            return reportMapper.toReport(reportMapper.parseResponse(response.getBody()), response.getStatusCode().value(), campaignId);
         } catch (HttpStatusCodeException e) {
-            return Go4ClientsCampaignReport.builder().campaignId(campaignId)
-                    .httpStatus(e.getStatusCode().value()).errorMessage(truncate(e.getResponseBodyAsString())).build();
+            return reportMapper.toReport(reportMapper.parseResponse(e.getResponseBodyAsString()), e.getStatusCode().value(), campaignId);
         } catch (RestClientException e) {
             return Go4ClientsCampaignReport.builder().campaignId(campaignId)
-                    .errorMessage(e.getClass().getSimpleName() + ": " + truncate(e.getMessage())).build();
+                    .errorMessage(e.getClass().getSimpleName() + ": " + Go4ClientsMappingSupport.truncate(e.getMessage())).build();
         }
     }
 
     private RestTemplate rest(ProviderAccount account) {
         return restTemplateFactory.get(account.getConnectTimeoutMs(), account.getReadTimeoutMs());
+    }
+
+    private static Go4ClientsCampaignResult communicationError(ProviderAccount account, RestClientException e) {
+        return Go4ClientsCampaignResult.failure(account.getCode(), null, "COMMUNICATION_ERROR",
+                e.getClass().getSimpleName() + ": " + Go4ClientsMappingSupport.truncate(e.getMessage()));
     }
 
     private static boolean hasCredentials(ProviderAccount account) {
@@ -129,12 +111,5 @@ public class Go4ClientsCampaignHttpAdapter implements Go4ClientsCampaignPort {
 
     private static String credentialsMessage(ProviderAccount account) {
         return "Cuenta " + account.getCode() + " sin credenciales: revise usuario (api key) y el api secret (clave_cifrada + SMS_CRYPTO_KEY, o la variable de secret_ref)";
-    }
-
-    private static String truncate(String value) {
-        if (value == null) {
-            return null;
-        }
-        return value.length() <= MAX_DETAIL ? value : value.substring(0, MAX_DETAIL);
     }
 }

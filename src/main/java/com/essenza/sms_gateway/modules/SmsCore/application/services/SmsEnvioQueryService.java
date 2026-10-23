@@ -5,7 +5,9 @@ import com.essenza.sms_gateway.modules.SmsCore.application.input.RefreshSmsRouti
 import com.essenza.sms_gateway.modules.SmsCore.domain.dto.PageResult;
 import com.essenza.sms_gateway.modules.SmsCore.domain.dto.SmsEnvioDetalleResponse;
 import com.essenza.sms_gateway.modules.SmsCore.domain.dto.SmsEnvioFilter;
+import com.essenza.sms_gateway.modules.SmsCore.domain.ports.ProviderServiceCatalogPort;
 import com.essenza.sms_gateway.modules.SmsCore.domain.ports.RoutingPolicyPort;
+import com.essenza.sms_gateway.modules.SmsCore.domain.ports.SmsTemplatePort;
 import com.essenza.sms_gateway.modules.SmsCore.domain.ports.SmsEnvioQueryPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -14,7 +16,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 /**
- * Consulta del log de envíos y administración de la caché de rutas.
+ * Consulta del log de envíos y administración de la caché de configuración (rutas, servicios por proveedor y plantillas).
  */
 @Service
 @RequiredArgsConstructor
@@ -24,6 +26,9 @@ public class SmsEnvioQueryService implements QuerySmsEnvioUseCase, RefreshSmsRou
 
     private final SmsEnvioQueryPort queryPort;
     private final RoutingPolicyPort routingPolicy;
+    private final ProviderServiceCatalogPort serviceCatalog;
+    /** Lo implementa GestionPlatillas; vacío si el módulo no está. */
+    private final Optional<SmsTemplatePort> templates;
 
     @Override
     public Optional<SmsEnvioDetalleResponse> findById(UUID envioId) {
@@ -40,5 +45,7 @@ public class SmsEnvioQueryService implements QuerySmsEnvioUseCase, RefreshSmsRou
     @Override
     public void refresh() {
         routingPolicy.refresh();
+        serviceCatalog.refresh();
+        templates.ifPresent(SmsTemplatePort::refresh);
     }
 }

@@ -92,6 +92,7 @@ class SmsAdminServicesTest {
     private ReemplazarPasosRutaService reemplazarPasos;
     private ConsultarRutaEfectivaService rutaEfectiva;
 
+    private MemServicios servicios;
     private Long inalambria;
     private Long go4;
     private Long cuentaOtp;
@@ -127,7 +128,8 @@ class SmsAdminServicesTest {
         ProveedorResponseAssembler proveedorAssembler = new ProveedorResponseAssembler(proveedorMapper, catalog, cuentas);
         CuentaResponseAssembler cuentaAssembler = new CuentaResponseAssembler(cuentaMapper, ref -> "INALAMBRIA_OTP_PASSWORD".equals(ref), pasos);
         RutaResponseAssembler rutaAssembler = new RutaResponseAssembler(rutaMapper, pasos);
-        PasoRutaValidator pasoValidator = new PasoRutaValidator(finder);
+        servicios = new MemServicios();
+        PasoRutaValidator pasoValidator = new PasoRutaValidator(finder, servicios);
 
         crearProveedor = new CrearProveedorService(proveedores, proveedorMapper, proveedorAssembler, cache);
         obtenerProveedor = new ObtenerProveedorService(finder, proveedorAssembler);
@@ -304,6 +306,29 @@ class SmsAdminServicesTest {
         return r;
     }
 
+    // ============== servicios por proveedor ==============
+
+    @Test
+    void rutaCentralNoAceptaCuentaDeProveedorSinElServicio() {
+        servicios.denegar(go4, MemTipos.idDe("OTP"));
+        AdminValidationException e = assertThrows(AdminValidationException.class,
+                () -> crearRuta.crear(ruta(null, MessageType.OTP, List.of(paso(1, cuentaOtp), paso(2, cuentaGo4)))));
+        assertTrue(e.getMessage().contains("no cuenta con el servicio OTP"));
+    }
+
+    @Test
+    void rutaDeProveedorSinElServicioNoSeCrea() {
+        servicios.denegar(go4, MemTipos.idDe("OTP"));
+        assertThrows(AdminValidationException.class, () -> crearRuta.crear(ruta(go4, MessageType.OTP, null)));
+    }
+
+    @Test
+    void reemplazarPasosValidaServicioDelTipo() {
+        Long id = crearRuta.crear(ruta(null, MessageType.OTP, List.of(paso(1, cuentaOtp)))).getId();
+        servicios.denegar(go4, MemTipos.idDe("OTP"));
+        assertThrows(AdminValidationException.class, () -> reemplazarPasos.reemplazarPasos(id, List.of(paso(1, cuentaGo4))));
+    }
+
     private static RutaRequest ruta(Long proveedorId, MessageType tipo, List<PasoRequest> pasos) {
         RutaRequest r = new RutaRequest();
         r.setProveedorId(proveedorId);
@@ -410,6 +435,20 @@ class SmsAdminServicesTest {
     }
 
     /** Catálogo de tipos en memoria: mismo orden que el seed V6 (OTP=1, HABEAS_DATA=2, ...). */
+    /** Por defecto todos los proveedores tienen todos los servicios; {@link #denegar} quita uno. */
+    static class MemServicios implements com.essenza.sms_gateway.modules.SmsAdmin.domain.ports.ProveedorServicioAdminPort {
+        final Set<String> denegados = new java.util.HashSet<>();
+
+        void denegar(Long proveedorId, Long tipoId) {
+            denegados.add(proveedorId + "|" + tipoId);
+        }
+
+        public List<TipoMensaje> tiposDe(Long proveedorId) { return List.of(); }
+        public boolean soporta(Long proveedorId, Long tipoId) { return !denegados.contains(proveedorId + "|" + tipoId); }
+        public void reemplazar(Long proveedorId, Set<Long> tipoIds) { }
+        public List<String> rutasQueUsan(Long proveedorId, Long tipoId) { return List.of(); }
+    }
+
     static class MemTipos implements TipoMensajeAdminPort {
         static final Map<String, Long> IDS = Map.of(
                 "OTP", 1L, "HABEAS_DATA", 2L, "TEMPLATE", 3L,

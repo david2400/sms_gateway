@@ -49,6 +49,10 @@ public class SmsEnvioEntity {
     @Column(name = "mensaje", length = 1600, nullable = false)
     private String mensaje;
 
+    /** Plantilla con la que se generó el mensaje (null = texto directo). */
+    @Column(name = "plantilla_codigo", length = 50)
+    private String plantillaCodigo;
+
     @Column(name = "estado", length = 20, nullable = false)
     private String estado;
 

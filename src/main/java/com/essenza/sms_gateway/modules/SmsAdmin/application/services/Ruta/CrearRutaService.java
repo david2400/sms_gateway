@@ -51,6 +51,10 @@ public class CrearRutaService implements CrearRutaUseCase {
         }
         Ruta ruta = rutaMapper.toModel(request);
         ruta.setTipoMensaje(tipo.getCodigo());
+        if (request.getProveedorId() != null) {
+            ruta.setProveedorCodigo(finder.proveedorReferenciado(request.getProveedorId()).getCodigo());
+        }
+        pasoValidator.validarRuta(ruta);
         if (ruta.getEliminado() == null) {
             ruta.setEliminado(Boolean.FALSE);
         }

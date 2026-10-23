@@ -1,0 +1,49 @@
+package com.essenza.sms_gateway.modules.SmsCore.infrastructure.outbound.persistence.entity;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.time.LocalDateTime;
+
+/**
+ * Servicio habilitado de un proveedor ({@code SmsProveedorServicio}) = (proveedor, tipo de mensaje).
+ * Si no existe la fila, el proveedor no atiende ese tipo.
+ */
+@Entity
+@Table(name = "SmsProveedorServicio",
+        uniqueConstraints = @UniqueConstraint(name = "uq_sms_proveedor_servicio", columnNames = {"proveedor_id", "tipo_mensaje_id"}))
+@Getter
+@Setter
+@NoArgsConstructor
+public class SmsProveedorServicioEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id_sms_proveedor_servicio")
+    private Long idSmsProveedorServicio;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "proveedor_id", nullable = false)
+    private SmsProveedorEntity proveedor;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "tipo_mensaje_id", nullable = false)
+    private SmsTipoMensajeEntity tipoMensaje;
+
+    @Column(name = "activo", nullable = false)
+    private Boolean activo = Boolean.TRUE;
+
+    @Column(name = "fecha_creacion", nullable = false)
+    private LocalDateTime fechaCreacion = LocalDateTime.now();
+}

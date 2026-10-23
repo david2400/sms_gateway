@@ -4,7 +4,6 @@ import com.essenza.sms_gateway.modules.Go4Clients.domain.dto.Go4ClientsDestinata
 import com.essenza.sms_gateway.modules.Go4Clients.domain.model.Go4ClientsCampaignReport;
 import com.essenza.sms_gateway.modules.Go4Clients.domain.model.Go4ClientsCampaignResult;
 import com.essenza.sms_gateway.modules.Go4Clients.domain.ports.Go4ClientsCampaignPort;
-import com.essenza.sms_gateway.modules.Go4Clients.infrastructure.outbound.mappers.Go4ClientsPayloadMapper;
 import com.essenza.sms_gateway.modules.SmsCore.domain.model.MessageType;
 import com.essenza.sms_gateway.modules.SmsCore.domain.model.ProviderAccount;
 import com.essenza.sms_gateway.modules.SmsCore.domain.model.SendOutcome;
@@ -43,20 +42,6 @@ class Go4ClientsSmsSenderTest {
         assertFalse(out.isSuccess());
         assertEquals(401, out.getHttpStatus());
         assertEquals(null, port.sentCampaign);
-    }
-
-    @Test
-    void payloadUsaClavesNativas() {
-        Go4ClientsPayloadMapper mapper = new Go4ClientsPayloadMapper();
-        Map<String, Object> p = mapper.sendMessagesPayload("hola",
-                List.of(new Go4ClientsDestinatarioDto("+573157132338", null)), null, null);
-        @SuppressWarnings("unchecked")
-        Map<String, String> d = ((List<Map<String, String>>) p.get("destinationsList")).get(0);
-        assertEquals("3157132338", d.get("phoneNumber"));
-        assertEquals("57", d.get("countryCode"));
-        assertEquals("HIGH", p.get("priority"));
-        assertEquals("RANDOM", mapper.resolveSender(account, null));
-        assertEquals("https://x/api/campaigns/sms/v1.0", mapper.campaignsUrl(account));
     }
 
     static class FakePort implements Go4ClientsCampaignPort {

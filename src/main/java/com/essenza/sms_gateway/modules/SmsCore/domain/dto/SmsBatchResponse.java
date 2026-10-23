@@ -17,6 +17,10 @@ import java.util.List;
 @AllArgsConstructor
 @Schema(description = "Resultado del envío masivo")
 public class SmsBatchResponse {
+    @Schema(description = "Id del lote (bulkId enviado al proveedor masivo)")
+    private String loteId;
+    @Schema(description = "Plantilla usada, si aplica")
+    private String plantilla;
     private int total;
     private int enviados;
     private int fallidos;

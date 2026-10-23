@@ -4,6 +4,7 @@ import lombok.Builder;
 import lombok.Singular;
 import lombok.Value;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -44,6 +45,29 @@ public class SmsDispatch {
      */
     String accountCode;
 
+    /**
+     * Proveedor preferido en el endpoint CENTRAL ({@code sms_proveedor.codigo}). Opcional: sus cuentas van
+     * primero y el resto de la ruta central del mismo tipo queda como respaldo. Debe tener el servicio habilitado.
+     */
+    String preferredProvider;
+
+    /** Código de la plantilla con la que se generó {@link #text} (solo para el log). */
+    String templateCode;
+
+    /**
+     * Canal WhatsApp: identificador de la plantilla aprobada en el proveedor/Meta. En WhatsApp no se envía
+     * texto libre: el proveedor arma el mensaje con esta plantilla y {@link #templateParameters}.
+     */
+    String externalTemplateId;
+
+    /** Canal WhatsApp: valores de la plantilla del proveedor, en el orden que ella exige. */
+    @Singular
+    List<String> templateParameters;
+
+    /** Datos adicionales que el proveedor devuelve o usa (ej. {@code optionalAditionalData} de Inalambria). */
+    @Singular("additionalDataEntry")
+    Map<String, String> additionalData;
+
     /** Datos propios del proveedor enviados en el request (ej. templateId de Inalambria). */
     @Singular
     Map<String, String> providerOptions;
@@ -52,9 +76,14 @@ public class SmsDispatch {
      * Valida los datos mínimos antes de gastar intentos contra un proveedor.
      */
     public boolean isValid() {
-        return to != null && to.trim().matches(PHONE_PATTERN)
-                && text != null && !text.isBlank()
-                && type != null;
+        if (to == null || !to.trim().matches(PHONE_PATTERN) || type == null) {
+            return false;
+        }
+        if (type.isWhatsapp()) {
+            return externalTemplateId != null && !externalTemplateId.isBlank()
+                    && (templateParameters == null || templateParameters.stream().noneMatch(p -> p == null || p.isBlank()));
+        }
+        return text != null && !text.isBlank();
     }
 
     public String providerOption(String key) {

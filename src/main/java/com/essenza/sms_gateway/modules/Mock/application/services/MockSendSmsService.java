@@ -5,7 +5,6 @@ import com.essenza.sms_gateway.modules.Mock.infrastructure.outbound.providers.Mo
 import com.essenza.sms_gateway.modules.SmsCore.application.input.SendSmsByProviderUseCase;
 import com.essenza.sms_gateway.modules.SmsCore.domain.dto.SendSmsRequest;
 import com.essenza.sms_gateway.modules.SmsCore.domain.model.DispatchResult;
-import com.essenza.sms_gateway.modules.SmsCore.domain.model.SmsDispatch;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -17,15 +16,8 @@ public class MockSendSmsService implements MockSendSmsUseCase {
 
     @Override
     public DispatchResult send(SendSmsRequest request, String idempotencyKey) {
-        SmsDispatch message = SmsDispatch.builder()
-                .to(request.getTo())
-                .countryCode(request.getCountryCode() != null ? request.getCountryCode() : "57")
-                .text(request.getMessage())
-                .type(request.getTipoMensaje())
-                .sender(request.getSender())
-                .accountCode(request.getCuenta())
-                .idempotencyKey(idempotencyKey == null || idempotencyKey.isBlank() ? null : idempotencyKey.trim())
-                .build();
-        return sendSmsByProvider.send(MockSmsSender.PROVIDER_CODE, message);
+        // Texto directo o plantilla + variables: lo resuelve SmsCore (validación estricta de variables)
+        return sendSmsByProvider.send(MockSmsSender.PROVIDER_CODE, request, idempotencyKey);
     }
+
 }

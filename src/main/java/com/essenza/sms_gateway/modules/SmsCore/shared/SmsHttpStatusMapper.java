@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
  *   <li>VALIDACION → 400</li>
  *   <li>RUTA_NO_CONFIGURADA → 422</li>
  *   <li>CUENTA_NO_VALIDA → 422 (la cuenta pedida no existe, está inactiva o es de otro proveedor)</li>
+ *   <li>SERVICIO_NO_SOPORTADO → 422 (el proveedor no tiene habilitado el tipo de mensaje)</li>
  *   <li>TODAS_LAS_CUENTAS_FALLARON → 502</li>
  * </ul>
  */
@@ -33,7 +34,8 @@ public final class SmsHttpStatusMapper {
             return HttpStatus.BAD_REQUEST;
         }
         if (DispatchResult.ERROR_RUTA_NO_CONFIGURADA.equals(result.getErrorCode())
-                || DispatchResult.ERROR_CUENTA_NO_VALIDA.equals(result.getErrorCode())) {
+                || DispatchResult.ERROR_CUENTA_NO_VALIDA.equals(result.getErrorCode())
+                || DispatchResult.ERROR_SERVICIO_NO_SOPORTADO.equals(result.getErrorCode())) {
             return HttpStatus.UNPROCESSABLE_ENTITY;
         }
         return HttpStatus.BAD_GATEWAY;

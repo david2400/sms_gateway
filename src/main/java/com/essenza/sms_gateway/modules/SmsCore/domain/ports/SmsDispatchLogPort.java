@@ -7,6 +7,8 @@ import com.essenza.sms_gateway.modules.SmsCore.domain.model.RouteStep;
 import com.essenza.sms_gateway.modules.SmsCore.domain.model.SendOutcome;
 import com.essenza.sms_gateway.modules.SmsCore.domain.model.SmsDispatch;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -38,4 +40,29 @@ public interface SmsDispatchLogPort {
      * Busca el resultado de un envío previo por su llave de idempotencia.
      */
     Optional<DispatchResult> findByIdempotencyKey(String idempotencyKey);
+
+    // ---------------- Envío masivo (los adapters pueden optimizar con una sola transacción) ----------------
+
+    /** Registra varios envíos en EN_PROCESO; devuelve los ids en el mismo orden. */
+    default List<UUID> startAll(List<SmsDispatch> messages, DispatchChannel channel, String requestedProvider) {
+        List<UUID> ids = new ArrayList<>(messages.size());
+        for (SmsDispatch m : messages) {
+            ids.add(start(m, channel, requestedProvider));
+        }
+        return ids;
+    }
+
+    /** Registra el mismo intento (un lote) para varios envíos. */
+    default void attemptAll(List<UUID> envioIds, RouteStep step, int attemptNumber, SendOutcome outcome) {
+        for (UUID id : envioIds) {
+            attempt(id, step, attemptNumber, outcome);
+        }
+    }
+
+    /** Cierra varios envíos que terminaron en el mismo paso. */
+    default void finishAll(List<DispatchResult> results, RouteStep lastStep) {
+        for (DispatchResult r : results) {
+            finish(r, lastStep);
+        }
+    }
 }
