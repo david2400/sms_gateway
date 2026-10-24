@@ -42,10 +42,8 @@ public class ActualizarPlantillaService implements ActualizarPlantillaUseCase {
         }
         Plantilla p = validator.validar(mapper.toModel(request));
         p.setId(actual.getId());
-        p.setActivo(actual.getActivo());
-        p.setFechaCreacion(actual.getFechaCreacion());
         p.setVersion((actual.getVersion() == null ? 1 : actual.getVersion()) + 1);
-        p.setFechaModificacion(LocalDateTime.now());
+        // eliminado y fechas de auditoría: AuditInfo (JPA)
         Plantilla saved = plantillas.save(p);
         log.info("[SMS-ADMIN] Plantilla {} actualizada a la versión {}", saved.getCodigo(), saved.getVersion());
         cache.invalidarAlConfirmar();

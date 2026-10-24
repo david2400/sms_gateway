@@ -15,8 +15,8 @@ import java.util.UUID;
  */
 @Entity
 @Table(name = "SmsEnvio", indexes = {
-        @Index(name = "ix_sms_envio_destino", columnList = "destino, fecha_creacion"),
-        @Index(name = "ix_sms_envio_estado", columnList = "estado, fecha_creacion")
+        @Index(name = "ix_sms_envio_destino_created", columnList = "destino, created_at"),
+        @Index(name = "ix_sms_envio_estado_created", columnList = "estado, created_at")
 })
 @Getter
 @Setter
@@ -57,11 +57,15 @@ public class SmsEnvioEntity extends AuditInfo {
     @Column(name = "estado", length = 20, nullable = false)
     private String estado;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    // EAGER: Hibernate 6.4 no permite LAZY hacia una entidad con @SoftDelete (AuditInfo)
+
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "proveedor_final_id")
     private SmsProveedorEntity proveedorFinal;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    // EAGER: Hibernate 6.4 no permite LAZY hacia una entidad con @SoftDelete (AuditInfo)
+
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "cuenta_final_id")
     private SmsCuentaEntity cuentaFinal;
 

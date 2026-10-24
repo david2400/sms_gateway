@@ -10,6 +10,14 @@ Dos versiones con el mismo contenido, una por motor:
 > El error `1064 ... near 'EXEC dbo....'` significa que se ejecutó un script de `sqlserver/` en MySQL.
 
 Todos son **idempotentes** (se pueden re-ejecutar) y **no borran datos**.
+**Atajos (en esta carpeta):**
+- `mysql_ejecutar_todo.sql`: esquema + datos (V1→V14) en orden. Base vacía o existente.
+- `mysql_datos_prueba.sql`: **solo los datos** (tipos, proveedores INALAMBRIA/GO4CLIENTS/MOCK, cuentas, servicios,
+  rutas, plantillas de ejemplo) sobre tablas ya creadas (por V1 o por Hibernate `ddl-auto`).
+
+> **Soft delete (AuditInfo):** la aplicación usa `eliminado` (`0` = activo, `1` = inactivo), `usr_crea/usr_mod` y
+> `created_at/updated_at`. Los scripts ya no usan `activo` ni `fecha_creacion`.
+> Una fila con `eliminado` NULL es invisible para la app: por eso V13/V14 corren antes y después de los datos.
 En DBeaver ejecutar como **script** (Alt+X), no como sentencia (Ctrl+Enter).
 
 | Orden | Script | Contenido |
@@ -17,6 +25,8 @@ En DBeaver ejecutar como **script** (Alt+X), no como sentencia (Ctrl+Enter).
 | 1 | `V1__schema.sql` | Tablas `SmsProveedor`, `SmsCuenta`, `SmsRuta`, `SmsRutaPaso`, `SmsEnvio`, `SmsEnvioIntento` e índices (SQL Server: además el helper `dbo.SmsRuta_AgregarPaso`) |
 | 2 | `V6__tipos_mensaje.sql` | Catálogo `SmsTipoMensaje` (**antes de V2–V5**: sus rutas hacen JOIN con el catálogo; si está vacío no insertan nada y no dan error) — solo `mysql/` |
 | 3 | `V7__ruta_tipo_mensaje_fk.sql` | `SmsRuta.tipo_mensaje` → `tipo_mensaje_id` (FK) — solo `mysql/` |
+| 3a | `V13__auditoria_soft_delete.sql` | **Base existente**: columnas de `AuditInfo` (`eliminado`, `usr_crea`, `usr_mod`, `created_at`, `updated_at`) con DEFAULT en tablas de configuración; `eliminado` NULL → 0 — solo `mysql/` |
+| 3b | `V14__auditoria_envios_plantillas.sql` | **Base existente**: lo mismo en `SmsEnvio`, `SmsEnvioIntento`, `SmsPlantilla*`; `SmsEnvio.fecha_creacion` con DEFAULT (la app usa `created_at`) — solo `mysql/` |
 | 4 | `V2__seed_inalambria.sql` | Proveedor INALAMBRIA, 5 cuentas y rutas de `/v1/sms/inalambria/send` |
 | 5 | `V3__seed_mock.sql` | Proveedor MOCK (pruebas) — opcional en producción |
 | 6 | `V4__seed_go4clients.sql` | Proveedor GO4CLIENTS, cuenta y rutas de `/v1/sms/go4clients/send` |
@@ -27,6 +37,7 @@ En DBeaver ejecutar como **script** (Alt+X), no como sentencia (Ctrl+Enter).
 | 11 | `V10__inalambria_masivo.sql` | `massiveUrl` en la cuenta `INALAMBRIA_MASIVO` y rutas MASIVO |
 | 12 | `V11__inalambria_whatsapp.sql` | Tipo `WHATSAPP`, cuenta `INALAMBRIA_WHATSAPP` (configurar usuario, clave y remitente), servicio y rutas WhatsApp |
 | 13 | `V12__inalambria_bidireccional.sql` | Tipo `BIDIRECCIONAL`, cuenta `INALAMBRIA_BIDIRECCIONAL` (configurar usuario, clave y código corto en `remitente`), servicio y rutas |
+| 14 | `V13` + `V14` otra vez | Cubre las tablas creadas por V8/V9 en bases antiguas (idempotentes) |
 | — | `consultas/configuracion.sql` | Rutas efectivas, cuentas y variables de entorno requeridas |
 | — | `consultas/envios.sql` | Log: cómo se envió cada SMS, intentos, historial, resumen |
 

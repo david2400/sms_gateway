@@ -30,11 +30,15 @@ public class SmsRutaEntity extends AuditInfo {
     @Column(name = "id_sms_ruta")
     private Long idSmsRuta;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    // EAGER: Hibernate 6.4 no permite LAZY hacia una entidad con @SoftDelete (AuditInfo)
+
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "proveedor_id")
     private SmsProveedorEntity proveedor;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    // EAGER: Hibernate 6.4 no permite LAZY hacia una entidad con @SoftDelete (AuditInfo)
+
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "tipo_mensaje_id", nullable = false)
     private SmsTipoMensajeEntity tipoMensaje;
 

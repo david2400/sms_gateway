@@ -14,6 +14,9 @@ import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.ReportingPolicy;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
 /**
@@ -28,9 +31,12 @@ public interface PlantillaMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "tipoMensajeId", ignore = true)
     @Mapping(target = "version", ignore = true)
-    @Mapping(target = "activo", ignore = true)
-    @Mapping(target = "fechaCreacion", ignore = true)
-    @Mapping(target = "fechaModificacion", ignore = true)
+    // Auditoría (AuditInfoDto): no viene en el request
+    @Mapping(target = "eliminado", ignore = true)
+    @Mapping(target = "usrCrea", ignore = true)
+    @Mapping(target = "usrMod", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
     Plantilla toModel(PlantillaRequest request);
 
     @Mapping(target = "id", ignore = true)
@@ -46,6 +52,7 @@ public interface PlantillaMapper {
     @Mapping(target = "id", source = "idSmsPlantilla")
     @Mapping(target = "tipoMensajeId", source = "tipoMensaje.idSmsTipoMensaje")
     @Mapping(target = "tipoMensaje", source = "tipoMensaje.codigo")
+    // eliminado, usrCrea, usrMod, createdAt y updatedAt se copian por nombre (AuditInfo → AuditInfoDto)
     Plantilla toModel(PlantillaSmsEntity entity);
 
     @Mapping(target = "id", source = "idSmsPlantillaVariable")
@@ -53,14 +60,29 @@ public interface PlantillaMapper {
 
     List<PlantillaVariable> toVariableModels(List<PlantillaSmsVariableEntity> entities);
 
-    /** Campos simples; id, tipo, variables y fecha de creación los gestiona el adapter. */
+    /** Campos simples; id, tipo y variables los gestiona el adapter. La auditoría (AuditInfo) la gestiona JPA. */
     @Mapping(target = "idSmsPlantilla", ignore = true)
     @Mapping(target = "tipoMensaje", ignore = true)
     @Mapping(target = "variables", ignore = true)
-    @Mapping(target = "fechaCreacion", ignore = true)
+    @Mapping(target = "eliminado", ignore = true)
+    @Mapping(target = "usrCrea", ignore = true)
+    @Mapping(target = "usrMod", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
     void updateEntity(Plantilla source, @MappingTarget PlantillaSmsEntity target);
 
     @Mapping(target = "idSmsPlantillaVariable", ignore = true)
     @Mapping(target = "plantilla", ignore = true)
+    @Mapping(target = "eliminado", ignore = true)
+    @Mapping(target = "usrCrea", ignore = true)
+    @Mapping(target = "usrMod", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
     PlantillaSmsVariableEntity toEntity(PlantillaVariable variable);
+
+    // ---------- Conversiones ----------
+
+    default LocalDateTime toLocalDateTime(Instant instant) {
+        return instant == null ? null : LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
+    }
 }

@@ -35,8 +35,7 @@ public class CambiarEstadoPlantillaService implements CambiarEstadoPlantillaUseC
     @Override
     public PlantillaResponse cambiarEstado(Long id, boolean eliminado) {
         Plantilla p = plantillas.findById(id).orElseThrow(() -> new PlantillaNoEncontradaException("No existe la plantilla " + id));
-        p.setActivo(!eliminado);
-        p.setFechaModificacion(LocalDateTime.now());
+        p.setEliminado(eliminado);
         Plantilla saved = plantillas.save(p);
         log.info("[SMS-ADMIN] Plantilla {} {}", saved.getCodigo(), eliminado ? "desactivada" : "activada");
         cache.invalidarAlConfirmar();

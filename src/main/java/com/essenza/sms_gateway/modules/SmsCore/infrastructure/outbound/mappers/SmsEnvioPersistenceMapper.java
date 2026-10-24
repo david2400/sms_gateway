@@ -18,6 +18,7 @@ public interface SmsEnvioPersistenceMapper {
     @Mapping(target = "proveedorFinal", source = "proveedorFinal.codigo")
     @Mapping(target = "cuentaFinal", source = "cuentaFinal.codigo")
     @Mapping(target = "intentos", ignore = true)
+    @Mapping(target = "fechaCreacion", source = "createdAt")
     SmsEnvioDetalleResponse toDetalle(SmsEnvioEntity entity);
 
     @Mapping(target = "proveedor", source = "proveedor.codigo")
@@ -25,4 +26,9 @@ public interface SmsEnvioPersistenceMapper {
     SmsEnvioDetalleResponse.Intento toIntento(SmsEnvioIntentoEntity entity);
 
     List<SmsEnvioDetalleResponse.Intento> toIntentos(List<SmsEnvioIntentoEntity> entities);
+
+    /** createdAt (Instant, AuditInfo) → LocalDateTime de la respuesta. */
+    default java.time.LocalDateTime toLocalDateTime(java.time.Instant instant) {
+        return instant == null ? null : java.time.LocalDateTime.ofInstant(instant, java.time.ZoneId.systemDefault());
+    }
 }

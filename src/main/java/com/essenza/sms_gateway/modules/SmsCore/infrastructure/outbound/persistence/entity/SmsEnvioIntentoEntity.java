@@ -32,7 +32,9 @@ public class SmsEnvioIntentoEntity  extends AuditInfo {
     @Column(name = "id_sms_envio_intento")
     private Long idSmsEnvioIntento;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    // EAGER: Hibernate 6.4 no permite LAZY hacia una entidad con @SoftDelete (AuditInfo)
+
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "envio_id", nullable = false)
     private SmsEnvioEntity envio;
 
@@ -43,11 +45,15 @@ public class SmsEnvioIntentoEntity  extends AuditInfo {
     @Column(name = "nro_intento", nullable = false)
     private Integer nroIntento;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    // EAGER: Hibernate 6.4 no permite LAZY hacia una entidad con @SoftDelete (AuditInfo)
+
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "proveedor_id", nullable = false)
     private SmsProveedorEntity proveedor;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    // EAGER: Hibernate 6.4 no permite LAZY hacia una entidad con @SoftDelete (AuditInfo)
+
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "cuenta_id", nullable = false)
     private SmsCuentaEntity cuenta;
 

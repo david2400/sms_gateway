@@ -25,32 +25,33 @@ WHERE codigo = 'INALAMBRIA_MASIVO'
        OR JSON_EXTRACT(parametros_json, '$.massiveUrl') IS NULL);
 
 -- 2. Rutas MASIVO (ya las crean V2/V5; se garantizan aquí por si se borraron)
-DROP TEMPORARY TABLE IF EXISTS tmp_sms_pasos;
-CREATE TEMPORARY TABLE tmp_sms_pasos (proveedor VARCHAR(30) NULL, tipo VARCHAR(30), orden INT, cuenta VARCHAR(50));
-INSERT INTO tmp_sms_pasos VALUES
- ('INALAMBRIA', 'MASIVO', 1, 'INALAMBRIA_MASIVO'),
- (NULL,         'MASIVO', 1, 'INALAMBRIA_MASIVO');
+-- Pasos (proveedor, tipo, orden, cuenta) como tabla derivada: cada INSERT es independiente (sin tablas auxiliares)
 
-INSERT INTO SmsRuta (proveedor_id, tipo_mensaje_id, activo)
-SELECT DISTINCT pr.id_sms_proveedor, tm.id_sms_tipo_mensaje, b'1'
-FROM tmp_sms_pasos p
-JOIN SmsTipoMensaje tm ON tm.codigo = p.tipo
-LEFT JOIN SmsProveedor pr ON pr.codigo = p.proveedor
+INSERT INTO SmsRuta (proveedor_id, tipo_mensaje_id, eliminado, usr_crea)
+SELECT DISTINCT pr.id_sms_proveedor, tm.id_sms_tipo_mensaje, 0, 1
+FROM (
+SELECT 'INALAMBRIA' AS proveedor, 'MASIVO' AS tipo, 1 AS orden, 'INALAMBRIA_MASIVO' AS cuenta
+  UNION ALL SELECT NULL, 'MASIVO', 1, 'INALAMBRIA_MASIVO'
+) p
+JOIN SmsTipoMensaje tm ON tm.codigo = CAST(p.tipo AS BINARY)
+LEFT JOIN SmsProveedor pr ON pr.codigo = CAST(p.proveedor AS BINARY)
 WHERE (p.proveedor IS NULL OR pr.id_sms_proveedor IS NOT NULL)
   AND NOT EXISTS (SELECT 1 FROM SmsRuta r
                   WHERE r.tipo_mensaje_id = tm.id_sms_tipo_mensaje AND r.proveedor_id <=> pr.id_sms_proveedor);
 
-INSERT INTO SmsRutaPaso (ruta_id, orden, cuenta_id, max_intentos, espera_ms, activo)
-SELECT r.id_sms_ruta, p.orden, c.id_sms_cuenta, 3, 1000, b'1'
-FROM tmp_sms_pasos p
-JOIN SmsTipoMensaje tm ON tm.codigo = p.tipo
-LEFT JOIN SmsProveedor pr ON pr.codigo = p.proveedor
+INSERT INTO SmsRutaPaso (ruta_id, orden, cuenta_id, max_intentos, espera_ms, eliminado, usr_crea)
+SELECT r.id_sms_ruta, p.orden, c.id_sms_cuenta, 3, 1000, 0, 1
+FROM (
+SELECT 'INALAMBRIA' AS proveedor, 'MASIVO' AS tipo, 1 AS orden, 'INALAMBRIA_MASIVO' AS cuenta
+  UNION ALL SELECT NULL, 'MASIVO', 1, 'INALAMBRIA_MASIVO'
+) p
+JOIN SmsTipoMensaje tm ON tm.codigo = CAST(p.tipo AS BINARY)
+LEFT JOIN SmsProveedor pr ON pr.codigo = CAST(p.proveedor AS BINARY)
 JOIN SmsRuta r   ON r.tipo_mensaje_id = tm.id_sms_tipo_mensaje AND r.proveedor_id <=> pr.id_sms_proveedor
-JOIN SmsCuenta c ON c.codigo = p.cuenta
+JOIN SmsCuenta c ON c.codigo = CAST(p.cuenta AS BINARY)
 WHERE (p.proveedor IS NULL OR pr.id_sms_proveedor IS NOT NULL)
   AND NOT EXISTS (SELECT 1 FROM SmsRutaPaso x WHERE x.ruta_id = r.id_sms_ruta);
 
-DROP TEMPORARY TABLE IF EXISTS tmp_sms_pasos;
 
 -- Verificación
 SELECT codigo, JSON_UNQUOTE(JSON_EXTRACT(parametros_json, '$.massiveUrl')) AS massive_url, parametros_json

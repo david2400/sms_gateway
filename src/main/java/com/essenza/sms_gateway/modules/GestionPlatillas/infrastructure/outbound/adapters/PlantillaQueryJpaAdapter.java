@@ -51,7 +51,7 @@ public class PlantillaQueryJpaAdapter implements PlantillaQueryPort {
         if (cached != null && cached.isFresh(ttlMs)) {
             return Optional.ofNullable(cached.template());
         }
-        CompiledTemplate template = repository.findByCodigoAndActivoTrue(key).map(this::compile).orElse(null);
+        CompiledTemplate template = repository.findByCodigoAndEliminadoFalse(key).map(this::compile).orElse(null);
         if (ttlMs > 0) {
             cache.put(key, new Cached(template, Instant.now()));
         }

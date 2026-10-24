@@ -29,7 +29,9 @@ public class PlantillaSmsVariableEntity extends AuditInfo {
     @Column(name = "id_sms_plantilla_variable")
     private Long idSmsPlantillaVariable;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    // EAGER: Hibernate 6.4 no permite LAZY hacia una entidad con @SoftDelete (AuditInfo)
+
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "plantilla_id", nullable = false)
     private PlantillaSmsEntity plantilla;
 
