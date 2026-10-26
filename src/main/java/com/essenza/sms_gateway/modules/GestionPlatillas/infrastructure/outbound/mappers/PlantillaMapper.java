@@ -17,9 +17,6 @@ import org.mapstruct.ReportingPolicy;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.List;
 
 /**
@@ -34,8 +31,12 @@ public interface PlantillaMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "tipoMensajeId", ignore = true)
     @Mapping(target = "version", ignore = true)
-    @Mapping(target = "eliminado", ignore = true)
     @Mapping(target = "fechaModificacion", ignore = true)
+    @Mapping(target = "eliminado", ignore = true)
+    @Mapping(target = "usrCrea", ignore = true)
+    @Mapping(target = "usrMod", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
     Plantilla toModel(PlantillaRequest request);
 
     @Mapping(target = "id", ignore = true)
@@ -69,20 +70,10 @@ public interface PlantillaMapper {
     @Mapping(target = "usrMod", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
-    @Mapping(target = "eliminado", ignore = true)
-    @Mapping(target = "usrCrea", ignore = true)
-    @Mapping(target = "usrMod", ignore = true)
-    @Mapping(target = "createdAt", ignore = true)
-    @Mapping(target = "updatedAt", ignore = true)
     void updateEntity(Plantilla source, @MappingTarget PlantillaSmsEntity target);
 
     @Mapping(target = "idSmsPlantillaVariable", ignore = true)
     @Mapping(target = "plantilla", ignore = true)
-    @Mapping(target = "eliminado", ignore = true)
-    @Mapping(target = "usrCrea", ignore = true)
-    @Mapping(target = "usrMod", ignore = true)
-    @Mapping(target = "createdAt", ignore = true)
-    @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "eliminado", ignore = true)
     @Mapping(target = "usrCrea", ignore = true)
     @Mapping(target = "usrMod", ignore = true)
