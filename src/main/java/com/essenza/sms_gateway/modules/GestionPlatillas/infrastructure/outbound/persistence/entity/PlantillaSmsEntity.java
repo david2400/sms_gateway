@@ -47,7 +47,8 @@ public class PlantillaSmsEntity extends AuditInfo {
     private String descripcion;
 
     /** Tipo por defecto (null = lo define el request). */
-    @ManyToOne(fetch = FetchType.LAZY)
+    // EAGER: Hibernate 6.4 no permite LAZY hacia una entidad con @SoftDelete (AuditInfo)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "tipo_mensaje_id")
     private PlantillaSmsTipoMensajeEntity tipoMensaje;
 

@@ -1,5 +1,6 @@
 package com.essenza.sms_gateway.modules.GestionPlatillas.domain.dto;
 
+import com.essenza.sms_gateway.shared.common.domain.dto.AuditInfoDto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -12,7 +13,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Schema(description = "Plantilla SMS")
-public class PlantillaResponse {
+public class PlantillaResponse extends AuditInfoDto {
     private Long id;
     private String codigo;
     private String nombre;

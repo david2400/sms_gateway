@@ -23,7 +23,6 @@ INSERT INTO SmsTipoMensaje (codigo, descripcion, canal, otp, masivo, eliminado)
 SELECT 'BIDIRECCIONAL', 'SMS bidireccional desde código corto (el destinatario puede responder)', 'SMS', b'0', b'0', b'0'
 FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM SmsTipoMensaje WHERE codigo = 'BIDIRECCIONAL');
 
-SET @prov = (SELECT id_sms_proveedor FROM SmsProveedor WHERE codigo = 'INALAMBRIA');
 
 INSERT INTO SmsCuenta (proveedor_id, codigo, usuario, secret_ref, clave_cifrada, remitente, parametros_json, eliminado)
 SELECT @prov, 'INALAMBRIA_BIDIRECCIONAL', 'env:INALAMBRIA_BIDIRECCIONAL_USER', 'INALAMBRIA_BIDIRECCIONAL_PASSWORD', NULL, NULL,
@@ -60,11 +59,10 @@ FROM tmp_sms_pasos p
 JOIN SmsTipoMensaje tm ON tm.codigo = p.tipo
 LEFT JOIN SmsProveedor pr ON pr.codigo = p.proveedor
 JOIN SmsRuta r   ON r.tipo_mensaje_id = tm.id_sms_tipo_mensaje AND r.proveedor_id <=> pr.id_sms_proveedor
-JOIN SmsCuenta c ON c.codigo = p.cuenta
+JOIN SmsCuenta c ON c.codigo = CAST(p.cuenta AS BINARY)
 WHERE (p.proveedor IS NULL OR pr.id_sms_proveedor IS NOT NULL)
   AND NOT EXISTS (SELECT 1 FROM SmsRutaPaso x WHERE x.ruta_id = r.id_sms_ruta AND x.orden = p.orden);
 
-DROP TEMPORARY TABLE IF EXISTS tmp_sms_pasos;
 
 -- Código corto (descomente y ajuste):
 -- UPDATE SmsCuenta SET remitente = '12345' WHERE codigo = 'INALAMBRIA_BIDIRECCIONAL';

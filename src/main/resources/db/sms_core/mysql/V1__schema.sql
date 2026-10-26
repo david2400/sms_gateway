@@ -115,7 +115,6 @@ CREATE TABLE IF NOT EXISTS SmsEnvio (
   total_intentos       INT           NOT NULL DEFAULT 0,
   codigo_error         VARCHAR(50)   NULL,
   detalle_error        VARCHAR(1000) NULL,
-  fecha_creacion       DATETIME(6)   NOT NULL,
   fecha_finalizacion   DATETIME(6)   NULL,
   eliminado            BIT(1)        NOT NULL DEFAULT b'0',
   usr_crea             INT           NOT NULL DEFAULT 1,
@@ -186,14 +185,14 @@ SET @sql = IF((SELECT COUNT(*) FROM information_schema.statistics
 PREPARE st FROM @sql; EXECUTE st; DEALLOCATE PREPARE st;
 
 SET @sql = IF((SELECT COUNT(*) FROM information_schema.statistics
-               WHERE table_schema = DATABASE() AND LOWER(table_name) = 'smsenvio' AND index_name = 'ix_sms_envio_destino') = 0,
-  'CREATE INDEX ix_sms_envio_destino ON SmsEnvio (destino, fecha_creacion)',
+               WHERE table_schema = DATABASE() AND LOWER(table_name) = 'smsenvio' AND index_name = 'ix_sms_envio_destino_created') = 0,
+  'CREATE INDEX ix_sms_envio_destino_created ON SmsEnvio (destino, created_at)',
   'DO 0');
 PREPARE st FROM @sql; EXECUTE st; DEALLOCATE PREPARE st;
 
 SET @sql = IF((SELECT COUNT(*) FROM information_schema.statistics
-               WHERE table_schema = DATABASE() AND LOWER(table_name) = 'smsenvio' AND index_name = 'ix_sms_envio_estado') = 0,
-  'CREATE INDEX ix_sms_envio_estado ON SmsEnvio (estado, fecha_creacion)',
+               WHERE table_schema = DATABASE() AND LOWER(table_name) = 'smsenvio' AND index_name = 'ix_sms_envio_estado_created') = 0,
+  'CREATE INDEX ix_sms_envio_estado_created ON SmsEnvio (estado, created_at)',
   'DO 0');
 PREPARE st FROM @sql; EXECUTE st; DEALLOCATE PREPARE st;
 

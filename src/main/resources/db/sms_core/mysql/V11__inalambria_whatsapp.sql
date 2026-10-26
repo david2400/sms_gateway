@@ -27,7 +27,6 @@ SELECT 'WHATSAPP', 'Mensaje de WhatsApp con plantilla aprobada por Meta', 'WHATS
 FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM SmsTipoMensaje WHERE codigo = 'WHATSAPP');
 
 -- 2. Cuenta WhatsApp de Inalambria
-SET @prov = (SELECT id_sms_proveedor FROM SmsProveedor WHERE codigo = 'INALAMBRIA');
 
 INSERT INTO SmsCuenta (proveedor_id, codigo, usuario, secret_ref, clave_cifrada, remitente, parametros_json, eliminado)
 SELECT @prov, 'INALAMBRIA_WHATSAPP', 'env:INALAMBRIA_WHATSAPP_USER', 'INALAMBRIA_WHATSAPP_PASSWORD', NULL, NULL,
@@ -44,12 +43,6 @@ WHERE NOT EXISTS (SELECT 1 FROM SmsProveedorServicio s
                   WHERE s.proveedor_id = p.id_sms_proveedor AND s.tipo_mensaje_id = t.id_sms_tipo_mensaje);
 
 -- 4. Rutas
-DROP TEMPORARY TABLE IF EXISTS tmp_sms_pasos;
-CREATE TEMPORARY TABLE tmp_sms_pasos (proveedor VARCHAR(30) NULL, tipo VARCHAR(30), orden INT, cuenta VARCHAR(50));
-INSERT INTO tmp_sms_pasos VALUES
- ('INALAMBRIA', 'WHATSAPP', 1, 'INALAMBRIA_WHATSAPP'),
- (NULL,         'WHATSAPP', 1, 'INALAMBRIA_WHATSAPP'),
- ('MOCK',       'WHATSAPP', 1, 'MOCK_OK');
 
 INSERT INTO SmsRuta (proveedor_id, tipo_mensaje_id, eliminado)
 SELECT DISTINCT pr.id_sms_proveedor, tm.id_sms_tipo_mensaje, b'0'
@@ -66,11 +59,10 @@ FROM tmp_sms_pasos p
 JOIN SmsTipoMensaje tm ON tm.codigo = p.tipo
 LEFT JOIN SmsProveedor pr ON pr.codigo = p.proveedor
 JOIN SmsRuta r   ON r.tipo_mensaje_id = tm.id_sms_tipo_mensaje AND r.proveedor_id <=> pr.id_sms_proveedor
-JOIN SmsCuenta c ON c.codigo = p.cuenta
+JOIN SmsCuenta c ON c.codigo = CAST(p.cuenta AS BINARY)
 WHERE (p.proveedor IS NULL OR pr.id_sms_proveedor IS NOT NULL)
   AND NOT EXISTS (SELECT 1 FROM SmsRutaPaso x WHERE x.ruta_id = r.id_sms_ruta AND x.orden = p.orden);
 
-DROP TEMPORARY TABLE IF EXISTS tmp_sms_pasos;
 
 -- 5. (Opcional) número de origen. Descomente y ajuste:
 -- UPDATE SmsCuenta SET remitente = '573001234567' WHERE codigo = 'INALAMBRIA_WHATSAPP';

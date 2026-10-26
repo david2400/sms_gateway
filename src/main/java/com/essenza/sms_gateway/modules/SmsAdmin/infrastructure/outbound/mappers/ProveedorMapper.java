@@ -12,6 +12,10 @@ import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.ReportingPolicy;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+
 /**
  * Mapper único de proveedores:
  * API (request → modelo, modelo → respuesta) y persistencia ({@code sms_proveedor} ↔ modelo).
@@ -44,6 +48,7 @@ public interface ProveedorMapper {
     // ---------- Persistencia ----------
 
     @Mapping(target = "id", source = "idSmsProveedor")
+    @Mapping(target = "fechaCreacion", source = "createdAt")
     Proveedor toModel(AdminProveedorEntity entity);
 
     /** id y auditoría (usr_crea/usr_mod/created_at/updated_at/eliminado) los gestiona JPA/AuditInfo. */
@@ -54,4 +59,11 @@ public interface ProveedorMapper {
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     void updateEntity(Proveedor source, @MappingTarget AdminProveedorEntity target);
+
+    // ---------- Conversiones ----------
+
+    /** createdAt (Instant, AuditInfo) → fechaCreacion (LocalDateTime) del modelo/respuesta. */
+    default LocalDateTime toLocalDateTime(Instant instant) {
+        return instant == null ? null : LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
+    }
 }

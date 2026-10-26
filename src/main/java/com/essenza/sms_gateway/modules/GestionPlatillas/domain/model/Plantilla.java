@@ -1,18 +1,25 @@
 package com.essenza.sms_gateway.modules.GestionPlatillas.domain.model;
 
+import com.essenza.sms_gateway.shared.common.domain.dto.AuditInfoDto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Plantilla SMS ({@code SmsPlantilla}) con sus variables declaradas. */
+/**
+ * Plantilla SMS ({@code SmsPlantilla}) con sus variables declaradas.
+ * Auditoría (eliminado, usrCrea, usrMod, createdAt, updatedAt) heredada de {@link AuditInfoDto}:
+ * eliminado = false ⇒ plantilla activa.
+ */
 @Data
+@EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @AllArgsConstructor
-public class Plantilla {
+public class Plantilla extends AuditInfoDto {
     private Long id;
     private String codigo;
     private String nombre;

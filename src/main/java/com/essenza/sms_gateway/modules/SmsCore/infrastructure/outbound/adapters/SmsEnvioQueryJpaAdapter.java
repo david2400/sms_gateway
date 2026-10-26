@@ -18,6 +18,9 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -48,7 +51,7 @@ public class SmsEnvioQueryJpaAdapter implements SmsEnvioQueryPort {
     @Transactional(readOnly = true)
     public PageResult<SmsEnvioDetalleResponse> search(SmsEnvioFilter filter) {
         PageRequest pageRequest = PageRequest.of(filter.getPage(), filter.getSize(),
-                Sort.by(Sort.Direction.DESC, "fechaCreacion"));
+                Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<SmsEnvioEntity> page = envioRepository.findAll(toSpecification(filter), pageRequest);
         return PageResult.<SmsEnvioDetalleResponse>builder()
                 .content(page.getContent().stream().map(mapper::toDetalle).toList())
@@ -81,12 +84,17 @@ public class SmsEnvioQueryJpaAdapter implements SmsEnvioQueryPort {
                         f.getProveedor().trim().toUpperCase()));
             }
             if (f.getDesde() != null) {
-                predicates.add(cb.greaterThanOrEqualTo(root.get("fechaCreacion"), f.getDesde()));
+                predicates.add(cb.greaterThanOrEqualTo(root.<Instant>get("createdAt"), toInstant(f.getDesde())));
             }
             if (f.getHasta() != null) {
-                predicates.add(cb.lessThanOrEqualTo(root.get("fechaCreacion"), f.getHasta()));
+                predicates.add(cb.lessThanOrEqualTo(root.<Instant>get("createdAt"), toInstant(f.getHasta())));
             }
             return cb.and(predicates.toArray(new Predicate[0]));
         };
+    }
+
+    /** Los filtros llegan en hora local; createdAt (AuditInfo) es Instant. */
+    private static Instant toInstant(LocalDateTime fecha) {
+        return fecha.atZone(ZoneId.systemDefault()).toInstant();
     }
 }

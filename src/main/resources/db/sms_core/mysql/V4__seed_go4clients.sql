@@ -9,7 +9,6 @@ INSERT INTO SmsProveedor (codigo, nombre, base_url, connect_timeout_ms, read_tim
 SELECT 'GO4CLIENTS', 'Go4Clients', 'https://cloud.go4clients.com:8580/api', 3000, 15000, b'0', NOW(6)
 FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM SmsProveedor WHERE codigo = 'GO4CLIENTS');
 
-SET @prov = (SELECT id_sms_proveedor FROM SmsProveedor WHERE codigo = 'GO4CLIENTS');
 
 INSERT INTO SmsCuenta (proveedor_id, codigo, usuario, secret_ref, clave_cifrada, remitente, parametros_json, eliminado)
 SELECT @prov, 'GO4CLIENTS_PRINCIPAL', 'env:GO4CLIENTS_API_KEY', NULL,
@@ -39,8 +38,7 @@ FROM tmp_sms_pasos p
 JOIN SmsTipoMensaje tm ON tm.codigo = p.tipo
 LEFT JOIN SmsProveedor pr ON pr.codigo = p.proveedor
 JOIN SmsRuta r   ON r.tipo_mensaje_id = tm.id_sms_tipo_mensaje AND r.proveedor_id <=> pr.id_sms_proveedor
-JOIN SmsCuenta c ON c.codigo = p.cuenta
+JOIN SmsCuenta c ON c.codigo = CAST(p.cuenta AS BINARY)
 WHERE (p.proveedor IS NULL OR pr.id_sms_proveedor IS NOT NULL)
   AND NOT EXISTS (SELECT 1 FROM SmsRutaPaso x WHERE x.ruta_id = r.id_sms_ruta AND x.orden = p.orden);
 
-DROP TEMPORARY TABLE IF EXISTS tmp_sms_pasos;
