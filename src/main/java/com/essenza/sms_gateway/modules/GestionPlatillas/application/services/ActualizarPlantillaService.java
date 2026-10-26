@@ -42,8 +42,7 @@ public class ActualizarPlantillaService implements ActualizarPlantillaUseCase {
         }
         Plantilla p = validator.validar(mapper.toModel(request));
         p.setId(actual.getId());
-        p.setActivo(actual.getActivo());
-        p.setFechaCreacion(actual.getFechaCreacion());
+        p.setEliminado(actual.getEliminado());
         p.setVersion((actual.getVersion() == null ? 1 : actual.getVersion()) + 1);
         p.setFechaModificacion(LocalDateTime.now());
         Plantilla saved = plantillas.save(p);

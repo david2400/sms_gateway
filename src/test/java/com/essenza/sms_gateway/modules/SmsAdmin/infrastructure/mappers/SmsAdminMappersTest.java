@@ -67,7 +67,7 @@ class SmsAdminMappersTest {
 
     @Test
     void actualizarNoPisaConNulls() {
-        Proveedor actual = new Proveedor(1L, "INALAMBRIA", "Inalambria", "https://a", 3000, 10000, false, null);
+        Proveedor actual = new Proveedor(1L, "INALAMBRIA", "Inalambria", "https://a", 3000, 10000, false);
         ProveedorRequest request = new ProveedorRequest();
         request.setCodigo("INALAMBRIA");
         request.setNombre("Inalambria SA");

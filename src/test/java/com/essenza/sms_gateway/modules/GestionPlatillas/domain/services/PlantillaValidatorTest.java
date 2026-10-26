@@ -18,8 +18,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class PlantillaValidatorTest {
 
     private final PlantillaValidator validator = new PlantillaValidator(codigo -> switch (codigo) {
-        case "NORMAL" -> Optional.of(new TipoMensajeRef(5L, "NORMAL", true));
-        case "PROPIO" -> Optional.of(new TipoMensajeRef(9L, "PROPIO", true));
+        case "NORMAL" -> Optional.of(new TipoMensajeRef(5L, "NORMAL", false));
+        case "PROPIO" -> Optional.of(new TipoMensajeRef(9L, "PROPIO", false));
         default -> Optional.empty();
     });
 

@@ -22,21 +22,21 @@
 SET NAMES utf8mb4;
 
 -- 1. Tipo de mensaje
-INSERT INTO SmsTipoMensaje (codigo, descripcion, canal, otp, masivo, activo)
-SELECT 'WHATSAPP', 'Mensaje de WhatsApp con plantilla aprobada por Meta', 'WHATSAPP', b'0', b'1', b'1'
+INSERT INTO SmsTipoMensaje (codigo, descripcion, canal, otp, masivo, eliminado)
+SELECT 'WHATSAPP', 'Mensaje de WhatsApp con plantilla aprobada por Meta', 'WHATSAPP', b'0', b'1', b'0'
 FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM SmsTipoMensaje WHERE codigo = 'WHATSAPP');
 
 -- 2. Cuenta WhatsApp de Inalambria
 SET @prov = (SELECT id_sms_proveedor FROM SmsProveedor WHERE codigo = 'INALAMBRIA');
 
-INSERT INTO SmsCuenta (proveedor_id, codigo, usuario, secret_ref, clave_cifrada, remitente, parametros_json, activo)
+INSERT INTO SmsCuenta (proveedor_id, codigo, usuario, secret_ref, clave_cifrada, remitente, parametros_json, eliminado)
 SELECT @prov, 'INALAMBRIA_WHATSAPP', 'env:INALAMBRIA_WHATSAPP_USER', 'INALAMBRIA_WHATSAPP_PASSWORD', NULL, NULL,
-       '{"canal":"WHATSAPP","whatsappUrl":"https://multichannel.inalambria.com/MultiChannelInput/SendMessageMetaWhatsApp"}', b'1'
+       '{"canal":"WHATSAPP","whatsappUrl":"https://multichannel.inalambria.com/MultiChannelInput/SendMessageMetaWhatsApp"}', b'0'
 FROM DUAL WHERE @prov IS NOT NULL AND NOT EXISTS (SELECT 1 FROM SmsCuenta WHERE codigo = 'INALAMBRIA_WHATSAPP');
 
 -- 3. Servicio WHATSAPP
-INSERT INTO SmsProveedorServicio (proveedor_id, tipo_mensaje_id, activo, fecha_creacion)
-SELECT p.id_sms_proveedor, t.id_sms_tipo_mensaje, b'1', NOW(6)
+INSERT INTO SmsProveedorServicio (proveedor_id, tipo_mensaje_id, eliminado, fecha_creacion)
+SELECT p.id_sms_proveedor, t.id_sms_tipo_mensaje, b'0', NOW(6)
 FROM (SELECT 'INALAMBRIA' AS proveedor UNION ALL SELECT 'MOCK') v
 JOIN SmsProveedor   p ON p.codigo = v.proveedor
 JOIN SmsTipoMensaje t ON t.codigo = 'WHATSAPP'
@@ -51,8 +51,8 @@ INSERT INTO tmp_sms_pasos VALUES
  (NULL,         'WHATSAPP', 1, 'INALAMBRIA_WHATSAPP'),
  ('MOCK',       'WHATSAPP', 1, 'MOCK_OK');
 
-INSERT INTO SmsRuta (proveedor_id, tipo_mensaje_id, activo)
-SELECT DISTINCT pr.id_sms_proveedor, tm.id_sms_tipo_mensaje, b'1'
+INSERT INTO SmsRuta (proveedor_id, tipo_mensaje_id, eliminado)
+SELECT DISTINCT pr.id_sms_proveedor, tm.id_sms_tipo_mensaje, b'0'
 FROM tmp_sms_pasos p
 JOIN SmsTipoMensaje tm ON tm.codigo = p.tipo
 LEFT JOIN SmsProveedor pr ON pr.codigo = p.proveedor
@@ -60,8 +60,8 @@ WHERE (p.proveedor IS NULL OR pr.id_sms_proveedor IS NOT NULL)
   AND NOT EXISTS (SELECT 1 FROM SmsRuta r
                   WHERE r.tipo_mensaje_id = tm.id_sms_tipo_mensaje AND r.proveedor_id <=> pr.id_sms_proveedor);
 
-INSERT INTO SmsRutaPaso (ruta_id, orden, cuenta_id, max_intentos, espera_ms, activo)
-SELECT r.id_sms_ruta, p.orden, c.id_sms_cuenta, 3, 1000, b'1'
+INSERT INTO SmsRutaPaso (ruta_id, orden, cuenta_id, max_intentos, espera_ms, eliminado)
+SELECT r.id_sms_ruta, p.orden, c.id_sms_cuenta, 3, 1000, b'0'
 FROM tmp_sms_pasos p
 JOIN SmsTipoMensaje tm ON tm.codigo = p.tipo
 LEFT JOIN SmsProveedor pr ON pr.codigo = p.proveedor

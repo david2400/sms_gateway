@@ -18,5 +18,4 @@ public class Proveedor {
     private Integer connectTimeoutMs;
     private Integer readTimeoutMs;
     private Boolean eliminado;
-    private LocalDateTime fechaCreacion;
 }

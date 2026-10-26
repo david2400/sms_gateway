@@ -30,10 +30,10 @@ public class ListarPlantillasService implements ListarPlantillasUseCase {
     private final PlantillaMapper mapper;
 
     @Override
-    public List<PlantillaResponse> listar(Boolean activo, String tipoMensaje) {
+    public List<PlantillaResponse> listar(Boolean eliminado, String tipoMensaje) {
         String tipo = tipoMensaje == null || tipoMensaje.isBlank() ? null : tipoMensaje.trim().toUpperCase(Locale.ROOT);
         return plantillas.findAll().stream()
-                .filter(p -> activo == null || activo.equals(p.getActivo()))
+                .filter(p -> eliminado == null || eliminado.equals(p.getEliminado()))
                 .filter(p -> tipo == null || tipo.equals(p.getTipoMensaje()))
                 .map(mapper::toResponse)
                 .toList();

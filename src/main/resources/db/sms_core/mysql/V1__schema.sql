@@ -20,7 +20,11 @@ CREATE TABLE IF NOT EXISTS SmsProveedor (
   base_url           VARCHAR(255) NOT NULL,
   connect_timeout_ms INT          NOT NULL DEFAULT 2000,
   read_timeout_ms    INT          NOT NULL DEFAULT 5000,
-  activo             BIT(1)       NOT NULL DEFAULT b'1',
+  eliminado          BIT(1)       NOT NULL DEFAULT b'0',
+  usr_crea           INT          NOT NULL DEFAULT 1,
+  usr_mod            INT          NULL,
+  created_at         DATETIME(6)  NULL,
+  updated_at         DATETIME(6)  NULL,
   fecha_creacion     DATETIME(6)  NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
   CONSTRAINT pk_sms_proveedor PRIMARY KEY (id_sms_proveedor),
   CONSTRAINT uq_sms_proveedor_codigo UNIQUE (codigo)
@@ -35,7 +39,11 @@ CREATE TABLE IF NOT EXISTS SmsCuenta (
   clave_cifrada   VARCHAR(500) NULL,      -- contraseña cifrada AES-256-GCM ('v1:...'); llave en SMS_CRYPTO_KEY
   remitente       VARCHAR(20)  NULL,
   parametros_json LONGTEXT     NULL,      -- parámetros propios de cada proveedor
-  activo          BIT(1)       NOT NULL DEFAULT b'1',
+  eliminado       BIT(1)       NOT NULL DEFAULT b'0',
+  usr_crea        INT          NOT NULL DEFAULT 1,
+  usr_mod         INT          NULL,
+  created_at      DATETIME(6)  NULL,
+  updated_at      DATETIME(6)  NULL,
   CONSTRAINT pk_sms_cuenta PRIMARY KEY (id_sms_cuenta),
   CONSTRAINT uq_sms_cuenta_codigo UNIQUE (codigo),
   CONSTRAINT fk_sms_cuenta_proveedor FOREIGN KEY (proveedor_id) REFERENCES SmsProveedor (id_sms_proveedor)
@@ -48,7 +56,11 @@ CREATE TABLE IF NOT EXISTS SmsTipoMensaje (
   canal               VARCHAR(20)  NOT NULL,   -- SMS | WHATSAPP
   otp                 BIT(1)       NOT NULL DEFAULT b'0',
   masivo              BIT(1)       NOT NULL DEFAULT b'0',
-  activo              BIT(1)       NOT NULL DEFAULT b'1',
+  eliminado           BIT(1)       NOT NULL DEFAULT b'0',
+  usr_crea            INT          NOT NULL DEFAULT 1,
+  usr_mod             INT          NULL,
+  created_at          DATETIME(6)  NULL,
+  updated_at          DATETIME(6)  NULL,
   CONSTRAINT pk_sms_tipo_mensaje PRIMARY KEY (id_sms_tipo_mensaje),
   CONSTRAINT uq_sms_tipo_mensaje_codigo UNIQUE (codigo)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -57,7 +69,11 @@ CREATE TABLE IF NOT EXISTS SmsRuta (
   id_sms_ruta     BIGINT      NOT NULL AUTO_INCREMENT,
   proveedor_id    BIGINT      NULL,          -- NULL = endpoint CENTRAL
   tipo_mensaje_id BIGINT      NOT NULL,      -- FK -> sms_tipo_mensaje
-  activo          BIT(1)      NOT NULL DEFAULT b'1',
+  eliminado       BIT(1)      NOT NULL DEFAULT b'0',
+  usr_crea        INT         NOT NULL DEFAULT 1,
+  usr_mod         INT         NULL,
+  created_at      DATETIME(6) NULL,
+  updated_at      DATETIME(6) NULL,
   CONSTRAINT pk_sms_ruta PRIMARY KEY (id_sms_ruta),
   CONSTRAINT fk_sms_ruta_proveedor    FOREIGN KEY (proveedor_id)    REFERENCES SmsProveedor (id_sms_proveedor),
   CONSTRAINT fk_sms_ruta_tipo_mensaje FOREIGN KEY (tipo_mensaje_id) REFERENCES SmsTipoMensaje (id_sms_tipo_mensaje)
@@ -70,7 +86,11 @@ CREATE TABLE IF NOT EXISTS SmsRutaPaso (
   cuenta_id        BIGINT NOT NULL,
   max_intentos     INT    NOT NULL DEFAULT 3,
   espera_ms        INT    NOT NULL DEFAULT 500,
-  activo           BIT(1) NOT NULL DEFAULT b'1',
+  eliminado        BIT(1) NOT NULL DEFAULT b'0',
+  usr_crea         INT    NOT NULL DEFAULT 1,
+  usr_mod          INT    NULL,
+  created_at       DATETIME(6) NULL,
+  updated_at       DATETIME(6) NULL,
   CONSTRAINT pk_sms_ruta_paso PRIMARY KEY (id_sms_ruta_paso),
   CONSTRAINT uq_sms_ruta_paso UNIQUE (ruta_id, orden),
   CONSTRAINT fk_sms_ruta_paso_ruta   FOREIGN KEY (ruta_id)   REFERENCES SmsRuta (id_sms_ruta),
@@ -97,6 +117,11 @@ CREATE TABLE IF NOT EXISTS SmsEnvio (
   detalle_error        VARCHAR(1000) NULL,
   fecha_creacion       DATETIME(6)   NOT NULL,
   fecha_finalizacion   DATETIME(6)   NULL,
+  eliminado            BIT(1)        NOT NULL DEFAULT b'0',
+  usr_crea             INT           NOT NULL DEFAULT 1,
+  usr_mod              INT           NULL,
+  created_at           DATETIME(6)   NULL,
+  updated_at           DATETIME(6)   NULL,
   CONSTRAINT pk_sms_envio PRIMARY KEY (id_sms_envio),
   CONSTRAINT uq_sms_envio_uuid UNIQUE (uuid),
   CONSTRAINT fk_sms_envio_proveedor FOREIGN KEY (proveedor_final_id) REFERENCES SmsProveedor (id_sms_proveedor),
@@ -115,6 +140,11 @@ CREATE TABLE IF NOT EXISTS SmsEnvioIntento (
   detalle              VARCHAR(1000) NULL,
   duracion_ms          INT           NOT NULL,
   fecha                DATETIME(6)   NOT NULL,
+  eliminado            BIT(1)        NOT NULL DEFAULT b'0',
+  usr_crea             INT           NOT NULL DEFAULT 1,
+  usr_mod              INT           NULL,
+  created_at           DATETIME(6)   NULL,
+  updated_at           DATETIME(6)   NULL,
   CONSTRAINT pk_sms_envio_intento PRIMARY KEY (id_sms_envio_intento),
   CONSTRAINT fk_sms_intento_envio     FOREIGN KEY (envio_id)     REFERENCES SmsEnvio (id_sms_envio),
   CONSTRAINT fk_sms_intento_proveedor FOREIGN KEY (proveedor_id) REFERENCES SmsProveedor (id_sms_proveedor),

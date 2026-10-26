@@ -24,8 +24,7 @@ public class Plantilla {
     private String contenido;
     /** Se incrementa en cada modificación (queda en la respuesta de previsualización). */
     private Integer version;
-    private Boolean activo;
-    private LocalDateTime fechaCreacion;
+    private Boolean eliminado;
     private LocalDateTime fechaModificacion;
     private List<PlantillaVariable> variables = new ArrayList<>();
 }

@@ -89,7 +89,7 @@ public class RoutingPolicyJpaAdapter implements RoutingPolicyPort {
             SmsCuentaEntity cuenta = paso.getCuenta();
             SmsProveedorEntity proveedor = cuenta.getProveedor();
 
-            if (!Boolean.FALSE.equals(cuenta.getEliminado()) || !Boolean.FALSE.equals(proveedor.getEliminado())) {
+            if (cuenta.isEliminado() || proveedor.isEliminado()) {
                 continue;
             }
             if (providerCode != null && !providerCode.equalsIgnoreCase(proveedor.getCodigo())) {

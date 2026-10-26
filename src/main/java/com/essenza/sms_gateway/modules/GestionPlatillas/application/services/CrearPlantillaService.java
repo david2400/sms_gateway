@@ -40,8 +40,7 @@ public class CrearPlantillaService implements CrearPlantillaUseCase {
             throw new PlantillaConflictoException("Ya existe la plantilla " + p.getCodigo() + " (id " + x.getId() + ")");
         });
         p.setVersion(1);
-        p.setActivo(Boolean.TRUE);
-        p.setFechaCreacion(LocalDateTime.now());
+        p.setEliminado(Boolean.FALSE);
         Plantilla saved = plantillas.save(p);
         log.info("[SMS-ADMIN] Plantilla creada: {} (id {}, {} variables)", saved.getCodigo(), saved.getId(), saved.getVariables().size());
         cache.invalidarAlConfirmar();

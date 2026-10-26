@@ -79,7 +79,6 @@ public class SmsDispatchLogJpaAdapter implements SmsDispatchLogPort {
         envio.setPlantillaCodigo(truncate(message.getTemplateCode(), 50));
         envio.setEstado(DispatchStatus.EN_PROCESO.name());
         envio.setTotalIntentos(0);
-        envio.setFechaCreacion(LocalDateTime.now());
         return envio;
     }
 

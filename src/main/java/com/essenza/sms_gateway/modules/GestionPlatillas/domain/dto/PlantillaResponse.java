@@ -20,7 +20,7 @@ public class PlantillaResponse {
     private String tipoMensaje;
     private String contenido;
     private Integer version;
-    private Boolean activo;
+    private Boolean eliminado;
     private LocalDateTime fechaCreacion;
     private LocalDateTime fechaModificacion;
     private List<PlantillaVariableResponse> variables;

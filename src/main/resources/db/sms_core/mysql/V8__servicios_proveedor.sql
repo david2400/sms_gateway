@@ -18,7 +18,11 @@ CREATE TABLE IF NOT EXISTS SmsProveedorServicio (
   id_sms_proveedor_servicio BIGINT      NOT NULL AUTO_INCREMENT,
   proveedor_id              BIGINT      NOT NULL,
   tipo_mensaje_id           BIGINT      NOT NULL,
-  activo                    BIT(1)      NOT NULL DEFAULT b'1',
+  eliminado                 BIT(1)      NOT NULL DEFAULT b'0',
+  usr_crea                  INT         NOT NULL DEFAULT 1,
+  usr_mod                   INT         NULL,
+  created_at                DATETIME(6) NULL,
+  updated_at                DATETIME(6) NULL,
   fecha_creacion            DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
   CONSTRAINT pk_sms_proveedor_servicio PRIMARY KEY (id_sms_proveedor_servicio),
   CONSTRAINT uq_sms_proveedor_servicio UNIQUE (proveedor_id, tipo_mensaje_id),
@@ -28,8 +32,8 @@ CREATE TABLE IF NOT EXISTS SmsProveedorServicio (
 
 -- Semilla. Go4Clients NO tiene OTP: un OTP por Go4Clients responde
 -- "El proveedor GO4CLIENTS no cuenta con el servicio OTP" (su ruta GO4CLIENTS/OTP de V4 queda sin uso).
-INSERT INTO SmsProveedorServicio (proveedor_id, tipo_mensaje_id, activo, fecha_creacion)
-SELECT p.id_sms_proveedor, t.id_sms_tipo_mensaje, b'1', NOW(6)
+INSERT INTO SmsProveedorServicio (proveedor_id, tipo_mensaje_id, eliminado, fecha_creacion)
+SELECT p.id_sms_proveedor, t.id_sms_tipo_mensaje, b'0', NOW(6)
 FROM (
   SELECT 'INALAMBRIA' AS proveedor, 'OTP' AS tipo
   UNION ALL SELECT 'INALAMBRIA', 'HABEAS_DATA'
@@ -56,7 +60,7 @@ SELECT p.codigo AS proveedor, GROUP_CONCAT(t.codigo ORDER BY t.codigo) AS servic
 FROM SmsProveedorServicio s
 JOIN SmsProveedor p ON p.id_sms_proveedor = s.proveedor_id
 JOIN SmsTipoMensaje t ON t.id_sms_tipo_mensaje = s.tipo_mensaje_id
-WHERE s.activo = b'1'
+WHERE s.eliminado = b'0'
 GROUP BY p.codigo ORDER BY p.codigo;
 
 -- Si la aplicación está corriendo: POST /api/sms_gateway/v1/sms/admin/routing-cache/refresh

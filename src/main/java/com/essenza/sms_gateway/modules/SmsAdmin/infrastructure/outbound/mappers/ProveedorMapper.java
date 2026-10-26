@@ -23,13 +23,13 @@ public interface ProveedorMapper {
 
     /** Para crear; los valores por defecto los aplica el service. */
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "fechaCreacion", ignore = true)
+    @Mapping(target = "eliminado", ignore = true)
     Proveedor toModel(ProveedorRequest request);
 
     /** Para actualizar; los campos null del request conservan el valor actual. */
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "fechaCreacion", ignore = true)
+    @Mapping(target = "eliminado", ignore = true)
     void updateModel(ProveedorRequest request, @MappingTarget Proveedor proveedor);
 
     @Mapping(target = "implementado", source = "implementado")
@@ -38,6 +38,7 @@ public interface ProveedorMapper {
     @Mapping(target = "usrMod", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "fechaCreacion", ignore = true)
     ProveedorResponse toResponse(Proveedor proveedor, boolean implementado, int cuentas);
 
     // ---------- Persistencia ----------
@@ -45,9 +46,9 @@ public interface ProveedorMapper {
     @Mapping(target = "id", source = "idSmsProveedor")
     Proveedor toModel(AdminProveedorEntity entity);
 
-    /** id y fecha de creación los gestiona la BD/JPA. */
+    /** id y auditoría (usr_crea/usr_mod/created_at/updated_at/eliminado) los gestiona JPA/AuditInfo. */
     @Mapping(target = "idSmsProveedor", ignore = true)
-    @Mapping(target = "fechaCreacion", ignore = true)
+    @Mapping(target = "eliminado", ignore = true)
     @Mapping(target = "usrCrea", ignore = true)
     @Mapping(target = "usrMod", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
