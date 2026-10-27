@@ -140,6 +140,7 @@
 			<artifactId>mapstruct</artifactId>
 			<version>1.6.3</version>
 		</dependency>
+		<!-- Núcleo común de administración (proveedores, cuentas, tipos, servicios, rutas): /v1/admin/** -->
 
 		<!-- Apache Commons Text (incluye commons-lang3 transitivo) -->
 		<dependency>

@@ -33,7 +33,7 @@ spring:
       hibernate:
         # dialect: org.hibernate.dialect.SQLServer2008Dialect  # SQL Server; con MySQL se autodetecta
         jdbc:
-          time_zone: America/Bogota
+          time_zone: UTC   # igual que notificacion y email_gateway (BD compartida)
         physical_naming_strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
     open-in-view: false
   cloud:
@@ -182,7 +182,6 @@ logging:
     com.essenza.sms_gateway.modules.INALAMBRIA: debug
     com.essenza.sms_gateway.modules.Go4Clients: debug
     com.essenza.sms_gateway.modules.Mock: debug
-    com.essenza.sms_gateway.modules.SmsAdmin: debug
   file:
     name: notificacion.log
 

@@ -57,7 +57,7 @@ public class SmsCuentaEntity extends AuditInfo {
 
     /** JSON plano clave→valor con datos propios del proveedor. */
     @Lob
-    @Column(name = "parametros_json")
+    @Column(name = "parametros_json", columnDefinition = "LONGTEXT")
     private String parametrosJson;
 
 }
