@@ -1,5 +1,21 @@
 # Scripts SQL — SmsCore
 
+> **Configuración centralizada en notificacion (tablas `Canal*`).**
+> Proveedores, cuentas, tipos de mensaje, servicios y rutas ya no están en `SmsProveedor, SmsCuenta, SmsTipoMensaje, SmsProveedorServicio, SmsRuta, SmsRutaPaso`: el gateway lee las
+> tablas unificadas `CanalProveedor`, `CanalCuenta`, `CanalTipoMensaje`, `CanalProveedorServicio`, `CanalRuta` y
+> `CanalRutaPaso` (filas con `canal = 'SMS'`), que crea y administra **notificacion**
+> (`/api/notificacion/v1/admin/sms/...`).
+>
+> | Base | Ejecutar (en orden) |
+> |---|---|
+> | Nueva | `notificacion/.../db/admin_canales_esquema.sql` → `admin_canales_datos.sql` → `mysql_ejecutar_todo.sql` de cada gateway |
+> | Con las tablas antiguas | `notificacion/.../db/migracion_admin_canales.sql` (copia los datos, deja respaldo `bak_*` y re-apunta las FK) |
+>
+> `mysql_ejecutar_todo.sql` y `mysql_datos_prueba.sql` de esta carpeta ya solo tienen las tablas propias del gateway
+> (envíos y plantillas). Los scripts versionados `mysql/V*.sql` (y `sqlserver/`) son **históricos**: crean las tablas
+> antiguas; no usarlos en bases nuevas.
+
+
 Dos versiones con el mismo contenido, una por motor:
 
 | Carpeta | Motor | Dónde |

@@ -10,17 +10,19 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import org.hibernate.annotations.SQLRestriction;
 import jakarta.persistence.UniqueConstraint;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * Paso de una ruta ({@code sms_ruta_paso}): orden, cuenta e intentos.
+ * Paso de una ruta (filas {@code canal = 'SMS'} de {@code CanalRutaPaso}): orden, cuenta e intentos.
  */
 @Entity
-@Table(name = "SmsRutaPaso",
-        uniqueConstraints = @UniqueConstraint(name = "uq_sms_ruta_paso", columnNames = {"ruta_id", "orden"}))
+@SQLRestriction("canal = 'SMS'")
+@Table(name = "CanalRutaPaso",
+        uniqueConstraints = @UniqueConstraint(name = "uq_canal_ruta_paso", columnNames = {"ruta_id", "orden"}))
 @Getter
 @Setter
 @NoArgsConstructor
@@ -28,7 +30,7 @@ public class SmsRutaPasoEntity extends AuditInfo {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_sms_ruta_paso")
+    @Column(name = "id_ruta_paso")
     private Long idSmsRutaPaso;
 
     // EAGER: Hibernate 6.4 no permite LAZY hacia una entidad con @SoftDelete (AuditInfo)
@@ -52,4 +54,8 @@ public class SmsRutaPasoEntity extends AuditInfo {
 
     @Column(name = "espera_ms", nullable = false)
     private Integer esperaMs = 500;
+
+    /** Canal de la configuración (SMS | EMAIL); este gateway solo ve las filas de SMS. Lo escribe notificacion. */
+    @Column(name = "canal", length = 10, nullable = false, insertable = false, updatable = false)
+    private String canalAdmin;
 }
