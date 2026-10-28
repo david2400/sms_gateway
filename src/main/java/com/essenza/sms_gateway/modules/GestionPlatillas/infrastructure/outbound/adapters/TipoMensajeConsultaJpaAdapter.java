@@ -17,6 +17,6 @@ public class TipoMensajeConsultaJpaAdapter implements TipoMensajeConsultaPort {
     @Override
     public Optional<TipoMensajeRef> findByCodigo(String codigo) {
         return repository.findByCodigo(codigo)
-                .map(t -> new TipoMensajeRef(t.getIdSmsTipoMensaje(), t.getCodigo(), !t.isEliminado()));
+                .map(t -> new TipoMensajeRef(t.getIdSmsTipoMensaje(), t.getCodigo(), t.isEliminado()));
     }
 }

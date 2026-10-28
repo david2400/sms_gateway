@@ -42,6 +42,7 @@ public class ActualizarPlantillaService implements ActualizarPlantillaUseCase {
         }
         Plantilla p = validator.validar(mapper.toModel(request));
         p.setId(actual.getId());
+        p.setEliminado(actual.getEliminado());
         p.setVersion((actual.getVersion() == null ? 1 : actual.getVersion()) + 1);
         // eliminado y fechas de auditoría: AuditInfo (JPA)
         Plantilla saved = plantillas.save(p);

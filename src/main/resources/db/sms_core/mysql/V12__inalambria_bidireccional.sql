@@ -19,48 +19,45 @@
 
 SET NAMES utf8mb4;
 
-INSERT INTO SmsTipoMensaje (codigo, descripcion, canal, otp, masivo, eliminado, usr_crea)
-SELECT 'BIDIRECCIONAL', 'SMS bidireccional desde código corto (el destinatario puede responder)', 'SMS', b'0', b'0', 0, 1
+INSERT INTO SmsTipoMensaje (codigo, descripcion, canal, otp, masivo, eliminado)
+SELECT 'BIDIRECCIONAL', 'SMS bidireccional desde código corto (el destinatario puede responder)', 'SMS', b'0', b'0', b'0'
 FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM SmsTipoMensaje WHERE codigo = 'BIDIRECCIONAL');
 
 
-INSERT INTO SmsCuenta (proveedor_id, codigo, usuario, secret_ref, clave_cifrada, remitente, parametros_json, eliminado, usr_crea)
-SELECT (SELECT id_sms_proveedor FROM SmsProveedor WHERE codigo = 'INALAMBRIA'), 'INALAMBRIA_BIDIRECCIONAL', 'env:INALAMBRIA_BIDIRECCIONAL_USER', 'INALAMBRIA_BIDIRECCIONAL_PASSWORD', NULL, NULL,
-       '{"bidireccionalUrl":"https://rest.inalambria.com/momessage"}', 0, 1
-FROM DUAL WHERE EXISTS (SELECT 1 FROM SmsProveedor WHERE codigo = 'INALAMBRIA') AND NOT EXISTS (SELECT 1 FROM SmsCuenta WHERE codigo = 'INALAMBRIA_BIDIRECCIONAL');
+INSERT INTO SmsCuenta (proveedor_id, codigo, usuario, secret_ref, clave_cifrada, remitente, parametros_json, eliminado)
+SELECT @prov, 'INALAMBRIA_BIDIRECCIONAL', 'env:INALAMBRIA_BIDIRECCIONAL_USER', 'INALAMBRIA_BIDIRECCIONAL_PASSWORD', NULL, NULL,
+       '{"bidireccionalUrl":"https://rest.inalambria.com/momessage"}', b'0'
+FROM DUAL WHERE @prov IS NOT NULL AND NOT EXISTS (SELECT 1 FROM SmsCuenta WHERE codigo = 'INALAMBRIA_BIDIRECCIONAL');
 
-INSERT INTO SmsProveedorServicio (proveedor_id, tipo_mensaje_id, eliminado, usr_crea, created_at)
-SELECT p.id_sms_proveedor, t.id_sms_tipo_mensaje, 0, 1, NOW(6)
+INSERT INTO SmsProveedorServicio (proveedor_id, tipo_mensaje_id, eliminado, fecha_creacion)
+SELECT p.id_sms_proveedor, t.id_sms_tipo_mensaje, b'0', NOW(6)
 FROM (SELECT 'INALAMBRIA' AS proveedor UNION ALL SELECT 'MOCK') v
 JOIN SmsProveedor   p ON p.codigo = v.proveedor
 JOIN SmsTipoMensaje t ON t.codigo = 'BIDIRECCIONAL'
 WHERE NOT EXISTS (SELECT 1 FROM SmsProveedorServicio s
                   WHERE s.proveedor_id = p.id_sms_proveedor AND s.tipo_mensaje_id = t.id_sms_tipo_mensaje);
 
--- Pasos (proveedor, tipo, orden, cuenta) como tabla derivada: cada INSERT es independiente (sin tablas auxiliares)
+DROP TEMPORARY TABLE IF EXISTS tmp_sms_pasos;
+CREATE TEMPORARY TABLE tmp_sms_pasos (proveedor VARCHAR(30) NULL, tipo VARCHAR(30), orden INT, cuenta VARCHAR(50));
+INSERT INTO tmp_sms_pasos VALUES
+ ('INALAMBRIA', 'BIDIRECCIONAL', 1, 'INALAMBRIA_BIDIRECCIONAL'),
+ (NULL,         'BIDIRECCIONAL', 1, 'INALAMBRIA_BIDIRECCIONAL'),
+ ('MOCK',       'BIDIRECCIONAL', 1, 'MOCK_OK');
 
-INSERT INTO SmsRuta (proveedor_id, tipo_mensaje_id, eliminado, usr_crea)
-SELECT DISTINCT pr.id_sms_proveedor, tm.id_sms_tipo_mensaje, 0, 1
-FROM (
-SELECT 'INALAMBRIA' AS proveedor, 'BIDIRECCIONAL' AS tipo, 1 AS orden, 'INALAMBRIA_BIDIRECCIONAL' AS cuenta
-  UNION ALL SELECT NULL, 'BIDIRECCIONAL', 1, 'INALAMBRIA_BIDIRECCIONAL'
-  UNION ALL SELECT 'MOCK', 'BIDIRECCIONAL', 1, 'MOCK_OK'
-) p
-JOIN SmsTipoMensaje tm ON tm.codigo = CAST(p.tipo AS BINARY)
-LEFT JOIN SmsProveedor pr ON pr.codigo = CAST(p.proveedor AS BINARY)
+INSERT INTO SmsRuta (proveedor_id, tipo_mensaje_id, eliminado)
+SELECT DISTINCT pr.id_sms_proveedor, tm.id_sms_tipo_mensaje, b'0'
+FROM tmp_sms_pasos p
+JOIN SmsTipoMensaje tm ON tm.codigo = p.tipo
+LEFT JOIN SmsProveedor pr ON pr.codigo = p.proveedor
 WHERE (p.proveedor IS NULL OR pr.id_sms_proveedor IS NOT NULL)
   AND NOT EXISTS (SELECT 1 FROM SmsRuta r
                   WHERE r.tipo_mensaje_id = tm.id_sms_tipo_mensaje AND r.proveedor_id <=> pr.id_sms_proveedor);
 
-INSERT INTO SmsRutaPaso (ruta_id, orden, cuenta_id, max_intentos, espera_ms, eliminado, usr_crea)
-SELECT r.id_sms_ruta, p.orden, c.id_sms_cuenta, 3, 1000, 0, 1
-FROM (
-SELECT 'INALAMBRIA' AS proveedor, 'BIDIRECCIONAL' AS tipo, 1 AS orden, 'INALAMBRIA_BIDIRECCIONAL' AS cuenta
-  UNION ALL SELECT NULL, 'BIDIRECCIONAL', 1, 'INALAMBRIA_BIDIRECCIONAL'
-  UNION ALL SELECT 'MOCK', 'BIDIRECCIONAL', 1, 'MOCK_OK'
-) p
-JOIN SmsTipoMensaje tm ON tm.codigo = CAST(p.tipo AS BINARY)
-LEFT JOIN SmsProveedor pr ON pr.codigo = CAST(p.proveedor AS BINARY)
+INSERT INTO SmsRutaPaso (ruta_id, orden, cuenta_id, max_intentos, espera_ms, eliminado)
+SELECT r.id_sms_ruta, p.orden, c.id_sms_cuenta, 3, 1000, b'0'
+FROM tmp_sms_pasos p
+JOIN SmsTipoMensaje tm ON tm.codigo = p.tipo
+LEFT JOIN SmsProveedor pr ON pr.codigo = p.proveedor
 JOIN SmsRuta r   ON r.tipo_mensaje_id = tm.id_sms_tipo_mensaje AND r.proveedor_id <=> pr.id_sms_proveedor
 JOIN SmsCuenta c ON c.codigo = CAST(p.cuenta AS BINARY)
 WHERE (p.proveedor IS NULL OR pr.id_sms_proveedor IS NOT NULL)

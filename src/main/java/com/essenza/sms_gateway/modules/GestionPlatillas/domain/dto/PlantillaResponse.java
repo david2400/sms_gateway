@@ -21,5 +21,8 @@ public class PlantillaResponse extends AuditInfoDto {
     private String tipoMensaje;
     private String contenido;
     private Integer version;
+    private Boolean eliminado;
+    private LocalDateTime fechaCreacion;
+    private LocalDateTime fechaModificacion;
     private List<PlantillaVariableResponse> variables;
 }

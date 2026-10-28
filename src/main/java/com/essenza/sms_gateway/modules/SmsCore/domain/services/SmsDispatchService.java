@@ -11,7 +11,9 @@ import com.essenza.sms_gateway.modules.SmsCore.domain.model.SendOutcome;
 import com.essenza.sms_gateway.modules.SmsCore.domain.model.SmsDispatch;
 import com.essenza.sms_gateway.modules.SmsCore.domain.ports.SmsDispatchLogPort;
 import com.essenza.sms_gateway.modules.SmsCore.domain.ports.SmsSenderPort;
+import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -48,14 +50,23 @@ public class SmsDispatchService {
     private final Map<String, SmsSenderPort> senders;
     private final AttemptRunner runner;
 
+    /** Sin circuit breaker (tests y usos fuera de Spring). */
+    public SmsDispatchService(DispatchPlanner planner,
+                       SmsDispatchLogPort dispatchLog,
+                       List<SmsSenderPort> senders) {
+        this(planner, dispatchLog, senders, null);
+    }
+
+    @Autowired
     public SmsDispatchService(DispatchPlanner planner,
                               SmsDispatchLogPort dispatchLog,
-                              List<SmsSenderPort> senders) {
+                              List<SmsSenderPort> senders,
+                              CircuitBreakerRegistry circuitBreakers) {
         this.planner = planner;
         this.dispatchLog = dispatchLog;
         this.senders = senders.stream()
                 .collect(Collectors.toUnmodifiableMap(s -> s.providerCode().toUpperCase(), Function.identity()));
-        this.runner = new AttemptRunner(dispatchLog, this::pause);
+        this.runner = new AttemptRunner(dispatchLog, this::pause, new ProveedorCircuitBreakers(circuitBreakers));
         log.info("[SMS-CORE] Proveedores registrados: {}", this.senders.keySet());
     }
 

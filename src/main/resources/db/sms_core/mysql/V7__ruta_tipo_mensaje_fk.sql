@@ -11,8 +11,8 @@
 SET @existe = (SELECT COUNT(*) FROM information_schema.columns
                WHERE table_schema = DATABASE() AND LOWER(table_name) = 'smsruta' AND column_name = 'tipo_mensaje');
 SET @sql = IF(@existe > 0,
-  'INSERT INTO SmsTipoMensaje (codigo, descripcion, canal, otp, masivo, eliminado, usr_crea)
-   SELECT DISTINCT r.tipo_mensaje, CONCAT(''Migrado desde sms_ruta: '', r.tipo_mensaje), ''SMS'', b''0'', b''0'', 0, 1
+  'INSERT INTO SmsTipoMensaje (codigo, descripcion, canal, otp, masivo, eliminado)
+   SELECT DISTINCT r.tipo_mensaje, CONCAT(''Migrado desde sms_ruta: '', r.tipo_mensaje), ''SMS'', b''0'', b''0'', b''0''
    FROM SmsRuta r
    WHERE NOT EXISTS (SELECT 1 FROM SmsTipoMensaje t WHERE t.codigo = r.tipo_mensaje)',
   'DO 0');

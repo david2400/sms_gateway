@@ -14,19 +14,18 @@ CREATE TABLE IF NOT EXISTS SmsTipoMensaje (
   canal               VARCHAR(20)  NOT NULL,   -- SMS | WHATSAPP
   otp                 BIT(1)       NOT NULL DEFAULT b'0',  -- lleva código/PIN de un solo uso
   masivo              BIT(1)       NOT NULL DEFAULT b'0',  -- apto para envíos masivos
-  -- Auditoría (AuditInfo): eliminado = 0 => registro activo
-  eliminado          TINYINT(1)   NOT NULL DEFAULT 0,
-  usr_crea           INT          NOT NULL DEFAULT 1,
-  usr_mod            INT          NULL,
-  created_at         DATETIME(6)  NULL DEFAULT CURRENT_TIMESTAMP(6),
-  updated_at         DATETIME(6)  NULL,
+  eliminado           BIT(1)       NOT NULL DEFAULT b'0',
+  usr_crea            INT          NOT NULL DEFAULT 1,
+  usr_mod             INT          NULL,
+  created_at          DATETIME(6)  NULL,
+  updated_at          DATETIME(6)  NULL,
   CONSTRAINT pk_sms_tipo_mensaje PRIMARY KEY (id_sms_tipo_mensaje),
   CONSTRAINT uq_sms_tipo_mensaje_codigo UNIQUE (codigo)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Semilla: mismos códigos que ya usan sms_ruta y el enum MessageType
-INSERT INTO SmsTipoMensaje (codigo, descripcion, canal, otp, masivo, eliminado, usr_crea)
-SELECT v.codigo, v.descripcion, v.canal, v.otp, v.masivo, 0, 1
+INSERT INTO SmsTipoMensaje (codigo, descripcion, canal, otp, masivo, eliminado)
+SELECT v.codigo, v.descripcion, v.canal, v.otp, v.masivo, b'0'
 FROM (
   SELECT 'OTP'          AS codigo, 'Código de verificación de un solo uso'      AS descripcion, 'SMS' AS canal, b'1' AS otp, b'0' AS masivo
   UNION ALL SELECT 'HABEAS_DATA',  'Notificación judicial / habeas data',               'SMS', b'0', b'0'

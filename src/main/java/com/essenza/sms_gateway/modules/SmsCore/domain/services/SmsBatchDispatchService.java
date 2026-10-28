@@ -11,7 +11,9 @@ import com.essenza.sms_gateway.modules.SmsCore.domain.model.SmsDispatch;
 import com.essenza.sms_gateway.modules.SmsCore.domain.ports.SmsBatchSenderPort;
 import com.essenza.sms_gateway.modules.SmsCore.domain.ports.SmsDispatchLogPort;
 import com.essenza.sms_gateway.modules.SmsCore.domain.ports.SmsSenderPort;
+import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -19,6 +21,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -43,18 +46,30 @@ public class SmsBatchDispatchService {
     private final Map<String, SmsSenderPort> senders;
     private final Map<String, SmsBatchSenderPort> batchSenders;
     private final AttemptRunner runner;
+    private final ProveedorCircuitBreakers breakers;
 
+    /** Sin circuit breaker (tests y usos fuera de Spring). */
+    public SmsBatchDispatchService(DispatchPlanner planner,
+                            SmsDispatchLogPort dispatchLog,
+                            List<SmsSenderPort> senders,
+                            List<SmsBatchSenderPort> batchSenders) {
+        this(planner, dispatchLog, senders, batchSenders, null);
+    }
+
+    @Autowired
     public SmsBatchDispatchService(DispatchPlanner planner,
                                    SmsDispatchLogPort dispatchLog,
                                    List<SmsSenderPort> senders,
-                                   List<SmsBatchSenderPort> batchSenders) {
+                                   List<SmsBatchSenderPort> batchSenders,
+                                   CircuitBreakerRegistry circuitBreakers) {
         this.planner = planner;
         this.dispatchLog = dispatchLog;
         this.senders = senders.stream()
                 .collect(Collectors.toUnmodifiableMap(s -> s.providerCode().toUpperCase(), Function.identity()));
         this.batchSenders = batchSenders.stream()
                 .collect(Collectors.toUnmodifiableMap(s -> s.providerCode().toUpperCase(), Function.identity()));
-        this.runner = new AttemptRunner(dispatchLog, this::pause);
+        this.breakers = new ProveedorCircuitBreakers(circuitBreakers);
+        this.runner = new AttemptRunner(dispatchLog, this::pause, this.breakers);
         log.info("[SMS-CORE] Proveedores con envío masivo nativo: {}", this.batchSenders.keySet());
     }
 
@@ -205,15 +220,26 @@ public class SmsBatchDispatchService {
         return stillPending;
     }
 
-    private static SendOutcome safeSendBatch(SmsBatchSenderPort sender, List<SmsDispatch> chunk, RouteStep step, String chunkId) {
-        long start = System.currentTimeMillis();
-        try {
-            SendOutcome outcome = sender.sendBatch(chunk, step.getAccount(), chunkId);
-            return outcome != null ? outcome
-                    : SendOutcome.fail(null, "El proveedor no devolvió resultado", System.currentTimeMillis() - start);
-        } catch (RuntimeException e) {
-            return SendOutcome.fail(null, e.getClass().getSimpleName() + ": " + e.getMessage(), System.currentTimeMillis() - start);
+    private SendOutcome safeSendBatch(SmsBatchSenderPort sender, List<SmsDispatch> chunk, RouteStep step, String chunkId) {
+        String provider = step.getAccount().getProviderCode();
+        if (!breakers.permite(provider)) {
+            log.warn("[SMS-CORE] Circuito abierto para {}: se salta el lote {} sin consumir intentos", provider, chunkId);
+            return SendOutcome.permanentFail(null,
+                    "Proveedor " + provider + " con circuito abierto (demasiados fallos recientes)", 0);
         }
+        long start = System.nanoTime();
+        SendOutcome outcome;
+        try {
+            SendOutcome result = sender.sendBatch(chunk, step.getAccount(), chunkId);
+            outcome = result != null ? result
+                    : SendOutcome.fail(null, "El proveedor no devolvió resultado",
+                    TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start));
+        } catch (RuntimeException e) {
+            outcome = SendOutcome.fail(null, e.getClass().getSimpleName() + ": " + e.getMessage(),
+                    TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start));
+        }
+        breakers.registrar(provider, outcome, System.nanoTime() - start);
+        return outcome;
     }
 
     private UUID[] startAll(List<SmsDispatch> messages, DispatchChannel channel, String provider) {

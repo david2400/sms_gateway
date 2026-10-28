@@ -15,9 +15,9 @@ import java.util.List;
  */
 @Data
 @SuperBuilder
-@EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(callSuper = true)
 @Schema(description = "Resultado del envío masivo")
 public class SmsBatchResponse  extends AuditInfoDto {
     @Schema(description = "Id del lote (bulkId enviado al proveedor masivo)")

@@ -19,12 +19,13 @@ CREATE TABLE IF NOT EXISTS SmsPlantilla (
   tipo_mensaje_id    BIGINT        NULL,                 -- tipo por defecto (NULL = lo define el request)
   contenido          VARCHAR(1600) NOT NULL,
   version            INT           NOT NULL DEFAULT 1,  -- sube en cada modificación
-  -- Auditoría (AuditInfo): eliminado = 0 => registro activo
-  eliminado          TINYINT(1)   NOT NULL DEFAULT 0,
-  usr_crea           INT          NOT NULL DEFAULT 1,
-  usr_mod            INT          NULL,
-  created_at         DATETIME(6)  NULL DEFAULT CURRENT_TIMESTAMP(6),
-  updated_at         DATETIME(6)  NULL,
+  eliminado          BIT(1)        NOT NULL DEFAULT b'0',
+  usr_crea           INT           NOT NULL DEFAULT 1,
+  usr_mod            INT           NULL,
+  created_at         DATETIME(6)   NULL,
+  updated_at         DATETIME(6)   NULL,
+  fecha_creacion     DATETIME(6)   NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+  fecha_modificacion DATETIME(6)   NULL,
   CONSTRAINT pk_sms_plantilla PRIMARY KEY (id_sms_plantilla),
   CONSTRAINT uq_sms_plantilla_codigo UNIQUE (codigo),
   CONSTRAINT fk_sms_plantilla_tipo FOREIGN KEY (tipo_mensaje_id) REFERENCES SmsTipoMensaje (id_sms_tipo_mensaje)
@@ -41,12 +42,11 @@ CREATE TABLE IF NOT EXISTS SmsPlantillaVariable (
   valor_defecto             VARCHAR(200) NULL,
   descripcion               VARCHAR(255) NULL,
   orden                     INT          NOT NULL DEFAULT 0,
-  -- Auditoría (AuditInfo): eliminado = 0 => registro activo
-  eliminado          TINYINT(1)   NOT NULL DEFAULT 0,
-  usr_crea           INT          NOT NULL DEFAULT 1,
-  usr_mod            INT          NULL,
-  created_at         DATETIME(6)  NULL DEFAULT CURRENT_TIMESTAMP(6),
-  updated_at         DATETIME(6)  NULL,
+  eliminado                 BIT(1)       NOT NULL DEFAULT b'0',
+  usr_crea                  INT          NOT NULL DEFAULT 1,
+  usr_mod                   INT          NULL,
+  created_at                DATETIME(6)  NULL,
+  updated_at                DATETIME(6)  NULL,
   CONSTRAINT pk_sms_plantilla_variable PRIMARY KEY (id_sms_plantilla_variable),
   CONSTRAINT uq_sms_plantilla_variable UNIQUE (plantilla_id, nombre),
   CONSTRAINT fk_sms_plantilla_variable_plantilla FOREIGN KEY (plantilla_id) REFERENCES SmsPlantilla (id_sms_plantilla)
@@ -61,8 +61,8 @@ PREPARE st FROM @sql; EXECUTE st; DEALLOCATE PREPARE st;
 
 /* ----------------------------- EJEMPLOS ----------------------------- */
 
-INSERT INTO SmsPlantilla (codigo, nombre, descripcion, tipo_mensaje_id, contenido, version, eliminado, usr_crea, created_at)
-SELECT v.codigo, v.nombre, v.descripcion, t.id_sms_tipo_mensaje, v.contenido, 1, 0, 1, NOW(6)
+INSERT INTO SmsPlantilla (codigo, nombre, descripcion, tipo_mensaje_id, contenido, version, eliminado, fecha_creacion)
+SELECT v.codigo, v.nombre, v.descripcion, t.id_sms_tipo_mensaje, v.contenido, 1, b'0', NOW(6)
 FROM (
   SELECT 'RECORDATORIO_CITA' AS codigo, 'Recordatorio de cita' AS nombre, 'Ejemplo: recordatorio con fecha, hora y sede' AS descripcion,
          'NORMAL' AS tipo, 'Hola {{nombre}}, le recordamos su cita el {{fecha}} a las {{hora}} en {{sede}}. Comfenalco Quindio' AS contenido

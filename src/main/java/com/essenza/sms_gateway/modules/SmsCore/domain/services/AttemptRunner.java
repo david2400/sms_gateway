@@ -8,6 +8,7 @@ import com.essenza.sms_gateway.modules.SmsCore.domain.ports.SmsSenderPort;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Ejecuta los intentos de UN paso de la ruta (una cuenta) para UN mensaje: hasta {@code maxAttempts},
@@ -30,10 +31,12 @@ class AttemptRunner {
 
     private final SmsDispatchLogPort dispatchLog;
     private final Pauser pauser;
+    private final ProveedorCircuitBreakers breakers;
 
-    AttemptRunner(SmsDispatchLogPort dispatchLog, Pauser pauser) {
+    AttemptRunner(SmsDispatchLogPort dispatchLog, Pauser pauser, ProveedorCircuitBreakers breakers) {
         this.dispatchLog = dispatchLog;
         this.pauser = pauser;
+        this.breakers = breakers;
     }
 
     StepRun run(SmsSenderPort sender, SmsDispatch message, RouteStep step, UUID envioId) {
@@ -72,16 +75,27 @@ class AttemptRunner {
         }
     }
 
-    private static SendOutcome safeSend(SmsSenderPort sender, SmsDispatch message, RouteStep step) {
-        long start = System.currentTimeMillis();
+    private SendOutcome safeSend(SmsSenderPort sender, SmsDispatch message, RouteStep step) {
+        String provider = step.getAccount().getProviderCode();
+        if (!breakers.permite(provider)) {
+            log.warn("[SMS-CORE] Circuito abierto para {}: se salta la cuenta {} sin consumir intentos",
+                    provider, step.getAccount().getCode());
+            return SendOutcome.permanentFail(null,
+                    "Proveedor " + provider + " con circuito abierto (demasiados fallos recientes)", 0);
+        }
+        long start = System.nanoTime();
+        SendOutcome outcome;
         try {
-            SendOutcome outcome = sender.send(message, step.getAccount());
-            return outcome != null ? outcome
-                    : SendOutcome.fail(null, "El proveedor no devolvió resultado", System.currentTimeMillis() - start);
+            SendOutcome result = sender.send(message, step.getAccount());
+            outcome = result != null ? result
+                    : SendOutcome.fail(null, "El proveedor no devolvió resultado",
+                    TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start));
         } catch (RuntimeException e) {
             // El contrato pide no lanzar, pero se protege el motor
-            return SendOutcome.fail(null, e.getClass().getSimpleName() + ": " + e.getMessage(),
-                    System.currentTimeMillis() - start);
+            outcome = SendOutcome.fail(null, e.getClass().getSimpleName() + ": " + e.getMessage(),
+                    TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start));
         }
+        breakers.registrar(provider, outcome, System.nanoTime() - start);
+        return outcome;
     }
 }

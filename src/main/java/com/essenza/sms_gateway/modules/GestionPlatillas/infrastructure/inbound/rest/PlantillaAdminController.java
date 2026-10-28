@@ -39,11 +39,11 @@ public class PlantillaAdminController {
     private final ActualizarPlantillaUseCase actualizarPlantilla;
     private final CambiarEstadoPlantillaUseCase cambiarEstadoPlantilla;
 
-    @Operation(summary = "Listar plantillas", description = "Filtros opcionales: activo, tipo_mensaje")
+    @Operation(summary = "Listar plantillas", description = "Filtros opcionales: eliminado, tipo_mensaje")
     @GetMapping
-    public List<PlantillaResponse> listar(@RequestParam(name = "activo", required = false) Boolean activo,
+    public List<PlantillaResponse> listar(@RequestParam(name = "eliminado", required = false) Boolean eliminado,
                                           @RequestParam(name = "tipo_mensaje", required = false) String tipoMensaje) {
-        return listarPlantillas.listar(activo, tipoMensaje);
+        return listarPlantillas.listar(eliminado, tipoMensaje);
     }
 
     @Operation(summary = "Obtener plantilla por id")

@@ -35,18 +35,20 @@ SELECT 'INALAMBRIA' AS proveedor, 'MASIVO' AS tipo, 1 AS orden, 'INALAMBRIA_MASI
 ) p
 JOIN SmsTipoMensaje tm ON tm.codigo = CAST(p.tipo AS BINARY)
 LEFT JOIN SmsProveedor pr ON pr.codigo = CAST(p.proveedor AS BINARY)
+INSERT INTO SmsRuta (proveedor_id, tipo_mensaje_id, eliminado)
+SELECT DISTINCT pr.id_sms_proveedor, tm.id_sms_tipo_mensaje, b'0'
+FROM tmp_sms_pasos p
+JOIN SmsTipoMensaje tm ON tm.codigo = p.tipo
+LEFT JOIN SmsProveedor pr ON pr.codigo = p.proveedor
 WHERE (p.proveedor IS NULL OR pr.id_sms_proveedor IS NOT NULL)
   AND NOT EXISTS (SELECT 1 FROM SmsRuta r
                   WHERE r.tipo_mensaje_id = tm.id_sms_tipo_mensaje AND r.proveedor_id <=> pr.id_sms_proveedor);
 
-INSERT INTO SmsRutaPaso (ruta_id, orden, cuenta_id, max_intentos, espera_ms, eliminado, usr_crea)
-SELECT r.id_sms_ruta, p.orden, c.id_sms_cuenta, 3, 1000, 0, 1
-FROM (
-SELECT 'INALAMBRIA' AS proveedor, 'MASIVO' AS tipo, 1 AS orden, 'INALAMBRIA_MASIVO' AS cuenta
-  UNION ALL SELECT NULL, 'MASIVO', 1, 'INALAMBRIA_MASIVO'
-) p
-JOIN SmsTipoMensaje tm ON tm.codigo = CAST(p.tipo AS BINARY)
-LEFT JOIN SmsProveedor pr ON pr.codigo = CAST(p.proveedor AS BINARY)
+INSERT INTO SmsRutaPaso (ruta_id, orden, cuenta_id, max_intentos, espera_ms, eliminado)
+SELECT r.id_sms_ruta, p.orden, c.id_sms_cuenta, 3, 1000, b'0'
+FROM tmp_sms_pasos p
+JOIN SmsTipoMensaje tm ON tm.codigo = p.tipo
+LEFT JOIN SmsProveedor pr ON pr.codigo = p.proveedor
 JOIN SmsRuta r   ON r.tipo_mensaje_id = tm.id_sms_tipo_mensaje AND r.proveedor_id <=> pr.id_sms_proveedor
 JOIN SmsCuenta c ON c.codigo = CAST(p.cuenta AS BINARY)
 WHERE (p.proveedor IS NULL OR pr.id_sms_proveedor IS NOT NULL)

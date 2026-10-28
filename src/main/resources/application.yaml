@@ -33,7 +33,7 @@ spring:
       hibernate:
         # dialect: org.hibernate.dialect.SQLServer2008Dialect  # SQL Server; con MySQL se autodetecta
         jdbc:
-          time_zone: America/Bogota
+          time_zone: UTC   # igual que notificacion y email_gateway (BD compartida)
         physical_naming_strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
     open-in-view: false
   cloud:
@@ -57,6 +57,27 @@ server:
 eureka:
   client:
     enabled: false
+
+# ============================================================
+# Resilience4j - Circuit breaker por proveedor (sms-<PROVEEDOR>)
+# Se evalúa por llamada del motor: con el circuito ABIERTO el paso
+# de la ruta se salta sin gastar intentos. Solo cuentan los fallos
+# reintentables (timeout, red, 5xx); los permanentes (credenciales,
+# payload rechazado) no degradan al proveedor.
+# ============================================================
+resilience4j:
+  circuitbreaker:
+    configs:
+      smsProveedor:
+        slidingWindowType: COUNT_BASED          # sobre las últimas N llamadas
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5                 # no se abre con menos de 5 llamadas
+        failureRateThreshold: 50                # % de fallos para abrir el circuito
+        slowCallDurationThreshold: 10s          # llamadas lentas también cuentan
+        slowCallRateThreshold: 50
+        waitDurationInOpenState: 30s            # tiempo antes de probar half-open
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
 #    serviceUrl:
 #      defaultZone: http://${EUREKA_INSTANCE}:8761/eureka
 #  instance:
@@ -161,7 +182,6 @@ logging:
     com.essenza.sms_gateway.modules.INALAMBRIA: debug
     com.essenza.sms_gateway.modules.Go4Clients: debug
     com.essenza.sms_gateway.modules.Mock: debug
-    com.essenza.sms_gateway.modules.SmsAdmin: debug
   file:
     name: notificacion.log
 

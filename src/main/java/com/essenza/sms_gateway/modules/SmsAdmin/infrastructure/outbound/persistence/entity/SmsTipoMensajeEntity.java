@@ -31,6 +31,10 @@ public class SmsTipoMensajeEntity extends AuditInfo {
     @Column(name = "codigo", length = 30, nullable = false, unique = true)
     private String codigo;
 
+    /** Solo lo administra notificacion (AdminCanales); se mapea para que el esquema quede completo con hbm2ddl. */
+    @Column(name = "descripcion", length = 255)
+    private String descripcion;
+
     @Column(name = "canal", length = 20, nullable = false)
     private String canal;
 

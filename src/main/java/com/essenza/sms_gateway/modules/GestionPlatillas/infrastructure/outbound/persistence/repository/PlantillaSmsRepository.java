@@ -15,7 +15,7 @@ public interface PlantillaSmsRepository extends JpaRepository<PlantillaSmsEntity
     @EntityGraph(attributePaths = {"tipoMensaje", "variables"})
     Optional<PlantillaSmsEntity> findByCodigo(String codigo);
 
-    /** La que usa el motor: solo activas. */
+    /** La que usa el motor: solo no eliminadas. */
     @EntityGraph(attributePaths = {"tipoMensaje", "variables"})
     Optional<PlantillaSmsEntity> findByCodigoAndEliminadoFalse(String codigo);
 

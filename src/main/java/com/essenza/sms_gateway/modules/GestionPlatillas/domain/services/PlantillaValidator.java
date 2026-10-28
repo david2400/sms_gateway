@@ -134,8 +134,8 @@ public class PlantillaValidator {
             return;
         }
         Optional<TipoMensajeRef> tipo = tipos.findByCodigo(codigo);
-        if (tipo.isEmpty() || !tipo.get().activo()) {
-            errores.add("El tipo de mensaje " + codigo + " no existe o está inactivo");
+        if (tipo.isEmpty() || tipo.get().eliminado()) {
+            errores.add("El tipo de mensaje " + codigo + " no existe o está eliminado");
             return;
         }
         if (MessageType.fromCodigo(codigo).isEmpty()) {

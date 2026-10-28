@@ -17,9 +17,9 @@ import java.util.UUID;
  */
 @Data
 @SuperBuilder
-@EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(callSuper = true)
 @Schema(description = "Resultado de un envío de SMS")
 public class SmsEnvioResponse extends AuditInfoDto {
 
