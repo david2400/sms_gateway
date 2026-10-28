@@ -1,7 +1,7 @@
 package com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.persistence.repository;
 
 import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.persistence.entity.AdminRutaEntity;
-import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.persistence.entity.AdminRutaPasoEntity;
+import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.persistence.entity.SmsRutaPasoEntity;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -10,10 +10,10 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
-public interface AdminRutaPasoRepository extends JpaRepository<AdminRutaPasoEntity, Long> {
+public interface AdminRutaPasoRepository extends JpaRepository<SmsRutaPasoEntity, Long> {
 
     @EntityGraph(attributePaths = {"cuenta", "cuenta.proveedor"})
-    List<AdminRutaPasoEntity> findByRuta_IdSmsRutaOrderByOrdenAsc(Long rutaId);
+    List<SmsRutaPasoEntity> findByRuta_IdSmsRutaOrderByOrdenAsc(Long rutaId);
 
     /** Borrado inmediato (antes de insertar los nuevos pasos, por el UNIQUE ruta_id+orden). */
     @Modifying(flushAutomatically = true, clearAutomatically = true)

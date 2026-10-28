@@ -1,5 +1,6 @@
 package com.essenza.sms_gateway.modules.SmsCore.infrastructure.outbound.persistence.entity;
 
+import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.persistence.entity.SmsTipoMensajeEntity;
 import com.essenza.sms_gateway.shared.common.domain.entity.AuditInfo;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -14,8 +15,6 @@ import jakarta.persistence.UniqueConstraint;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.time.LocalDateTime;
 
 /**
  * Servicio habilitado de un proveedor ({@code SmsProveedorServicio}) = (proveedor, tipo de mensaje).

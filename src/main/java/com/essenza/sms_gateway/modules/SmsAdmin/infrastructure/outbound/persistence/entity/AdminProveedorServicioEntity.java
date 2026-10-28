@@ -14,8 +14,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
-
 /**
  * Tabla {@code SmsProveedorServicio} vista por administración: tipos de mensaje que atiende cada proveedor.
  * Tabla de relación sin borrado lógico: quitar un servicio borra la fila.
@@ -40,5 +38,5 @@ public class AdminProveedorServicioEntity extends AuditInfo {
     // EAGER: Hibernate no permite LAZY hacia entidades con @SoftDelete (AdminTipoMensajeEntity)
     @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "tipo_mensaje_id", nullable = false)
-    private AdminTipoMensajeEntity tipoMensaje;
+    private SmsTipoMensajeEntity tipoMensaje;
 }

@@ -3,7 +3,6 @@ package com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.mappers
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.dto.TipoMensajeRequest;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.dto.TipoMensajeResponse;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.model.TipoMensaje;
-import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.persistence.entity.AdminTipoMensajeEntity;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Builder;
 import org.mapstruct.Mapper;

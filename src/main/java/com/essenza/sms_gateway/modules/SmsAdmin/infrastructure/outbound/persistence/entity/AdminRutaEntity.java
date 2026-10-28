@@ -37,5 +37,5 @@ public class AdminRutaEntity extends AuditInfo {
     // EAGER: Hibernate 6.4 no permite LAZY hacia una entidad con @SoftDelete (AuditInfo)
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "tipo_mensaje_id", nullable = false)
-    private AdminTipoMensajeEntity tipoMensaje;
+    private SmsTipoMensajeEntity tipoMensaje;
 }

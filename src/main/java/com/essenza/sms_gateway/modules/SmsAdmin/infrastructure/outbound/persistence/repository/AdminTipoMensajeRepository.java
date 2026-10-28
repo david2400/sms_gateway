@@ -1,6 +1,5 @@
 package com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.persistence.repository;
 
-import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.persistence.entity.AdminTipoMensajeEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

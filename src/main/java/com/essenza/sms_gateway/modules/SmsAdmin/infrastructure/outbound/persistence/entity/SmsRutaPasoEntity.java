@@ -18,13 +18,13 @@ import lombok.Setter;
 /**
  * Tabla {@code sms_ruta_paso} vista por el módulo de administración.
  */
-@Entity(name = "AdminRutaPaso")
+@Entity(name = "SmsRutaPaso")
 @Table(name = "SmsRutaPaso",
         uniqueConstraints = @UniqueConstraint(name = "uq_sms_ruta_paso", columnNames = {"ruta_id", "orden"}))
 @Getter
 @Setter
 @NoArgsConstructor
-public class AdminRutaPasoEntity extends AuditInfo {
+public class SmsRutaPasoEntity extends AuditInfo {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

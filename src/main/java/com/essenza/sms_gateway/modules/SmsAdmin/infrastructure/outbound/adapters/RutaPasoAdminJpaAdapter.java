@@ -3,7 +3,7 @@ package com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.adapter
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.model.Paso;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.ports.RutaPasoAdminPort;
 import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.mappers.RutaPasoMapper;
-import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.persistence.entity.AdminRutaPasoEntity;
+import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.persistence.entity.SmsRutaPasoEntity;
 import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.persistence.repository.AdminCuentaRepository;
 import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.persistence.repository.AdminRutaPasoRepository;
 import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.persistence.repository.AdminRutaRepository;
@@ -32,9 +32,9 @@ public class RutaPasoAdminJpaAdapter implements RutaPasoAdminPort {
     @Override
     public List<Paso> replace(Long rutaId, List<Paso> pasos) {
         pasoRepository.deleteByRutaId(rutaId);
-        List<AdminRutaPasoEntity> entities = pasos.stream()
+        List<SmsRutaPasoEntity> entities = pasos.stream()
                 .map(p -> {
-                    AdminRutaPasoEntity e = mapper.toEntity(p);
+                    SmsRutaPasoEntity e = mapper.toEntity(p);
                     e.setRuta(rutaRepository.getReferenceById(rutaId));
                     e.setCuenta(cuentaRepository.getReferenceById(p.getCuentaId()));
                     return e;

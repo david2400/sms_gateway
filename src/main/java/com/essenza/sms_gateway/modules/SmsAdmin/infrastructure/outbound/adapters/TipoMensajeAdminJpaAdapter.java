@@ -3,7 +3,6 @@ package com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.adapter
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.model.TipoMensaje;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.ports.TipoMensajeAdminPort;
 import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.mappers.TipoMensajeMapper;
-import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.persistence.entity.AdminTipoMensajeEntity;
 import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.persistence.repository.AdminTipoMensajeRepository;
 import com.essenza.sms_gateway.modules.SmsCore.domain.model.CanalMensaje;
 import lombok.RequiredArgsConstructor;

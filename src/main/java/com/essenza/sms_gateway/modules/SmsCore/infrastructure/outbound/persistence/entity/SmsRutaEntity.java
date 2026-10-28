@@ -1,5 +1,6 @@
 package com.essenza.sms_gateway.modules.SmsCore.infrastructure.outbound.persistence.entity;
 
+import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.persistence.entity.SmsTipoMensajeEntity;
 import com.essenza.sms_gateway.shared.common.domain.entity.AuditInfo;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

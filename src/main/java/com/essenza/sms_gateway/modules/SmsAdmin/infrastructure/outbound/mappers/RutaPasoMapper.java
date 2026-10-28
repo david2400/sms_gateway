@@ -3,7 +3,7 @@ package com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.mappers
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.dto.PasoRequest;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.dto.RutaResponse;
 import com.essenza.sms_gateway.modules.SmsAdmin.domain.model.Paso;
-import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.persistence.entity.AdminRutaPasoEntity;
+import com.essenza.sms_gateway.modules.SmsAdmin.infrastructure.outbound.persistence.entity.SmsRutaPasoEntity;
 import org.mapstruct.Builder;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -44,7 +44,7 @@ public interface RutaPasoMapper {
     @Mapping(target = "cuentaId", source = "cuenta.idSmsCuenta")
     @Mapping(target = "cuentaCodigo", source = "cuenta.codigo")
     @Mapping(target = "proveedorCodigo", source = "cuenta.proveedor.codigo")
-    Paso toModel(AdminRutaPasoEntity entity);
+    Paso toModel(SmsRutaPasoEntity entity);
 
     @Mapping(target = "idSmsRutaPaso", ignore = true)
     @Mapping(target = "ruta", ignore = true)
@@ -53,5 +53,5 @@ public interface RutaPasoMapper {
     @Mapping(target = "usrMod", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
-    AdminRutaPasoEntity toEntity(Paso paso);
+    SmsRutaPasoEntity toEntity(Paso paso);
 }
