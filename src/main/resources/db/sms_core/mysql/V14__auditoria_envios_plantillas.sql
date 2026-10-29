@@ -7,9 +7,9 @@
 --   1. eliminado TINYINT(1) NOT NULL DEFAULT 0 y usr_crea INT NOT NULL DEFAULT 1
 --      (si `eliminado` queda NULL, Hibernate no vuelve a encontrar el envío recién
 --      creado y no registra intentos ni el resultado final).
---   2. created_at / updated_at si no existen, y backfill desde fecha_creacion /
+--   2. created_at / updated_at si no existen, y backfill desde created_at /
 --      fecha_modificacion.
---   3. SmsEnvio.fecha_creacion con DEFAULT CURRENT_TIMESTAMP(6): la aplicación ya
+--   3. SmsEnvio.created_at con DEFAULT CURRENT_TIMESTAMP(6): la aplicación ya
 --      no la escribe (usa created_at) y sin default el INSERT falla.
 --   4. Índices de consulta de envíos sobre created_at.
 -- Idempotente. Compatible con MySQL 5.7 y 8.0.
@@ -75,9 +75,9 @@ CALL sp_v14_auditoria('SmsPlantillaVariable');
 CALL sp_v14_columna('SmsEnvioIntento', 'fecha', 1,
      'UPDATE SmsEnvioIntento SET created_at = fecha WHERE created_at IS NULL');
 
--- SmsEnvio.fecha_creacion ya no la escribe la aplicación
-CALL sp_v14_columna('SmsEnvio', 'fecha_creacion', 1,
-     'ALTER TABLE SmsEnvio MODIFY COLUMN fecha_creacion DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6)');
+-- SmsEnvio.created_at ya no la escribe la aplicación
+CALL sp_v14_columna('SmsEnvio', 'created_at', 1,
+     'ALTER TABLE SmsEnvio MODIFY COLUMN created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6)');
 
 DROP PROCEDURE IF EXISTS sp_v14_auditoria;
 DROP PROCEDURE IF EXISTS sp_v14_columna;

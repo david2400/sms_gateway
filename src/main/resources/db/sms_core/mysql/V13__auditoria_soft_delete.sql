@@ -1,6 +1,6 @@
 -- =============================================================================
 -- V13 · Auditoría + soft delete (AuditInfo) en las tablas de configuración
---       SmsProveedor, SmsCuenta, SmsTipoMensaje, SmsRuta, SmsRutaPaso, SmsProveedorServicio
+--       CanalProveedor, CanalCuenta, CanalTipoMensaje, CanalRuta, CanalRutaPaso, CanalProveedorServicio
 -- -----------------------------------------------------------------------------
 -- AuditInfo mapea `eliminado` con @SoftDelete e insertable=false: Hibernate NUNCA
 -- escribe la columna y filtra con `eliminado = 0`. Si queda NULL (columna creada
@@ -10,9 +10,9 @@
 --   eliminado  TINYINT(1)  NOT NULL DEFAULT 0     (NULL -> 0)
 --   usr_crea   INT         NOT NULL DEFAULT 1     (NULL/0 -> 1)
 --   usr_mod    INT         NULL
---   created_at DATETIME(6) NULL DEFAULT CURRENT_TIMESTAMP(6)  (backfill desde fecha_creacion)
+--   created_at DATETIME(6) NULL DEFAULT CURRENT_TIMESTAMP(6)  (backfill desde created_at)
 --   updated_at DATETIME(6) NULL
--- La aplicación ya no usa `activo` ni `fecha_creacion`; si existen en la base se ignoran.
+-- La aplicación ya no usa `activo` ni `created_at`; si existen en la base se ignoran.
 -- EJECUTAR en una base existente ANTES de los scripts de datos (V2-V5, V8-V12) y otra vez al final.
 -- Idempotente. Compatible con MySQL 5.7 y 8.0.
 -- =============================================================================
@@ -68,19 +68,19 @@ BEGIN
 END$$
 DELIMITER ;
 
-CALL sp_v13_auditoria('SmsProveedor');
-CALL sp_v13_auditoria('SmsCuenta');
-CALL sp_v13_auditoria('SmsTipoMensaje');
-CALL sp_v13_auditoria('SmsRuta');
-CALL sp_v13_auditoria('SmsRutaPaso');
-CALL sp_v13_auditoria('SmsProveedorServicio');
+CALL sp_v13_auditoria('CanalProveedor');
+CALL sp_v13_auditoria('CanalCuenta');
+CALL sp_v13_auditoria('CanalTipoMensaje');
+CALL sp_v13_auditoria('CanalRuta');
+CALL sp_v13_auditoria('CanalRutaPaso');
+CALL sp_v13_auditoria('CanalProveedorServicio');
 
 DROP PROCEDURE IF EXISTS sp_v13_auditoria;
 DROP PROCEDURE IF EXISTS sp_v13_columna;
 
 -- Verificación: no debe quedar ningún eliminado NULL
-SELECT 'SmsProveedor' AS tabla, SUM(eliminado IS NULL) AS nulos, COUNT(*) AS filas FROM SmsProveedor
-UNION ALL SELECT 'SmsCuenta',      SUM(eliminado IS NULL), COUNT(*) FROM SmsCuenta
-UNION ALL SELECT 'SmsTipoMensaje', SUM(eliminado IS NULL), COUNT(*) FROM SmsTipoMensaje
-UNION ALL SELECT 'SmsRuta',        SUM(eliminado IS NULL), COUNT(*) FROM SmsRuta
-UNION ALL SELECT 'SmsRutaPaso',    SUM(eliminado IS NULL), COUNT(*) FROM SmsRutaPaso;
+SELECT 'CanalProveedor' AS tabla, SUM(eliminado IS NULL) AS nulos, COUNT(*) AS filas FROM CanalProveedor
+UNION ALL SELECT 'CanalCuenta',      SUM(eliminado IS NULL), COUNT(*) FROM CanalCuenta
+UNION ALL SELECT 'CanalTipoMensaje', SUM(eliminado IS NULL), COUNT(*) FROM CanalTipoMensaje
+UNION ALL SELECT 'CanalRuta',        SUM(eliminado IS NULL), COUNT(*) FROM CanalRuta
+UNION ALL SELECT 'CanalRutaPaso',    SUM(eliminado IS NULL), COUNT(*) FROM CanalRutaPaso;

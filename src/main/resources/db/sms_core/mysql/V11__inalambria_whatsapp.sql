@@ -22,53 +22,54 @@
 SET NAMES utf8mb4;
 
 -- 1. Tipo de mensaje
-INSERT INTO SmsTipoMensaje (codigo, descripcion, canal, otp, masivo, eliminado)
+INSERT INTO CanalTipoMensaje (codigo, descripcion, canal_mensaje, otp, masivo, eliminado)
 SELECT 'WHATSAPP', 'Mensaje de WhatsApp con plantilla aprobada por Meta', 'WHATSAPP', b'0', b'1', b'0'
-FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM SmsTipoMensaje WHERE codigo = 'WHATSAPP');
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM CanalTipoMensaje WHERE codigo = 'WHATSAPP' AND canal = 'SMS');
 
 -- 2. Cuenta WhatsApp de Inalambria
+SET @prov := (SELECT id_canal_proveedor FROM CanalProveedor WHERE codigo = 'INALAMBRIA' AND canal = 'SMS');
 
-INSERT INTO SmsCuenta (proveedor_id, codigo, usuario, secret_ref, clave_cifrada, remitente, parametros_json, eliminado)
+INSERT INTO CanalCuenta (canal_proveedor_id, codigo, usuario, secret_ref, clave_cifrada, remitente, parametros_json, eliminado)
 SELECT @prov, 'INALAMBRIA_WHATSAPP', 'env:INALAMBRIA_WHATSAPP_USER', 'INALAMBRIA_WHATSAPP_PASSWORD', NULL, NULL,
        '{"canal":"WHATSAPP","whatsappUrl":"https://multichannel.inalambria.com/MultiChannelInput/SendMessageMetaWhatsApp"}', b'0'
-FROM DUAL WHERE @prov IS NOT NULL AND NOT EXISTS (SELECT 1 FROM SmsCuenta WHERE codigo = 'INALAMBRIA_WHATSAPP');
+FROM DUAL WHERE @prov IS NOT NULL AND NOT EXISTS (SELECT 1 FROM CanalCuenta WHERE codigo = 'INALAMBRIA_WHATSAPP');
 
 -- 3. Servicio WHATSAPP
-INSERT INTO SmsProveedorServicio (proveedor_id, tipo_mensaje_id, eliminado, fecha_creacion)
-SELECT p.id_sms_proveedor, t.id_sms_tipo_mensaje, b'0', NOW(6)
+INSERT INTO CanalProveedorServicio (canal_proveedor_id, tipo_mensaje_id, eliminado, created_at)
+SELECT p.id_canal_proveedor, t.id_tipo_mensaje, b'0', NOW(6)
 FROM (SELECT 'INALAMBRIA' AS proveedor UNION ALL SELECT 'MOCK') v
-JOIN SmsProveedor   p ON p.codigo = v.proveedor
-JOIN SmsTipoMensaje t ON t.codigo = 'WHATSAPP'
-WHERE NOT EXISTS (SELECT 1 FROM SmsProveedorServicio s
-                  WHERE s.proveedor_id = p.id_sms_proveedor AND s.tipo_mensaje_id = t.id_sms_tipo_mensaje);
+JOIN CanalProveedor   p ON p.codigo = v.proveedor AND p.canal = 'SMS'
+JOIN CanalTipoMensaje t ON t.codigo = 'WHATSAPP' AND t.canal = 'SMS'
+WHERE NOT EXISTS (SELECT 1 FROM CanalProveedorServicio s
+                  WHERE s.canal_proveedor_id = p.id_canal_proveedor AND s.tipo_mensaje_id = t.id_tipo_mensaje);
 
 -- 4. Rutas
 
-INSERT INTO SmsRuta (proveedor_id, tipo_mensaje_id, eliminado)
-SELECT DISTINCT pr.id_sms_proveedor, tm.id_sms_tipo_mensaje, b'0'
+INSERT INTO CanalRuta (canal_proveedor_id, tipo_mensaje_id, eliminado)
+SELECT DISTINCT pr.id_canal_proveedor, tm.id_tipo_mensaje, b'0'
 FROM tmp_sms_pasos p
-JOIN SmsTipoMensaje tm ON tm.codigo = p.tipo
-LEFT JOIN SmsProveedor pr ON pr.codigo = p.proveedor
-WHERE (p.proveedor IS NULL OR pr.id_sms_proveedor IS NOT NULL)
-  AND NOT EXISTS (SELECT 1 FROM SmsRuta r
-                  WHERE r.tipo_mensaje_id = tm.id_sms_tipo_mensaje AND r.proveedor_id <=> pr.id_sms_proveedor);
+JOIN CanalTipoMensaje tm ON tm.codigo = p.tipo AND tm.canal = 'SMS'
+LEFT JOIN CanalProveedor pr ON pr.codigo = p.proveedor AND pr.canal = 'SMS'
+WHERE (p.proveedor IS NULL OR pr.id_canal_proveedor IS NOT NULL)
+  AND NOT EXISTS (SELECT 1 FROM CanalRuta r
+                  WHERE r.tipo_mensaje_id = tm.id_tipo_mensaje AND r.canal_proveedor_id <=> pr.id_canal_proveedor);
 
-INSERT INTO SmsRutaPaso (ruta_id, orden, cuenta_id, max_intentos, espera_ms, eliminado)
-SELECT r.id_sms_ruta, p.orden, c.id_sms_cuenta, 3, 1000, b'0'
+INSERT INTO CanalRutaPaso (ruta_id, orden, canal_cuenta_id, max_intentos, espera_ms, eliminado)
+SELECT r.id_ruta, p.orden, c.id_canal_cuenta, 3, 1000, b'0'
 FROM tmp_sms_pasos p
-JOIN SmsTipoMensaje tm ON tm.codigo = p.tipo
-LEFT JOIN SmsProveedor pr ON pr.codigo = p.proveedor
-JOIN SmsRuta r   ON r.tipo_mensaje_id = tm.id_sms_tipo_mensaje AND r.proveedor_id <=> pr.id_sms_proveedor
-JOIN SmsCuenta c ON c.codigo = CAST(p.cuenta AS BINARY)
-WHERE (p.proveedor IS NULL OR pr.id_sms_proveedor IS NOT NULL)
-  AND NOT EXISTS (SELECT 1 FROM SmsRutaPaso x WHERE x.ruta_id = r.id_sms_ruta AND x.orden = p.orden);
+JOIN CanalTipoMensaje tm ON tm.codigo = p.tipo AND tm.canal = 'SMS'
+LEFT JOIN CanalProveedor pr ON pr.codigo = p.proveedor AND pr.canal = 'SMS'
+JOIN CanalRuta r   ON r.tipo_mensaje_id = tm.id_tipo_mensaje AND r.canal_proveedor_id <=> pr.id_canal_proveedor AND r.canal = 'SMS'
+JOIN CanalCuenta c ON c.codigo = CAST(p.cuenta AS BINARY) AND c.canal = 'SMS'
+WHERE (p.proveedor IS NULL OR pr.id_canal_proveedor IS NOT NULL)
+  AND NOT EXISTS (SELECT 1 FROM CanalRutaPaso x WHERE x.ruta_id = r.id_ruta AND x.orden = p.orden);
 
 
 -- 5. (Opcional) número de origen. Descomente y ajuste:
--- UPDATE SmsCuenta SET remitente = '573001234567' WHERE codigo = 'INALAMBRIA_WHATSAPP';
+-- UPDATE CanalCuenta SET remitente = '573001234567' WHERE codigo = 'INALAMBRIA_WHATSAPP';
 
 -- Verificación
 SELECT c.codigo, c.usuario, c.secret_ref, c.clave_cifrada IS NOT NULL AS tiene_clave_cifrada, c.remitente AS source, c.parametros_json
-FROM SmsCuenta c WHERE c.codigo = 'INALAMBRIA_WHATSAPP';
+FROM CanalCuenta c WHERE c.codigo = 'INALAMBRIA_WHATSAPP';
 
 -- Si la aplicación está corriendo: POST /api/sms_gateway/v1/sms/admin/routing-cache/refresh

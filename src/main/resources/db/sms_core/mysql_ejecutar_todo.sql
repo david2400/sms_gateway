@@ -47,17 +47,17 @@ CREATE TABLE IF NOT EXISTS SmsEnvio (
   KEY fk_sms_envio_cuenta (cuenta_final_id),
   KEY ix_sms_envio_destino_created (destino,created_at),
   KEY ix_sms_envio_estado_created (estado,created_at),
-  CONSTRAINT fk_sms_envio_cuenta FOREIGN KEY (cuenta_final_id) REFERENCES CanalCuenta (id_cuenta),
-  CONSTRAINT fk_sms_envio_proveedor FOREIGN KEY (proveedor_final_id) REFERENCES CanalProveedor (id_proveedor)
+  CONSTRAINT fk_sms_envio_cuenta FOREIGN KEY (cuenta_final_id) REFERENCES CanalCuenta (id_canal_cuenta),
+  CONSTRAINT fk_sms_envio_proveedor FOREIGN KEY (proveedor_final_id) REFERENCES CanalProveedor (id_canal_proveedor)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS SmsEnvioIntento (
   id_sms_envio_intento bigint(20) NOT NULL AUTO_INCREMENT,
-  envio_id bigint(20) NOT NULL,
+  sms_envio_id bigint(20) NOT NULL,
   paso_orden int(11) NOT NULL,
   nro_intento int(11) NOT NULL,
-  proveedor_id bigint(20) NOT NULL,
-  cuenta_id bigint(20) NOT NULL,
+  canal_proveedor_id bigint(20) NOT NULL,
+  canal_cuenta_id bigint(20) NOT NULL,
   exitoso bit(1) NOT NULL,
   http_status int(11) DEFAULT NULL,
   detalle varchar(1000) DEFAULT NULL,
@@ -69,12 +69,12 @@ CREATE TABLE IF NOT EXISTS SmsEnvioIntento (
   created_at datetime(6) DEFAULT current_timestamp(6),
   updated_at datetime(6) DEFAULT NULL,
   PRIMARY KEY (id_sms_envio_intento),
-  KEY fk_sms_intento_proveedor (proveedor_id),
-  KEY fk_sms_intento_cuenta (cuenta_id),
-  KEY ix_sms_intento_envio (envio_id),
-  CONSTRAINT fk_sms_intento_cuenta FOREIGN KEY (cuenta_id) REFERENCES CanalCuenta (id_cuenta),
-  CONSTRAINT fk_sms_intento_envio FOREIGN KEY (envio_id) REFERENCES SmsEnvio (id_sms_envio),
-  CONSTRAINT fk_sms_intento_proveedor FOREIGN KEY (proveedor_id) REFERENCES CanalProveedor (id_proveedor)
+  KEY fk_sms_intento_proveedor (canal_proveedor_id),
+  KEY fk_sms_intento_cuenta (canal_cuenta_id),
+  KEY ix_sms_intento_envio (sms_envio_id),
+  CONSTRAINT fk_sms_intento_cuenta FOREIGN KEY (canal_cuenta_id) REFERENCES CanalCuenta (id_canal_cuenta),
+  CONSTRAINT fk_sms_intento_envio FOREIGN KEY (sms_envio_id) REFERENCES SmsEnvio (id_sms_envio),
+  CONSTRAINT fk_sms_intento_proveedor FOREIGN KEY (canal_proveedor_id) REFERENCES CanalProveedor (id_canal_proveedor)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS SmsPlantilla (

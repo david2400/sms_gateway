@@ -21,8 +21,8 @@ public interface SmsEnvioPersistenceMapper {
     @Mapping(target = "fechaCreacion", source = "createdAt")
     SmsEnvioDetalleResponse toDetalle(SmsEnvioEntity entity);
 
-    @Mapping(target = "proveedor", source = "proveedor.codigo")
-    @Mapping(target = "cuenta", source = "cuenta.codigo")
+    @Mapping(target = "proveedor", source = "canalProveedor.codigo")
+    @Mapping(target = "cuenta", source = "canalCuenta.codigo")
     SmsEnvioDetalleResponse.Intento toIntento(SmsEnvioIntentoEntity entity);
 
     List<SmsEnvioDetalleResponse.Intento> toIntentos(List<SmsEnvioIntentoEntity> entities);

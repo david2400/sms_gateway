@@ -8,13 +8,14 @@
    ===================================================================== */
 
 -- 1. Proveedor
-INSERT INTO SmsProveedor (codigo, nombre, base_url, connect_timeout_ms, read_timeout_ms, eliminado, fecha_creacion)
+INSERT INTO CanalProveedor (codigo, nombre, base_url, connect_timeout_ms, read_timeout_ms, eliminado, created_at)
 SELECT 'INALAMBRIA', 'Inalambria', 'https://restaws.inalambria.com', 3000, 10000, b'0', NOW(6)
-FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM SmsProveedor WHERE codigo = 'INALAMBRIA');
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM CanalProveedor WHERE codigo = 'INALAMBRIA');
 
 -- 2. Cuentas
+SET @prov := (SELECT id_canal_proveedor FROM CanalProveedor WHERE codigo = 'INALAMBRIA' AND canal = 'SMS');
 
-INSERT INTO SmsCuenta (proveedor_id, codigo, usuario, secret_ref, clave_cifrada, remitente, parametros_json, eliminado)
+INSERT INTO CanalCuenta (canal_proveedor_id, codigo, usuario, secret_ref, clave_cifrada, remitente, parametros_json, eliminado)
 SELECT @prov, v.codigo, v.usuario, NULL, v.clave_cifrada, NULL, v.parametros_json, b'0'
 FROM (
   SELECT 'INALAMBRIA_OTP' AS codigo, 'COMFENALCOquindioOTP' AS usuario,
@@ -29,7 +30,7 @@ FROM (
   UNION ALL SELECT 'INALAMBRIA_PERSONALIZADA', 'COMFENALCOquindioOTP',
          'v1:POKjUCKJbM1z/8VwYNPztUKTleO0Kf85gNEi5cG0Eh18bWs=', '{"type":1,"messagePattern":"1","templateId":0}'
 ) v
-WHERE NOT EXISTS (SELECT 1 FROM SmsCuenta c WHERE c.codigo = v.codigo);
+WHERE NOT EXISTS (SELECT 1 FROM CanalCuenta c WHERE c.codigo = v.codigo);
 
 -- 3. Rutas del endpoint propio  POST /v1/sms/inalambria/send
 DROP TEMPORARY TABLE IF EXISTS tmp_sms_pasos;
@@ -43,22 +44,22 @@ INSERT INTO tmp_sms_pasos VALUES
  ('INALAMBRIA', 'NORMAL',       1, 'INALAMBRIA_MASIVO'),
  ('INALAMBRIA', 'MASIVO',       1, 'INALAMBRIA_MASIVO');
 
-INSERT INTO SmsRuta (proveedor_id, tipo_mensaje_id, eliminado)
-SELECT DISTINCT pr.id_sms_proveedor, tm.id_sms_tipo_mensaje, b'0'
+INSERT INTO CanalRuta (canal_proveedor_id, tipo_mensaje_id, eliminado)
+SELECT DISTINCT pr.id_canal_proveedor, tm.id_tipo_mensaje, b'0'
 FROM tmp_sms_pasos p
-JOIN SmsTipoMensaje tm ON tm.codigo = p.tipo
-LEFT JOIN SmsProveedor pr ON pr.codigo = p.proveedor
-WHERE (p.proveedor IS NULL OR pr.id_sms_proveedor IS NOT NULL)
-  AND NOT EXISTS (SELECT 1 FROM SmsRuta r
-                  WHERE r.tipo_mensaje_id = tm.id_sms_tipo_mensaje AND r.proveedor_id <=> pr.id_sms_proveedor);
+JOIN CanalTipoMensaje tm ON tm.codigo = p.tipo AND tm.canal = 'SMS'
+LEFT JOIN CanalProveedor pr ON pr.codigo = p.proveedor AND pr.canal = 'SMS'
+WHERE (p.proveedor IS NULL OR pr.id_canal_proveedor IS NOT NULL)
+  AND NOT EXISTS (SELECT 1 FROM CanalRuta r
+                  WHERE r.tipo_mensaje_id = tm.id_tipo_mensaje AND r.canal_proveedor_id <=> pr.id_canal_proveedor);
 
-INSERT INTO SmsRutaPaso (ruta_id, orden, cuenta_id, max_intentos, espera_ms, eliminado)
-SELECT r.id_sms_ruta, p.orden, c.id_sms_cuenta, 3, 500, b'0'
+INSERT INTO CanalRutaPaso (ruta_id, orden, canal_cuenta_id, max_intentos, espera_ms, eliminado)
+SELECT r.id_ruta, p.orden, c.id_canal_cuenta, 3, 500, b'0'
 FROM tmp_sms_pasos p
-JOIN SmsTipoMensaje tm ON tm.codigo = p.tipo
-LEFT JOIN SmsProveedor pr ON pr.codigo = p.proveedor
-JOIN SmsRuta r   ON r.tipo_mensaje_id = tm.id_sms_tipo_mensaje AND r.proveedor_id <=> pr.id_sms_proveedor
-JOIN SmsCuenta c ON c.codigo = CAST(p.cuenta AS BINARY)
-WHERE (p.proveedor IS NULL OR pr.id_sms_proveedor IS NOT NULL)
-  AND NOT EXISTS (SELECT 1 FROM SmsRutaPaso x WHERE x.ruta_id = r.id_sms_ruta AND x.orden = p.orden);
+JOIN CanalTipoMensaje tm ON tm.codigo = p.tipo AND tm.canal = 'SMS'
+LEFT JOIN CanalProveedor pr ON pr.codigo = p.proveedor AND pr.canal = 'SMS'
+JOIN CanalRuta r   ON r.tipo_mensaje_id = tm.id_tipo_mensaje AND r.canal_proveedor_id <=> pr.id_canal_proveedor AND r.canal = 'SMS'
+JOIN CanalCuenta c ON c.codigo = CAST(p.cuenta AS BINARY) AND c.canal = 'SMS'
+WHERE (p.proveedor IS NULL OR pr.id_canal_proveedor IS NOT NULL)
+  AND NOT EXISTS (SELECT 1 FROM CanalRutaPaso x WHERE x.ruta_id = r.id_ruta AND x.orden = p.orden);
 

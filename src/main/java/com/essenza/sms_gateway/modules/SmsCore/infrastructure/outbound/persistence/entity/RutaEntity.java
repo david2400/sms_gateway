@@ -11,38 +11,36 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import org.hibernate.annotations.SQLRestriction;
-import jakarta.persistence.UniqueConstraint;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * Servicio habilitado de un proveedor (filas {@code canal = 'SMS'} de {@code CanalProveedorServicio}) = (proveedor, tipo de mensaje).
- * Si no existe la fila, el proveedor no atiende ese tipo.
+ * Ruta (filas {@code canal = 'SMS'} de {@code CanalRuta}) = (proveedor, tipo de mensaje).
+ * {@code proveedor == null} es la ruta del endpoint central.
  */
 @Entity
 @SQLRestriction("canal = 'SMS'")
-@Table(name = "CanalProveedorServicio",
-        uniqueConstraints = @UniqueConstraint(name = "uq_canal_proveedor_servicio", columnNames = {"proveedor_id", "tipo_mensaje_id"}))
+@Table(name = "CanalRuta")
 @Getter
 @Setter
 @NoArgsConstructor
-public class SmsProveedorServicioEntity extends AuditInfo {
+public class RutaEntity extends AuditInfo {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_proveedor_servicio")
-    private Long idSmsProveedorServicio;
+    @Column(name = "id_ruta")
+    private Long idRuta;
 
     // EAGER: Hibernate 6.4 no permite LAZY hacia una entidad con @SoftDelete (AuditInfo)
 
-    @ManyToOne(fetch = FetchType.EAGER, optional = false)
-    @JoinColumn(name = "proveedor_id", nullable = false)
-    private SmsProveedorEntity proveedor;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "canal_proveedor_id")
+    private CanalProveedorEntity canalProveedor;
 
     // EAGER: Hibernate 6.4 no permite LAZY hacia una entidad con @SoftDelete (AuditInfo)
 
-    @ManyToOne(fetch = FetchType.EAGER, optional = false)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "tipo_mensaje_id", nullable = false)
     private SmsTipoMensajeEntity tipoMensaje;
 

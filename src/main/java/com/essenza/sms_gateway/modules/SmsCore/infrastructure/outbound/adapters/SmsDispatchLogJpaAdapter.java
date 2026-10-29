@@ -11,10 +11,10 @@ import com.essenza.sms_gateway.modules.SmsCore.domain.model.SmsDispatch;
 import com.essenza.sms_gateway.modules.SmsCore.domain.ports.SmsDispatchLogPort;
 import com.essenza.sms_gateway.modules.SmsCore.infrastructure.outbound.persistence.entity.SmsEnvioEntity;
 import com.essenza.sms_gateway.modules.SmsCore.infrastructure.outbound.persistence.entity.SmsEnvioIntentoEntity;
-import com.essenza.sms_gateway.modules.SmsCore.infrastructure.outbound.persistence.repository.SmsCuentaRepository;
+import com.essenza.sms_gateway.modules.SmsCore.infrastructure.outbound.persistence.repository.CanalCuentaRepository;
 import com.essenza.sms_gateway.modules.SmsCore.infrastructure.outbound.persistence.repository.SmsEnvioIntentoRepository;
 import com.essenza.sms_gateway.modules.SmsCore.infrastructure.outbound.persistence.repository.SmsEnvioRepository;
-import com.essenza.sms_gateway.modules.SmsCore.infrastructure.outbound.persistence.repository.SmsProveedorRepository;
+import com.essenza.sms_gateway.modules.SmsCore.infrastructure.outbound.persistence.repository.CanalProveedorRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Component;
@@ -39,8 +39,8 @@ public class SmsDispatchLogJpaAdapter implements SmsDispatchLogPort {
 
     private final SmsEnvioRepository envioRepository;
     private final SmsEnvioIntentoRepository intentoRepository;
-    private final SmsProveedorRepository proveedorRepository;
-    private final SmsCuentaRepository cuentaRepository;
+    private final CanalProveedorRepository proveedorRepository;
+    private final CanalCuentaRepository cuentaRepository;
 
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -104,8 +104,8 @@ public class SmsDispatchLogJpaAdapter implements SmsDispatchLogPort {
         intento.setEnvio(envio);
         intento.setPasoOrden(step.getOrder());
         intento.setNroIntento(attemptNumber);
-        intento.setProveedor(proveedorRepository.getReferenceById(step.getAccount().getProviderId()));
-        intento.setCuenta(cuentaRepository.getReferenceById(step.getAccount().getId()));
+        intento.setCanalProveedor(proveedorRepository.getReferenceById(step.getAccount().getProviderId()));
+        intento.setCanalCuenta(cuentaRepository.getReferenceById(step.getAccount().getId()));
         intento.setExitoso(outcome.isSuccess());
         intento.setHttpStatus(outcome.getHttpStatus());
         intento.setDetalle(truncate(outcome.getDetail(), 1000));

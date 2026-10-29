@@ -26,12 +26,12 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @NoArgsConstructor
-public class SmsProveedorEntity extends AuditInfo {
+public class CanalProveedorEntity extends AuditInfo {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_proveedor")
-    private Long idSmsProveedor;
+    @Column(name = "id_canal_proveedor")
+    private Long idCanalProveedor;
 
     /** Debe coincidir con {@code SmsSenderPort.providerCode()}. */
     @Column(name = "codigo", length = 30, nullable = false)

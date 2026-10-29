@@ -6,12 +6,12 @@ import com.essenza.sms_gateway.modules.SmsCore.domain.model.RouteStep;
 import com.essenza.sms_gateway.modules.SmsCore.domain.ports.RoutingPolicyPort;
 import com.essenza.sms_gateway.modules.SmsCore.infrastructure.config.SmsCoreProperties;
 import com.essenza.sms_gateway.modules.SmsCore.infrastructure.outbound.mappers.ProviderAccountFactory;
-import com.essenza.sms_gateway.modules.SmsCore.infrastructure.outbound.persistence.entity.SmsCuentaEntity;
-import com.essenza.sms_gateway.modules.SmsCore.infrastructure.outbound.persistence.entity.SmsProveedorEntity;
-import com.essenza.sms_gateway.modules.SmsCore.infrastructure.outbound.persistence.entity.SmsRutaEntity;
-import com.essenza.sms_gateway.modules.SmsCore.infrastructure.outbound.persistence.entity.SmsRutaPasoEntity;
-import com.essenza.sms_gateway.modules.SmsCore.infrastructure.outbound.persistence.repository.SmsRutaPasoRepository;
-import com.essenza.sms_gateway.modules.SmsCore.infrastructure.outbound.persistence.repository.SmsRutaRepository;
+import com.essenza.sms_gateway.modules.SmsCore.infrastructure.outbound.persistence.entity.CanalCuentaEntity;
+import com.essenza.sms_gateway.modules.SmsCore.infrastructure.outbound.persistence.entity.CanalProveedorEntity;
+import com.essenza.sms_gateway.modules.SmsCore.infrastructure.outbound.persistence.entity.RutaEntity;
+import com.essenza.sms_gateway.modules.SmsCore.infrastructure.outbound.persistence.entity.RutaPasoEntity;
+import com.essenza.sms_gateway.modules.SmsCore.infrastructure.outbound.persistence.repository.RutaPasoRepository;
+import com.essenza.sms_gateway.modules.SmsCore.infrastructure.outbound.persistence.repository.RutaRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -39,8 +39,8 @@ public class RoutingPolicyJpaAdapter implements RoutingPolicyPort {
 
     private static final String CENTRAL = "*CENTRAL*";
 
-    private final SmsRutaRepository rutaRepository;
-    private final SmsRutaPasoRepository pasoRepository;
+    private final RutaRepository rutaRepository;
+    private final RutaPasoRepository pasoRepository;
     private final ProviderAccountFactory accountFactory;
     private final SmsCoreProperties properties;
 
@@ -72,29 +72,29 @@ public class RoutingPolicyJpaAdapter implements RoutingPolicyPort {
     }
 
     private RoutePlan load(String providerCode, MessageType type) {
-        Optional<SmsRutaEntity> ruta = providerCode == null
-                ? rutaRepository.findFirstByProveedorIsNullAndTipoMensaje_CodigoAndEliminadoFalse(type.name())
-                : rutaRepository.findFirstByProveedor_CodigoAndTipoMensaje_CodigoAndEliminadoFalse(providerCode.toUpperCase(), type.name());
+        Optional<RutaEntity> ruta = providerCode == null
+                ? rutaRepository.findFirstByCanalProveedorIsNullAndTipoMensaje_CodigoAndEliminadoFalse(type.name())
+                : rutaRepository.findFirstByCanalProveedor_CodigoAndTipoMensaje_CodigoAndEliminadoFalse(providerCode.toUpperCase(), type.name());
 
         if (ruta.isEmpty()) {
             return RoutePlan.empty(providerCode, type);
         }
 
         RoutePlan.RoutePlanBuilder builder = RoutePlan.builder()
-                .routeId(ruta.get().getIdSmsRuta())
+                .routeId(ruta.get().getIdRuta())
                 .providerCode(providerCode)
                 .messageType(type);
 
-        for (SmsRutaPasoEntity paso : pasoRepository.findByRuta_IdSmsRutaAndEliminadoFalseOrderByOrdenAsc(ruta.get().getIdSmsRuta())) {
-            SmsCuentaEntity cuenta = paso.getCuenta();
-            SmsProveedorEntity proveedor = cuenta.getProveedor();
+        for (RutaPasoEntity paso : pasoRepository.findByRuta_IdRutaAndEliminadoFalseOrderByOrdenAsc(ruta.get().getIdRuta())) {
+            CanalCuentaEntity cuenta = paso.getCanalCuenta();
+            CanalProveedorEntity proveedor = cuenta.getCanalProveedor();
 
             if (cuenta.isEliminado() || proveedor.isEliminado()) {
                 continue;
             }
             if (providerCode != null && !providerCode.equalsIgnoreCase(proveedor.getCodigo())) {
                 log.warn("[SMS-CORE] Ruta {} de {} tiene la cuenta {} de otro proveedor ({}); se ignora",
-                        ruta.get().getIdSmsRuta(), providerCode, cuenta.getCodigo(), proveedor.getCodigo());
+                        ruta.get().getIdRuta(), providerCode, cuenta.getCodigo(), proveedor.getCodigo());
                 continue;
             }
 

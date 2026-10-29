@@ -22,13 +22,11 @@ CREATE TABLE IF NOT EXISTS SmsPlantilla (
   eliminado          BIT(1)        NOT NULL DEFAULT b'0',
   usr_crea           INT           NOT NULL DEFAULT 1,
   usr_mod            INT           NULL,
-  created_at         DATETIME(6)   NULL,
+  created_at         DATETIME(6)   NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
   updated_at         DATETIME(6)   NULL,
-  fecha_creacion     DATETIME(6)   NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
-  fecha_modificacion DATETIME(6)   NULL,
   CONSTRAINT pk_sms_plantilla PRIMARY KEY (id_sms_plantilla),
   CONSTRAINT uq_sms_plantilla_codigo UNIQUE (codigo),
-  CONSTRAINT fk_sms_plantilla_tipo FOREIGN KEY (tipo_mensaje_id) REFERENCES SmsTipoMensaje (id_sms_tipo_mensaje)
+  CONSTRAINT fk_sms_plantilla_tipo FOREIGN KEY (tipo_mensaje_id) REFERENCES CanalTipoMensaje (id_tipo_mensaje)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS SmsPlantillaVariable (
@@ -61,8 +59,8 @@ PREPARE st FROM @sql; EXECUTE st; DEALLOCATE PREPARE st;
 
 /* ----------------------------- EJEMPLOS ----------------------------- */
 
-INSERT INTO SmsPlantilla (codigo, nombre, descripcion, tipo_mensaje_id, contenido, version, eliminado, fecha_creacion)
-SELECT v.codigo, v.nombre, v.descripcion, t.id_sms_tipo_mensaje, v.contenido, 1, b'0', NOW(6)
+INSERT INTO SmsPlantilla (codigo, nombre, descripcion, tipo_mensaje_id, contenido, version, eliminado, created_at)
+SELECT v.codigo, v.nombre, v.descripcion, t.id_tipo_mensaje, v.contenido, 1, b'0', NOW(6)
 FROM (
   SELECT 'RECORDATORIO_CITA' AS codigo, 'Recordatorio de cita' AS nombre, 'Ejemplo: recordatorio con fecha, hora y sede' AS descripcion,
          'NORMAL' AS tipo, 'Hola {{nombre}}, le recordamos su cita el {{fecha}} a las {{hora}} en {{sede}}. Comfenalco Quindio' AS contenido
@@ -70,7 +68,7 @@ FROM (
   SELECT 'OTP_VERIFICACION', 'Código de verificación', 'Ejemplo: OTP con vigencia',
          'OTP', 'Comfenalco: su codigo de verificacion es {{codigo}}. Vence en {{minutos}} minutos. No lo comparta.'
 ) v
-LEFT JOIN SmsTipoMensaje t ON t.codigo = v.tipo
+LEFT JOIN CanalTipoMensaje t ON t.codigo = v.tipo
 WHERE NOT EXISTS (SELECT 1 FROM SmsPlantilla p WHERE p.codigo = v.codigo);
 
 INSERT INTO SmsPlantillaVariable (plantilla_id, nombre, tipo_dato, obligatoria, longitud_max, patron, valor_defecto, descripcion, orden, eliminado, usr_crea, created_at)
@@ -90,6 +88,6 @@ WHERE NOT EXISTS (SELECT 1 FROM SmsPlantillaVariable x WHERE x.plantilla_id = p.
 -- Verificación
 SELECT p.codigo, p.version, t.codigo AS tipo, COUNT(v.id_sms_plantilla_variable) AS variables, p.contenido
 FROM SmsPlantilla p
-LEFT JOIN SmsTipoMensaje t ON t.id_sms_tipo_mensaje = p.tipo_mensaje_id
+LEFT JOIN CanalTipoMensaje t ON t.id_tipo_mensaje = p.tipo_mensaje_id
 LEFT JOIN SmsPlantillaVariable v ON v.plantilla_id = p.id_sms_plantilla
 GROUP BY p.id_sms_plantilla, p.codigo, p.version, t.codigo, p.contenido ORDER BY p.codigo;

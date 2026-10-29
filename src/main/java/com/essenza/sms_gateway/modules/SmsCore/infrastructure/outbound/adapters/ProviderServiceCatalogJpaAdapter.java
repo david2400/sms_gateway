@@ -3,8 +3,8 @@ package com.essenza.sms_gateway.modules.SmsCore.infrastructure.outbound.adapters
 import com.essenza.sms_gateway.modules.SmsCore.domain.model.MessageType;
 import com.essenza.sms_gateway.modules.SmsCore.domain.ports.ProviderServiceCatalogPort;
 import com.essenza.sms_gateway.modules.SmsCore.infrastructure.config.SmsCoreProperties;
-import com.essenza.sms_gateway.modules.SmsCore.infrastructure.outbound.persistence.entity.SmsProveedorServicioEntity;
-import com.essenza.sms_gateway.modules.SmsCore.infrastructure.outbound.persistence.repository.SmsProveedorServicioRepository;
+import com.essenza.sms_gateway.modules.SmsCore.infrastructure.outbound.persistence.entity.CanalProveedorServicioEntity;
+import com.essenza.sms_gateway.modules.SmsCore.infrastructure.outbound.persistence.repository.CanalProveedorServicioRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -19,7 +19,7 @@ import java.util.Optional;
 import java.util.Set;
 
 /**
- * Catálogo de servicios por proveedor desde {@code SmsProveedorServicio}, cacheado completo en memoria
+ * Catálogo de servicios por proveedor desde {@code CanalProveedorServicio}, cacheado completo en memoria
  * con el mismo TTL de las rutas ({@code sms.core.routing-cache-ttl-seconds}). Se recarga con
  * {@code POST /v1/sms/admin/routing-cache/refresh} o tras cualquier cambio en SmsAdmin.
  * Tipos en BD que no existen en {@link MessageType} se ignoran (no se pueden pedir por API).
@@ -29,7 +29,7 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class ProviderServiceCatalogJpaAdapter implements ProviderServiceCatalogPort {
 
-    private final SmsProveedorServicioRepository repository;
+    private final CanalProveedorServicioRepository repository;
     private final SmsCoreProperties properties;
 
     private volatile Snapshot snapshot;
@@ -71,12 +71,12 @@ public class ProviderServiceCatalogJpaAdapter implements ProviderServiceCatalogP
 
     private Snapshot load() {
         Map<String, Set<MessageType>> map = new HashMap<>();
-        for (SmsProveedorServicioEntity ps : repository.findAllActive()) {
+        for (CanalProveedorServicioEntity ps : repository.findAllActive()) {
             if (ps.getTipoMensaje().isEliminado()) {
                 continue;
             }
             Optional<MessageType> type = MessageType.fromCodigo(ps.getTipoMensaje().getCodigo());
-            type.ifPresent(t -> map.computeIfAbsent(ps.getProveedor().getCodigo().toUpperCase(Locale.ROOT),
+            type.ifPresent(t -> map.computeIfAbsent(ps.getCanalProveedor().getCodigo().toUpperCase(Locale.ROOT),
                     k -> EnumSet.noneOf(MessageType.class)).add(t));
         }
         Map<String, Set<MessageType>> frozen = new HashMap<>();

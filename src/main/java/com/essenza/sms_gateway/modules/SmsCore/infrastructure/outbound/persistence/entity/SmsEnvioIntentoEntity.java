@@ -21,7 +21,7 @@ import java.time.LocalDateTime;
  * Intento de envío contra una cuenta ({@code sms_envio_intento}).
  */
 @Entity
-@Table(name = "SmsEnvioIntento", indexes = @Index(name = "ix_sms_intento_envio", columnList = "envio_id"))
+@Table(name = "SmsEnvioIntento", indexes = @Index(name = "ix_sms_intento_envio", columnList = "sms_envio_id"))
 @Getter
 @Setter
 @NoArgsConstructor
@@ -35,7 +35,7 @@ public class SmsEnvioIntentoEntity  extends AuditInfo {
     // EAGER: Hibernate 6.4 no permite LAZY hacia una entidad con @SoftDelete (AuditInfo)
 
     @ManyToOne(fetch = FetchType.EAGER, optional = false)
-    @JoinColumn(name = "envio_id", nullable = false)
+    @JoinColumn(name = "sms_envio_id", nullable = false)
     private SmsEnvioEntity envio;
 
     @Column(name = "paso_orden", nullable = false)
@@ -48,14 +48,14 @@ public class SmsEnvioIntentoEntity  extends AuditInfo {
     // EAGER: Hibernate 6.4 no permite LAZY hacia una entidad con @SoftDelete (AuditInfo)
 
     @ManyToOne(fetch = FetchType.EAGER, optional = false)
-    @JoinColumn(name = "proveedor_id", nullable = false)
-    private SmsProveedorEntity proveedor;
+    @JoinColumn(name = "canal_proveedor_id", nullable = false)
+    private CanalProveedorEntity canalProveedor;
 
     // EAGER: Hibernate 6.4 no permite LAZY hacia una entidad con @SoftDelete (AuditInfo)
 
     @ManyToOne(fetch = FetchType.EAGER, optional = false)
-    @JoinColumn(name = "cuenta_id", nullable = false)
-    private SmsCuentaEntity cuenta;
+    @JoinColumn(name = "canal_cuenta_id", nullable = false)
+    private CanalCuentaEntity canalCuenta;
 
     @Column(name = "exitoso", nullable = false)
     private Boolean exitoso;

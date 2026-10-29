@@ -2,7 +2,7 @@
    V8 - Servicios por proveedor (MySQL). Idempotente. Requiere V1 + V6__tipos_mensaje.
    Ejecutar como SCRIPT en DBeaver (Alt+X).
 
-   SmsProveedorServicio = (proveedor, tipo de mensaje) que el proveedor SÍ atiende.
+   CanalProveedorServicio = (proveedor, tipo de mensaje) que el proveedor SÍ atiende.
    El motor usa esta tabla para:
      - Responder 422 SERVICIO_NO_SOPORTADO si se pide un tipo a un proveedor que no lo tiene
        (endpoint del proveedor, 'proveedor' preferido o 'cuenta' en el central).
@@ -14,26 +14,26 @@
 
 SET NAMES utf8mb4;
 
-CREATE TABLE IF NOT EXISTS SmsProveedorServicio (
-  id_sms_proveedor_servicio BIGINT      NOT NULL AUTO_INCREMENT,
-  proveedor_id              BIGINT      NOT NULL,
+CREATE TABLE IF NOT EXISTS CanalProveedorServicio (
+  id_canal_proveedor_servicio BIGINT      NOT NULL AUTO_INCREMENT,
+  canal                     VARCHAR(10) NOT NULL DEFAULT 'SMS',
+  canal_proveedor_id        BIGINT      NOT NULL,
   tipo_mensaje_id           BIGINT      NOT NULL,
   eliminado                 BIT(1)      NOT NULL DEFAULT b'0',
   usr_crea                  INT         NOT NULL DEFAULT 1,
   usr_mod                   INT         NULL,
   created_at                DATETIME(6) NULL,
   updated_at                DATETIME(6) NULL,
-  fecha_creacion            DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
-  CONSTRAINT pk_sms_proveedor_servicio PRIMARY KEY (id_sms_proveedor_servicio),
-  CONSTRAINT uq_sms_proveedor_servicio UNIQUE (proveedor_id, tipo_mensaje_id),
-  CONSTRAINT fk_sms_prov_servicio_proveedor FOREIGN KEY (proveedor_id)    REFERENCES SmsProveedor (id_sms_proveedor),
-  CONSTRAINT fk_sms_prov_servicio_tipo      FOREIGN KEY (tipo_mensaje_id) REFERENCES SmsTipoMensaje (id_sms_tipo_mensaje)
+  CONSTRAINT pk_canal_proveedor_servicio PRIMARY KEY (id_canal_proveedor_servicio),
+  CONSTRAINT uq_canal_proveedor_servicio UNIQUE (canal_proveedor_id, tipo_mensaje_id),
+  CONSTRAINT fk_canal_prov_servicio_proveedor FOREIGN KEY (canal_proveedor_id) REFERENCES CanalProveedor (id_canal_proveedor),
+  CONSTRAINT fk_canal_prov_servicio_tipo      FOREIGN KEY (tipo_mensaje_id)    REFERENCES CanalTipoMensaje (id_tipo_mensaje)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Semilla. Go4Clients NO tiene OTP: un OTP por Go4Clients responde
 -- "El proveedor GO4CLIENTS no cuenta con el servicio OTP" (su ruta GO4CLIENTS/OTP de V4 queda sin uso).
-INSERT INTO SmsProveedorServicio (proveedor_id, tipo_mensaje_id, eliminado, fecha_creacion)
-SELECT p.id_sms_proveedor, t.id_sms_tipo_mensaje, b'0', NOW(6)
+INSERT INTO CanalProveedorServicio (canal_proveedor_id, tipo_mensaje_id, eliminado, created_at)
+SELECT p.id_canal_proveedor, t.id_tipo_mensaje, b'0', NOW(6)
 FROM (
   SELECT 'INALAMBRIA' AS proveedor, 'OTP' AS tipo
   UNION ALL SELECT 'INALAMBRIA', 'HABEAS_DATA'
@@ -50,16 +50,16 @@ FROM (
   UNION ALL SELECT 'MOCK', 'NORMAL'
   UNION ALL SELECT 'MOCK', 'MASIVO'
 ) v
-JOIN SmsProveedor   p ON p.codigo = v.proveedor
-JOIN SmsTipoMensaje t ON t.codigo = v.tipo
-WHERE NOT EXISTS (SELECT 1 FROM SmsProveedorServicio s
-                  WHERE s.proveedor_id = p.id_sms_proveedor AND s.tipo_mensaje_id = t.id_sms_tipo_mensaje);
+JOIN CanalProveedor   p ON p.codigo = v.proveedor AND p.canal = 'SMS'
+JOIN CanalTipoMensaje t ON t.codigo = v.tipo AND t.canal = 'SMS'
+WHERE NOT EXISTS (SELECT 1 FROM CanalProveedorServicio s
+                  WHERE s.canal_proveedor_id = p.id_canal_proveedor AND s.tipo_mensaje_id = t.id_tipo_mensaje);
 
 -- Verificación
 SELECT p.codigo AS proveedor, GROUP_CONCAT(t.codigo ORDER BY t.codigo) AS servicios
-FROM SmsProveedorServicio s
-JOIN SmsProveedor p ON p.id_sms_proveedor = s.proveedor_id
-JOIN SmsTipoMensaje t ON t.id_sms_tipo_mensaje = s.tipo_mensaje_id
+FROM CanalProveedorServicio s
+JOIN CanalProveedor p ON p.id_canal_proveedor = s.canal_proveedor_id
+JOIN CanalTipoMensaje t ON t.id_tipo_mensaje = s.tipo_mensaje_id
 WHERE s.eliminado = b'0'
 GROUP BY p.codigo ORDER BY p.codigo;
 

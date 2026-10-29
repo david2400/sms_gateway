@@ -26,18 +26,18 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class SmsRutaPasoEntity extends AuditInfo {
+public class RutaPasoEntity extends AuditInfo {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_ruta_paso")
-    private Long idSmsRutaPaso;
+    private Long idRutaPaso;
 
     // EAGER: Hibernate 6.4 no permite LAZY hacia una entidad con @SoftDelete (AuditInfo)
 
     @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "ruta_id", nullable = false)
-    private SmsRutaEntity ruta;
+    private RutaEntity ruta;
 
     /** 1 = principal, 2.. = fallback. */
     @Column(name = "orden", nullable = false)
@@ -46,8 +46,8 @@ public class SmsRutaPasoEntity extends AuditInfo {
     // EAGER: Hibernate 6.4 no permite LAZY hacia una entidad con @SoftDelete (AuditInfo)
 
     @ManyToOne(fetch = FetchType.EAGER, optional = false)
-    @JoinColumn(name = "cuenta_id", nullable = false)
-    private SmsCuentaEntity cuenta;
+    @JoinColumn(name = "canal_cuenta_id", nullable = false)
+    private CanalCuentaEntity canalCuenta;
 
     @Column(name = "max_intentos", nullable = false)
     private Integer maxIntentos = 3;

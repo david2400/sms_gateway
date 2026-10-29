@@ -29,18 +29,18 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class SmsCuentaEntity extends AuditInfo {
+public class CanalCuentaEntity extends AuditInfo {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_cuenta")
-    private Long idSmsCuenta;
+    @Column(name = "id_canal_cuenta")
+    private Long idCanalCuenta;
 
     // EAGER: Hibernate 6.4 no permite LAZY hacia una entidad con @SoftDelete (AuditInfo)
 
     @ManyToOne(fetch = FetchType.EAGER, optional = false)
-    @JoinColumn(name = "proveedor_id", nullable = false)
-    private SmsProveedorEntity proveedor;
+    @JoinColumn(name = "canal_proveedor_id", nullable = false)
+    private CanalProveedorEntity canalProveedor;
 
     @Column(name = "codigo", length = 50, nullable = false)
     private String codigo;
