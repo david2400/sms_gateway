@@ -22,9 +22,17 @@ import java.util.Map;
 @Schema(description = "Envío de SMS por el endpoint centralizado (orquesta todos los proveedores)")
 public class SendSmsRequest {
 
-    @Schema(description = "Tipo de mensaje: define la ruta de cuentas/proveedores. Obligatorio con 'message'; "
-            + "con 'plantilla' es opcional (se usa el tipo de la plantilla)", example = "OTP")
+    @Schema(description = "Tipo de mensaje: define la ruta de cuentas/proveedores. Obligatorio con 'message' salvo que se "
+            + "envíe 'ruta' (se usa el tipo de la ruta); con 'plantilla' es opcional (se usa el tipo de la plantilla)", example = "OTP")
     private MessageType tipoMensaje;
+
+    @Size(max = 50, message = "La ruta no puede superar 50 caracteres")
+    @Pattern(regexp = "[A-Za-z0-9_\\-]{1,50}", message = "Ruta inválida: use el código o el id de la ruta")
+    @Schema(description = "Ruta a ejecutar: código (CanalRuta.codigo) o id. Opcional: si se envía se ejecutan SUS pasos en orden "
+            + "(no se resuelve por tipo de mensaje) y no se puede combinar con 'proveedor' ni 'cuenta'. Si viene 'tipo_mensaje' "
+            + "debe ser el de la ruta. Ruta inexistente o inactiva → FALLIDO RUTA_NO_ENCONTRADA / RUTA_INACTIVA",
+            example = "OTP_PRIORITARIA")
+    private String ruta;
 
     @NotBlank(message = "El destinatario es obligatorio")
     @Pattern(regexp = "\\+?\\d{10,15}", message = "El destinatario debe tener entre 10 y 15 dígitos")

@@ -11,8 +11,10 @@ import com.essenza.sms_gateway.modules.SmsCore.domain.dto.SmsEnvioResponse;
 import com.essenza.sms_gateway.modules.SmsCore.domain.exception.SmsContenidoException;
 import com.essenza.sms_gateway.modules.SmsCore.domain.model.DispatchChannel;
 import com.essenza.sms_gateway.modules.SmsCore.domain.model.DispatchResult;
+import com.essenza.sms_gateway.modules.SmsCore.domain.model.MessageType;
 import com.essenza.sms_gateway.modules.SmsCore.domain.model.SmsDispatch;
 import com.essenza.sms_gateway.modules.SmsCore.domain.model.contenido.ResolvedContent;
+import com.essenza.sms_gateway.modules.SmsCore.domain.services.DispatchPlanner;
 import com.essenza.sms_gateway.modules.SmsCore.domain.services.SmsBatchDispatchService;
 import com.essenza.sms_gateway.modules.SmsCore.domain.services.SmsDispatchService;
 import lombok.RequiredArgsConstructor;
@@ -37,6 +39,7 @@ public class SmsSendService implements SendSmsUseCase, SendSmsByProviderUseCase,
     private final SmsDispatchService dispatchService;
     private final SmsBatchDispatchService batchDispatchService;
     private final ResolveSmsContentUseCase contentResolver;
+    private final DispatchPlanner planner;
 
     @Override
     public DispatchResult send(SendSmsRequest request, String idempotencyKey) {
@@ -101,8 +104,9 @@ public class SmsSendService implements SendSmsUseCase, SendSmsByProviderUseCase,
     }
 
     private SmsDispatch toDispatch(SendSmsRequest request, String idempotencyKey, boolean central) {
+        String route = blankToNull(request.getRuta());
         ResolvedContent content = contentResolver.resolve(request.getMessage(), request.getPlantilla(),
-                request.getVariables(), request.getTipoMensaje());
+                request.getVariables(), typeFor(request, route));
         requireSms(content);
         return SmsDispatch.builder()
                 .to(request.getTo())
@@ -112,9 +116,24 @@ public class SmsSendService implements SendSmsUseCase, SendSmsByProviderUseCase,
                 .sender(request.getSender())
                 .accountCode(request.getCuenta())
                 .preferredProvider(central ? request.getProveedor() : null)
+                .routeReference(route)
                 .templateCode(content.templateCode())
                 .idempotencyKey(blankToNull(idempotencyKey))
                 .build();
+    }
+
+    /**
+     * Tipo para resolver el contenido. Con {@code ruta} y sin {@code tipo_mensaje} se usa el tipo de la ruta (también con
+     * plantilla). Si la ruta no existe o está inactiva: con texto directo se usa NORMAL solo para armar el mensaje y con
+     * plantilla el tipo de la plantilla; el motor responde FALLIDO (RUTA_NO_ENCONTRADA / RUTA_INACTIVA) antes de
+     * intentar cualquier envío.
+     */
+    private MessageType typeFor(SendSmsRequest request, String route) {
+        if (request.getTipoMensaje() != null || route == null) {
+            return request.getTipoMensaje();
+        }
+        boolean template = request.getPlantilla() != null && !request.getPlantilla().isBlank();
+        return planner.routeType(route).orElse(template ? null : MessageType.NORMAL);
     }
 
     /** Los endpoints de SMS solo envían tipos de canal SMS (WhatsApp tiene su propio endpoint y payload). */

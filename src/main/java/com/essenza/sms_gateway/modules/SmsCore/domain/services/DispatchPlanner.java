@@ -4,6 +4,7 @@ import com.essenza.sms_gateway.modules.SmsCore.domain.model.DispatchResult;
 import com.essenza.sms_gateway.modules.SmsCore.domain.model.MessageType;
 import com.essenza.sms_gateway.modules.SmsCore.domain.model.PlanResolution;
 import com.essenza.sms_gateway.modules.SmsCore.domain.model.ProviderAccount;
+import com.essenza.sms_gateway.modules.SmsCore.domain.model.RouteLookup;
 import com.essenza.sms_gateway.modules.SmsCore.domain.model.RoutePlan;
 import com.essenza.sms_gateway.modules.SmsCore.domain.model.RouteStep;
 import com.essenza.sms_gateway.modules.SmsCore.domain.ports.ProviderAccountQueryPort;
@@ -32,6 +33,8 @@ import java.util.stream.Collectors;
  *       debe tener el servicio. Va primero y el resto de la ruta queda de respaldo.</li>
  *   <li>Ruta vacía: {@code SERVICIO_NO_SOPORTADO} si se vació por el filtro de servicios, si no {@code RUTA_NO_CONFIGURADA}.</li>
  * </ol>
+ * Con una ruta pedida en el request ({@link #planRoute}) se ejecutan los pasos de ESA ruta en su orden; solo se
+ * omiten cuentas/proveedores inactivos o sin el servicio del tipo de la ruta.
  */
 @Slf4j
 @Service
@@ -109,6 +112,76 @@ public class DispatchPlanner {
                     "No hay ruta activa para " + name + "/" + type, provider, null);
         }
         return PlanResolution.ok(plan);
+    }
+
+    /**
+     * Plan de una ruta pedida explícitamente ({@code ruta} del request): sus pasos activos en el orden de {@code orden}.
+     *
+     * @param reference         código o id de la ruta
+     * @param requestedType     tipo de mensaje del request, opcional; si viene debe ser el de la ruta
+     * @param providerCode      proveedor del canal PROVEEDOR ({@code null} en CENTRAL); la ruta debe ser de ese proveedor
+     * @param preferredProvider proveedor preferido del request: no se combina con {@code ruta}
+     * @param requestedAccount  cuenta pedida en el request: no se combina con {@code ruta}
+     */
+    public PlanResolution planRoute(String reference, MessageType requestedType, String providerCode,
+                                    String preferredProvider, String requestedAccount) {
+        String ref = blankToNull(reference);
+        if (blankToNull(preferredProvider) != null || blankToNull(requestedAccount) != null) {
+            return PlanResolution.error(DispatchResult.ERROR_RUTA_NO_COMBINABLE,
+                    "'ruta' no se puede combinar con 'proveedor' ni con 'cuenta': la ruta ya define cuentas y orden",
+                    upper(preferredProvider), blankToNull(requestedAccount));
+        }
+        RouteLookup lookup = routingPolicy.findRoute(ref);
+        if (lookup.getStatus() == RouteLookup.Status.NOT_FOUND) {
+            log.warn("[SMS-CORE] Ruta solicitada {} no existe", ref);
+            return PlanResolution.error(DispatchResult.ERROR_RUTA_NO_ENCONTRADA,
+                    "No existe una ruta de SMS con código o id " + ref, null, null);
+        }
+        if (lookup.getStatus() == RouteLookup.Status.INACTIVE) {
+            log.warn("[SMS-CORE] Ruta solicitada {} está inactiva", ref);
+            return PlanResolution.error(DispatchResult.ERROR_RUTA_INACTIVA,
+                    "La ruta " + ref + " está inactiva", null, null);
+        }
+
+        RoutePlan plan = lookup.getPlan();
+        MessageType type = plan.getMessageType();
+        String routeProvider = plan.getProviderCode();
+        String routeName = (routeProvider == null ? "CENTRAL" : routeProvider) + "/" + type + " (ruta " + ref + ")";
+        String provider = upper(providerCode);
+        if (provider != null && !provider.equalsIgnoreCase(routeProvider == null ? "" : routeProvider)) {
+            return PlanResolution.error(DispatchResult.ERROR_RUTA_NO_COMBINABLE,
+                    "La ruta " + ref + " es " + routeName + "; en el endpoint de " + provider
+                            + " solo se pueden usar rutas de ese proveedor", provider, null);
+        }
+        if (requestedType != null && requestedType != type) {
+            return PlanResolution.error(DispatchResult.ERROR_RUTA_TIPO_NO_COINCIDE,
+                    "La ruta " + ref + " es de tipo " + type + " y el request pide " + requestedType, routeProvider, null);
+        }
+
+        int before = size(plan);
+        plan = onlySupported(plan, type);
+        if (plan.isEmpty()) {
+            if (before > 0) {
+                log.error("[SMS-CORE] La ruta {} solo tiene cuentas de proveedores sin el servicio {}", routeName, type);
+                return PlanResolution.error(DispatchResult.ERROR_SERVICIO_NO_SOPORTADO,
+                        "Ninguna cuenta de la ruta " + routeName + " pertenece a un proveedor con el servicio " + type,
+                        routeProvider, null);
+            }
+            log.error("[SMS-CORE] La ruta {} no tiene pasos activos", routeName);
+            return PlanResolution.error(DispatchResult.ERROR_RUTA_NO_CONFIGURADA,
+                    "La ruta " + routeName + " no tiene pasos activos", routeProvider, null);
+        }
+        return PlanResolution.ok(plan);
+    }
+
+    /** Tipo de mensaje de una ruta activa (para completar el request que no trae {@code tipo_mensaje}). */
+    public Optional<MessageType> routeType(String reference) {
+        String ref = blankToNull(reference);
+        if (ref == null) {
+            return Optional.empty();
+        }
+        RouteLookup lookup = routingPolicy.findRoute(ref);
+        return lookup.isFound() ? Optional.ofNullable(lookup.getPlan().getMessageType()) : Optional.empty();
     }
 
     /** Quita los pasos cuyo proveedor no tiene el servicio y los renumera. */

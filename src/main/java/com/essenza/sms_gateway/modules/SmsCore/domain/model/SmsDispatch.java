@@ -51,6 +51,12 @@ public class SmsDispatch {
      */
     String preferredProvider;
 
+    /**
+     * Ruta pedida por el cliente (código o id de {@code CanalRuta}). Opcional: si viene, el motor ejecuta los pasos de
+     * esa ruta en lugar de resolverla por tipo de mensaje / proveedor.
+     */
+    String routeReference;
+
     /** Código de la plantilla con la que se generó {@link #text} (solo para el log). */
     String templateCode;
 

@@ -44,13 +44,16 @@ public class SmsCentralController {
                     + "Hace hasta N intentos por cuenta (3 por defecto) y luego pasa a la siguiente. "
                     + "Texto directo ('message') o plantilla ('plantilla' + 'variables', validación estricta). "
                     + "Opcionales: 'proveedor' (preferido) y 'cuenta': van primero y el resto de la ruta queda de respaldo. "
-                    + "El fallback solo usa proveedores que tienen el servicio del tipo de mensaje.")
+                    + "El fallback solo usa proveedores que tienen el servicio del tipo de mensaje. "
+                    + "Con 'ruta' (código o id) se ejecutan los pasos de esa ruta en su orden en lugar de resolverla por tipo; "
+                    + "no se combina con 'proveedor' ni 'cuenta'.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "SMS enviado",
                     content = @Content(schema = @Schema(implementation = SmsEnvioResponse.class))),
             @ApiResponse(responseCode = "400", description = "Request inválido o variables de plantilla inválidas (lista de errores)"),
-            @ApiResponse(responseCode = "422", description = "Sin ruta, cuenta no válida, plantilla inexistente o el proveedor no "
-                    + "cuenta con el servicio (SERVICIO_NO_SOPORTADO)"),
+            @ApiResponse(responseCode = "422", description = "Sin ruta, cuenta no válida, plantilla inexistente, el proveedor no "
+                    + "cuenta con el servicio (SERVICIO_NO_SOPORTADO) o la ruta pedida no existe / está inactiva / no aplica "
+                    + "(RUTA_NO_ENCONTRADA, RUTA_INACTIVA, RUTA_TIPO_NO_COINCIDE, RUTA_NO_COMBINABLE)"),
             @ApiResponse(responseCode = "502", description = "Todas las cuentas/proveedores fallaron")
     })
     @PostMapping("/send")
@@ -58,8 +61,8 @@ public class SmsCentralController {
             @Valid @RequestBody SendSmsRequest request,
             @Parameter(description = "Llave para evitar envíos duplicados si el cliente repite el request")
             @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey) {
-        log.info("[SMS-CENTRAL] Envío tipo {} plantilla {} a ****{}", request.getTipoMensaje(), request.getPlantilla(),
-                lastDigits(request.getTo()));
+        log.info("[SMS-CENTRAL] Envío tipo {} plantilla {} ruta {} a ****{}", request.getTipoMensaje(), request.getPlantilla(),
+                request.getRuta(), lastDigits(request.getTo()));
         DispatchResult result = sendSmsUseCase.send(request, idempotencyKey);
         return SmsHttpStatusMapper.toResponse(result);
     }

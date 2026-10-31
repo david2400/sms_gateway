@@ -1,6 +1,7 @@
 package com.essenza.sms_gateway.modules.SmsCore.infrastructure.outbound.adapters;
 
 import com.essenza.sms_gateway.modules.SmsCore.domain.model.MessageType;
+import com.essenza.sms_gateway.modules.SmsCore.domain.model.RouteLookup;
 import com.essenza.sms_gateway.modules.SmsCore.domain.model.RoutePlan;
 import com.essenza.sms_gateway.modules.SmsCore.domain.model.RouteStep;
 import com.essenza.sms_gateway.modules.SmsCore.domain.ports.RoutingPolicyPort;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -38,6 +40,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class RoutingPolicyJpaAdapter implements RoutingPolicyPort {
 
     private static final String CENTRAL = "*CENTRAL*";
+    private static final String POR_REFERENCIA = "*RUTA*|";
 
     private final RutaRepository rutaRepository;
     private final RutaPasoRepository pasoRepository;
@@ -65,6 +68,51 @@ public class RoutingPolicyJpaAdapter implements RoutingPolicyPort {
         return plan;
     }
 
+    /**
+     * Ruta pedida en el request ({@code ruta}): por id (si es numérico) o por {@code codigo}. Misma caché y mismas reglas
+     * de pasos que {@link #resolve}.
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public RouteLookup findRoute(String reference) {
+        String ref = reference == null ? "" : reference.trim();
+        if (ref.isEmpty()) {
+            return RouteLookup.notFound(reference);
+        }
+        String key = POR_REFERENCIA + ref.toUpperCase();
+        long ttlMs = properties.getRoutingCacheTtlSeconds() * 1000L;
+        CachedPlan cached = cache.get(key);
+        if (cached != null && ttlMs > 0 && cached.loadedAt().plusMillis(ttlMs).isAfter(Instant.now())) {
+            return RouteLookup.found(ref, cached.plan());
+        }
+
+        Long id = ref.chars().allMatch(Character::isDigit) && ref.length() <= 18 ? Long.valueOf(ref) : null;
+        Optional<RutaEntity> ruta = id != null ? rutaRepository.findById(id) : Optional.empty();
+        if (ruta.isEmpty()) {
+            ruta = rutaRepository.findFirstByCodigoIgnoreCase(ref);
+        }
+        if (ruta.isEmpty()) {
+            // @SoftDelete oculta las inactivas: se consulta el estado para distinguir "inactiva" de "no existe"
+            List<Boolean> estado = rutaRepository.findEstado(id != null ? id : -1L, ref);
+            return !estado.isEmpty() && Boolean.TRUE.equals(estado.get(0)) ? RouteLookup.inactive(ref) : RouteLookup.notFound(ref);
+        }
+
+        RutaEntity r = ruta.get();
+        String providerCode = r.getCanalProveedor() == null ? null : r.getCanalProveedor().getCodigo();
+        MessageType type;
+        try {
+            type = MessageType.valueOf(r.getTipoMensaje().getCodigo());
+        } catch (IllegalArgumentException e) {
+            log.warn("[SMS-CORE] La ruta {} tiene el tipo {} que no existe en el motor", ref, r.getTipoMensaje().getCodigo());
+            return RouteLookup.notFound(ref);
+        }
+        RoutePlan plan = build(r, providerCode, type);
+        if (ttlMs > 0 && !plan.isEmpty()) {
+            cache.put(key, new CachedPlan(plan, Instant.now()));
+        }
+        return RouteLookup.found(ref, plan);
+    }
+
     @Override
     public void refresh() {
         cache.clear();
@@ -79,13 +127,17 @@ public class RoutingPolicyJpaAdapter implements RoutingPolicyPort {
         if (ruta.isEmpty()) {
             return RoutePlan.empty(providerCode, type);
         }
+        return build(ruta.get(), providerCode, type);
+    }
 
+    /** Pasos activos de la ruta en el orden de {@code orden}, omitiendo cuentas/proveedores inactivos o de otro proveedor. */
+    private RoutePlan build(RutaEntity ruta, String providerCode, MessageType type) {
         RoutePlan.RoutePlanBuilder builder = RoutePlan.builder()
-                .routeId(ruta.get().getIdRuta())
+                .routeId(ruta.getIdRuta())
                 .providerCode(providerCode)
                 .messageType(type);
 
-        for (RutaPasoEntity paso : pasoRepository.findByRuta_IdRutaAndEliminadoFalseOrderByOrdenAsc(ruta.get().getIdRuta())) {
+        for (RutaPasoEntity paso : pasoRepository.findByRuta_IdRutaAndEliminadoFalseOrderByOrdenAsc(ruta.getIdRuta())) {
             CanalCuentaEntity cuenta = paso.getCanalCuenta();
             CanalProveedorEntity proveedor = cuenta.getCanalProveedor();
 
@@ -94,7 +146,7 @@ public class RoutingPolicyJpaAdapter implements RoutingPolicyPort {
             }
             if (providerCode != null && !providerCode.equalsIgnoreCase(proveedor.getCodigo())) {
                 log.warn("[SMS-CORE] Ruta {} de {} tiene la cuenta {} de otro proveedor ({}); se ignora",
-                        ruta.get().getIdRuta(), providerCode, cuenta.getCodigo(), proveedor.getCodigo());
+                        ruta.getIdRuta(), providerCode, cuenta.getCodigo(), proveedor.getCodigo());
                 continue;
             }
 

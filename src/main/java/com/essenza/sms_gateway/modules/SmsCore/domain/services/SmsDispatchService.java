@@ -30,7 +30,8 @@ import java.util.stream.Collectors;
  * <ol>
  *   <li>Valida el mensaje (si es inválido no gasta intentos).</li>
  *   <li>Planea la ruta con {@link DispatchPlanner}: servicios habilitados por proveedor, proveedor preferido,
- *       cuenta solicitada y fallback solo entre proveedores que soportan el mismo tipo de mensaje.</li>
+ *       cuenta solicitada y fallback solo entre proveedores que soportan el mismo tipo de mensaje. Si el request
+ *       trae {@code ruta}, se usa esa ruta ({@link DispatchPlanner#planRoute}).</li>
  *   <li>Por cada paso de la ruta, en orden: hasta {@code maxAttempts} intentos (3 por defecto)
  *       contra esa cuenta. Al primer éxito (HTTP 2xx) termina. Un error permanente pasa de inmediato al siguiente paso.</li>
  *   <li>Cada intento y el resultado final quedan en el log.</li>
@@ -106,9 +107,11 @@ public class SmsDispatchService {
                     .detail("Destino, mensaje o tipo inválidos").build(), null);
         }
 
-        PlanResolution resolution = planner.plan(message.getType(), provider,
-                channel == DispatchChannel.CENTRAL ? message.getPreferredProvider() : null,
-                message.getAccountCode());
+        String preferred = channel == DispatchChannel.CENTRAL ? message.getPreferredProvider() : null;
+        // Ruta pedida en el request: se ejecutan sus pasos; sin ella, resolución automática por tipo (y proveedor)
+        PlanResolution resolution = message.getRouteReference() != null && !message.getRouteReference().isBlank()
+                ? planner.planRoute(message.getRouteReference(), message.getType(), provider, preferred, message.getAccountCode())
+                : planner.plan(message.getType(), provider, preferred, message.getAccountCode());
         if (!resolution.isOk()) {
             return close(DispatchResult.builder()
                     .envioId(envioId).status(DispatchStatus.FALLIDO)

@@ -5,6 +5,7 @@ import com.essenza.sms_gateway.modules.SmsCore.domain.model.DispatchResult;
 import com.essenza.sms_gateway.modules.SmsCore.domain.model.DispatchStatus;
 import com.essenza.sms_gateway.modules.SmsCore.domain.model.MessageType;
 import com.essenza.sms_gateway.modules.SmsCore.domain.model.ProviderAccount;
+import com.essenza.sms_gateway.modules.SmsCore.domain.model.RouteLookup;
 import com.essenza.sms_gateway.modules.SmsCore.domain.model.RoutePlan;
 import com.essenza.sms_gateway.modules.SmsCore.domain.model.RouteStep;
 import com.essenza.sms_gateway.modules.SmsCore.domain.model.SendOutcome;
@@ -379,6 +380,113 @@ class SmsDispatchServiceTest {
         }
     }
 
+    // ─── Ruta pedida en el request ───────────────────────────────────────────
+
+    private void route(String ref, String provider, MessageType type, RouteStep... steps) {
+        routing.routes.put(ref.toUpperCase(), RouteLookup.found(ref,
+                RoutePlan.builder().routeId(99L).providerCode(provider).messageType(type).steps(List.of(steps)).build()));
+    }
+
+    @Test
+    void rutaPedidaEjecutaSusPasosEnOrdenYNoLaAutomatica() {
+        routing.plan = plan(step(1, "A_OTP", "PROV_A"));
+        route("OTP_RESPALDO", null, MessageType.OTP, step(1, "B_OTP", "PROV_B"), step(2, "A_OTP", "PROV_A"));
+        provB.script(500, 500, 500);
+        provA.script(200);
+
+        DispatchResult r = service.dispatch(msg().toBuilder().routeReference("otp_respaldo").build(), DispatchChannel.CENTRAL, null);
+
+        assertEquals(DispatchStatus.ENVIADO, r.getStatus());
+        assertEquals("A_OTP", r.getAccountCode());
+        assertEquals(4, r.getAttempts());
+        assertEquals(List.of("B_OTP#1:false", "B_OTP#2:false", "B_OTP#3:false", "A_OTP#1:true"), log.attempts);
+        assertEquals(List.of(1, 1, 1, 2), log.attemptOrders);
+        assertTrue(!routing.resolved, "con ruta pedida no se resuelve por tipo de mensaje");
+    }
+
+    @Test
+    void rutaPedidaTerminaEnElPrimerPasoExitoso() {
+        route("7", null, MessageType.OTP, step(1, "B_OTP", "PROV_B"), step(2, "A_OTP", "PROV_A"));
+        provB.script(200);
+
+        DispatchResult r = service.dispatch(msg().toBuilder().routeReference("7").build(), DispatchChannel.CENTRAL, null);
+
+        assertEquals(DispatchStatus.ENVIADO, r.getStatus());
+        assertEquals("B_OTP", r.getAccountCode());
+        assertEquals(1, provB.calls);
+        assertEquals(0, provA.calls);
+    }
+
+    @Test
+    void rutaPedidaInexistente() {
+        routing.plan = plan(step(1, "A_OTP", "PROV_A"));
+
+        DispatchResult r = service.dispatch(msg().toBuilder().routeReference("NO_EXISTE").build(), DispatchChannel.CENTRAL, null);
+
+        assertEquals(DispatchStatus.FALLIDO, r.getStatus());
+        assertEquals(DispatchResult.ERROR_RUTA_NO_ENCONTRADA, r.getErrorCode());
+        assertEquals(0, provA.calls);
+        assertTrue(log.started);
+    }
+
+    @Test
+    void rutaPedidaInactiva() {
+        routing.routes.put("VIEJA", RouteLookup.inactive("VIEJA"));
+
+        DispatchResult r = service.dispatch(msg().toBuilder().routeReference("vieja").build(), DispatchChannel.CENTRAL, null);
+
+        assertEquals(DispatchStatus.FALLIDO, r.getStatus());
+        assertEquals(DispatchResult.ERROR_RUTA_INACTIVA, r.getErrorCode());
+        assertEquals(0, provA.calls + provB.calls);
+    }
+
+    @Test
+    void rutaPedidaDeOtroTipo() {
+        route("MASIVA", null, MessageType.MASIVO, step(1, "A_OTP", "PROV_A"));
+
+        DispatchResult r = service.dispatch(msg().toBuilder().routeReference("MASIVA").build(), DispatchChannel.CENTRAL, null);
+
+        assertEquals(DispatchResult.ERROR_RUTA_TIPO_NO_COINCIDE, r.getErrorCode());
+        assertEquals(0, provA.calls);
+    }
+
+    @Test
+    void rutaPedidaNoSeCombinaConCuentaNiProveedor() {
+        route("R1", null, MessageType.OTP, step(1, "A_OTP", "PROV_A"));
+
+        DispatchResult conCuenta = service.dispatch(msg().toBuilder().routeReference("R1").accountCode("A_OTP").build(),
+                DispatchChannel.CENTRAL, null);
+        DispatchResult conProveedor = service.dispatch(msg().toBuilder().routeReference("R1").preferredProvider("PROV_A").build(),
+                DispatchChannel.CENTRAL, null);
+
+        assertEquals(DispatchResult.ERROR_RUTA_NO_COMBINABLE, conCuenta.getErrorCode());
+        assertEquals(DispatchResult.ERROR_RUTA_NO_COMBINABLE, conProveedor.getErrorCode());
+        assertEquals(0, provA.calls);
+    }
+
+    @Test
+    void rutaPedidaDeOtroProveedorEnEndpointDeProveedor() {
+        route("R_B", "PROV_B", MessageType.OTP, step(1, "B_OTP", "PROV_B"));
+
+        DispatchResult r = service.dispatch(msg().toBuilder().routeReference("R_B").build(), DispatchChannel.PROVEEDOR, "PROV_A");
+
+        assertEquals(DispatchResult.ERROR_RUTA_NO_COMBINABLE, r.getErrorCode());
+        assertEquals(0, provB.calls);
+    }
+
+    @Test
+    void rutaPedidaOmiteProveedoresSinElServicio() {
+        catalog.deny("PROV_B", MessageType.OTP);
+        route("R1", null, MessageType.OTP, step(1, "B_OTP", "PROV_B"), step(2, "A_OTP", "PROV_A"));
+        provA.script(200);
+
+        DispatchResult r = service.dispatch(msg().toBuilder().routeReference("R1").build(), DispatchChannel.CENTRAL, null);
+
+        assertEquals(DispatchStatus.ENVIADO, r.getStatus());
+        assertEquals(0, provB.calls);
+        assertEquals(List.of("A_OTP#1:true"), log.attempts);
+    }
+
     private static SmsDispatch msg() {
         return SmsDispatch.builder().to("3157132338").text("Código 123456").type(MessageType.OTP).build();
     }
@@ -425,9 +533,18 @@ class SmsDispatchServiceTest {
         /** Rutas propias por proveedor (si no hay entrada se devuelve {@link #plan}). */
         final Map<String, RoutePlan> byProvider = new HashMap<>();
         String lastProvider;
+        boolean resolved;
+        /** Rutas pedidas por código/id en el request. */
+        final Map<String, RouteLookup> routes = new HashMap<>();
+
+        @Override
+        public RouteLookup findRoute(String reference) {
+            return routes.getOrDefault(reference.toUpperCase(), RouteLookup.notFound(reference));
+        }
 
         @Override
         public RoutePlan resolve(String providerCode, MessageType type) {
+            resolved = true;
             lastProvider = providerCode;
             return providerCode != null && byProvider.containsKey(providerCode) ? byProvider.get(providerCode) : plan;
         }

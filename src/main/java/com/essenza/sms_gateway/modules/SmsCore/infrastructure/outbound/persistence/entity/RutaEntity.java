@@ -32,6 +32,10 @@ public class RutaEntity extends AuditInfo {
     @Column(name = "id_ruta")
     private Long idRuta;
 
+    /** Código opcional para pedir la ruta en el envío ({@code ruta} del request). Único por canal; lo administra notificacion. */
+    @Column(name = "codigo", length = 50)
+    private String codigo;
+
     // EAGER: Hibernate 6.4 no permite LAZY hacia una entidad con @SoftDelete (AuditInfo)
 
     @ManyToOne(fetch = FetchType.EAGER)
