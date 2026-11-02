@@ -16,12 +16,12 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * Ruta (filas {@code canal = 'SMS'} de {@code CanalRuta}) = (proveedor, tipo de mensaje).
+ * Ruta (filas {@code canal = 'SMS'} de {@code Ruta}) = (proveedor, tipo de mensaje).
  * {@code proveedor == null} es la ruta del endpoint central.
  */
 @Entity
 @SQLRestriction("canal = 'SMS'")
-@Table(name = "CanalRuta")
+@Table(name = "Ruta")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -39,14 +39,14 @@ public class RutaEntity extends AuditInfo {
     // EAGER: Hibernate 6.4 no permite LAZY hacia una entidad con @SoftDelete (AuditInfo)
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "canal_proveedor_id")
-    private CanalProveedorEntity canalProveedor;
+    @JoinColumn(name = "proveedor_id")
+    private ProveedorEntity proveedor;
 
     // EAGER: Hibernate 6.4 no permite LAZY hacia una entidad con @SoftDelete (AuditInfo)
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "tipo_mensaje_id", nullable = false)
-    private SmsTipoMensajeEntity tipoMensaje;
+    private TipoMensajeEntity tipoMensaje;
 
     /** Canal de la configuración (SMS | EMAIL); este gateway solo ve las filas de SMS. Lo escribe notificacion. */
     @Column(name = "canal", length = 10, nullable = false, insertable = false, updatable = false)

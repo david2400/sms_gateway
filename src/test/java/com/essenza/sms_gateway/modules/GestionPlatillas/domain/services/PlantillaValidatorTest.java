@@ -46,10 +46,19 @@ class PlantillaValidatorTest {
         List<String> d = e.getDetalles();
         assertTrue(d.stream().anyMatch(x -> x.contains("sin cerrar")), d.toString());
         assertTrue(d.stream().anyMatch(x -> x.contains("{{faltante}}")), d.toString());
-        assertTrue(d.stream().anyMatch(x -> x.contains("'sobrante' está declarada")), d.toString());
+        assertTrue(d.stream().anyMatch(x -> x.contains("obligatoria 'sobrante' no se usa")), d.toString());
         assertTrue(d.stream().anyMatch(x -> x.contains("valor por defecto de 'monto'")), d.toString());
         assertTrue(d.stream().anyMatch(x -> x.contains("Patrón inválido en 'codigo'")), d.toString());
         assertTrue(d.stream().anyMatch(x -> x.contains("no está soportado por el motor")), d.toString());
+    }
+
+    @Test
+    void variableNoObligatoriaSeGuardaAunqueNoEsteEnElContenido() {
+        PlantillaVariable opcional = new PlantillaVariable(null, "apellido", VariableDataType.TEXTO, false, null, null, null, null, null);
+        Plantilla p = plantilla("Hola {{nombre}}", "normal",
+                new ArrayList<>(List.of(var("nombre", VariableDataType.TEXTO, null, null), opcional)));
+        validator.validar(p);
+        assertEquals(List.of("nombre", "apellido"), p.getVariables().stream().map(PlantillaVariable::getNombre).toList());
     }
 
     private static Plantilla plantilla(String contenido, String tipo, List<PlantillaVariable> vars) {

@@ -17,12 +17,12 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * Paso de una ruta (filas {@code canal = 'SMS'} de {@code CanalRutaPaso}): orden, cuenta e intentos.
+ * Paso de una ruta (filas {@code canal = 'SMS'} de {@code RutaPaso}): orden, cuenta e intentos.
  */
 @Entity
 @SQLRestriction("canal = 'SMS'")
-@Table(name = "CanalRutaPaso",
-        uniqueConstraints = @UniqueConstraint(name = "uq_canal_ruta_paso", columnNames = {"ruta_id", "orden"}))
+@Table(name = "RutaPaso",
+        uniqueConstraints = @UniqueConstraint(name = "uq_ruta_paso", columnNames = {"ruta_id", "orden"}))
 @Getter
 @Setter
 @NoArgsConstructor
@@ -46,8 +46,8 @@ public class RutaPasoEntity extends AuditInfo {
     // EAGER: Hibernate 6.4 no permite LAZY hacia una entidad con @SoftDelete (AuditInfo)
 
     @ManyToOne(fetch = FetchType.EAGER, optional = false)
-    @JoinColumn(name = "canal_cuenta_id", nullable = false)
-    private CanalCuentaEntity canalCuenta;
+    @JoinColumn(name = "cuenta_id", nullable = false)
+    private CuentaEntity cuenta;
 
     @Column(name = "max_intentos", nullable = false)
     private Integer maxIntentos = 3;

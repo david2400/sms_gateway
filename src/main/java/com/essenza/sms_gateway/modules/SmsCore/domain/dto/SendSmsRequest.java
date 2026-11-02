@@ -28,7 +28,7 @@ public class SendSmsRequest {
 
     @Size(max = 50, message = "La ruta no puede superar 50 caracteres")
     @Pattern(regexp = "[A-Za-z0-9_\\-]{1,50}", message = "Ruta inválida: use el código o el id de la ruta")
-    @Schema(description = "Ruta a ejecutar: código (CanalRuta.codigo) o id. Opcional: si se envía se ejecutan SUS pasos en orden "
+    @Schema(description = "Ruta a ejecutar: código (Ruta.codigo) o id. Opcional: si se envía se ejecutan SUS pasos en orden "
             + "(no se resuelve por tipo de mensaje) y no se puede combinar con 'proveedor' ni 'cuenta'. Si viene 'tipo_mensaje' "
             + "debe ser el de la ruta. Ruta inexistente o inactiva → FALLIDO RUTA_NO_ENCONTRADA / RUTA_INACTIVA",
             example = "OTP_PRIORITARIA")

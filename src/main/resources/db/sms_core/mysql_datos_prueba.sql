@@ -3,7 +3,7 @@
    ---------------------------------------------------------------------
    Solo las 2 plantillas de ejemplo (RECORDATORIO_CITA, OTP_VERIFICACION). Requiere las tablas (mysql_ejecutar_todo.sql
    o Hibernate ddl-auto).
-   Tipos de mensaje, proveedores, cuentas, servicios y rutas viven en notificacion (tablas Canal*):
+   Tipos de mensaje, proveedores, cuentas, servicios y rutas viven en notificacion (tablas de AdminCanales):
      notificacion/src/main/resources/db/admin_canales_datos.sql
    Idempotente. En DBeaver ejecutar como SCRIPT (Alt+X).
    ===================================================================== */
@@ -19,7 +19,7 @@ FROM (
   SELECT 'OTP_VERIFICACION', 'Código de verificación', 'Ejemplo: OTP con vigencia',
          'OTP', 'Comfenalco: su codigo de verificacion es {{codigo}}. Vence en {{minutos}} minutos. No lo comparta.'
 ) v
-LEFT JOIN CanalTipoMensaje t ON t.canal = 'SMS' AND t.codigo = v.tipo
+LEFT JOIN TipoMensaje t ON t.canal = 'SMS' AND t.codigo = v.tipo
 WHERE NOT EXISTS (SELECT 1 FROM SmsPlantilla p WHERE p.codigo = v.codigo);
 
 INSERT INTO SmsPlantillaVariable (plantilla_id, nombre, tipo_dato, obligatoria, longitud_max, patron, valor_defecto, descripcion, orden, eliminado, usr_crea, created_at)
@@ -39,6 +39,6 @@ WHERE NOT EXISTS (SELECT 1 FROM SmsPlantillaVariable x WHERE x.plantilla_id = p.
 -- Verificación
 SELECT p.codigo, p.version, t.codigo AS tipo, COUNT(v.id_sms_plantilla_variable) AS variables, p.contenido
 FROM SmsPlantilla p
-LEFT JOIN CanalTipoMensaje t ON t.id_tipo_mensaje = p.tipo_mensaje_id
+LEFT JOIN TipoMensaje t ON t.id_tipo_mensaje = p.tipo_mensaje_id
 LEFT JOIN SmsPlantillaVariable v ON v.plantilla_id = p.id_sms_plantilla
 GROUP BY p.id_sms_plantilla, p.codigo, p.version, t.codigo, p.contenido ORDER BY p.codigo;

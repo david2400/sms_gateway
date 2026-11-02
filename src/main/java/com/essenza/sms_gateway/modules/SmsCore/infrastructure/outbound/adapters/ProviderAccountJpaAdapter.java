@@ -3,7 +3,7 @@ package com.essenza.sms_gateway.modules.SmsCore.infrastructure.outbound.adapters
 import com.essenza.sms_gateway.modules.SmsCore.domain.model.ProviderAccount;
 import com.essenza.sms_gateway.modules.SmsCore.domain.ports.ProviderAccountQueryPort;
 import com.essenza.sms_gateway.modules.SmsCore.infrastructure.outbound.mappers.ProviderAccountFactory;
-import com.essenza.sms_gateway.modules.SmsCore.infrastructure.outbound.persistence.repository.CanalCuentaRepository;
+import com.essenza.sms_gateway.modules.SmsCore.infrastructure.outbound.persistence.repository.CuentaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,13 +11,13 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Optional;
 
 /**
- * Lee cuentas de proveedor desde {@code CanalCuenta}.
+ * Lee cuentas de proveedor desde {@code Cuenta}.
  */
 @Component
 @RequiredArgsConstructor
 public class ProviderAccountJpaAdapter implements ProviderAccountQueryPort {
 
-    private final CanalCuentaRepository cuentaRepository;
+    private final CuentaRepository cuentaRepository;
     private final ProviderAccountFactory accountFactory;
 
     @Override
@@ -29,7 +29,7 @@ public class ProviderAccountJpaAdapter implements ProviderAccountQueryPort {
         String code = accountCode.trim();
         return (providerCode == null
                 ? cuentaRepository.findByCodigo(code)
-                : cuentaRepository.findByCodigoAndCanalProveedor_Codigo(code, providerCode.toUpperCase()))
+                : cuentaRepository.findByCodigoAndProveedor_Codigo(code, providerCode.toUpperCase()))
                 .filter(accountFactory::isUsable)
                 .map(accountFactory::toAccount);
     }
@@ -37,7 +37,7 @@ public class ProviderAccountJpaAdapter implements ProviderAccountQueryPort {
     @Override
     @Transactional(readOnly = true)
     public Optional<ProviderAccount> findFirstActive(String providerCode) {
-        return cuentaRepository.findFirstByCanalProveedor_CodigoAndEliminadoFalseOrderByIdCanalCuentaAsc(providerCode.toUpperCase())
+        return cuentaRepository.findFirstByProveedor_CodigoAndEliminadoFalseOrderByIdCuentaAsc(providerCode.toUpperCase())
                 .filter(accountFactory::isUsable)
                 .map(accountFactory::toAccount);
     }

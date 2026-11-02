@@ -18,29 +18,29 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * Cuenta de un proveedor: filas {@code canal = 'SMS'} de {@code CanalCuenta} (las administra notificacion).
+ * Cuenta de un proveedor: filas {@code canal = 'SMS'} de {@code Cuenta} (las administra notificacion).
  * La contraseña se guarda cifrada en {@code claveCifrada} (AES-256-GCM, llave en SMS_CRYPTO_KEY) o, si no hay,
  * se lee de la variable de entorno indicada en {@code secretRef}.
  */
 @Entity
 @SQLRestriction("canal = 'SMS'")
-@Table(name = "CanalCuenta",
-        uniqueConstraints = @UniqueConstraint(name = "uq_canal_cuenta", columnNames = {"canal", "codigo"}))
+@Table(name = "Cuenta",
+        uniqueConstraints = @UniqueConstraint(name = "uq_cuenta", columnNames = {"canal", "codigo"}))
 @Getter
 @Setter
 @NoArgsConstructor
-public class CanalCuentaEntity extends AuditInfo {
+public class CuentaEntity extends AuditInfo {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_canal_cuenta")
-    private Long idCanalCuenta;
+    @Column(name = "id_cuenta")
+    private Long idCuenta;
 
     // EAGER: Hibernate 6.4 no permite LAZY hacia una entidad con @SoftDelete (AuditInfo)
 
     @ManyToOne(fetch = FetchType.EAGER, optional = false)
-    @JoinColumn(name = "canal_proveedor_id", nullable = false)
-    private CanalProveedorEntity canalProveedor;
+    @JoinColumn(name = "proveedor_id", nullable = false)
+    private ProveedorEntity proveedor;
 
     @Column(name = "codigo", length = 50, nullable = false)
     private String codigo;

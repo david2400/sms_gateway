@@ -14,23 +14,23 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * Catálogo de tipos de mensaje (filas {@code canal = 'SMS'} de {@code CanalTipoMensaje}) vista por el motor.
- * {@code CanalRuta.tipo_mensaje_id} referencia esta tabla; el motor filtra por {@code codigo}
+ * Catálogo de tipos de mensaje (filas {@code canal = 'SMS'} de {@code TipoMensaje}) vista por el motor.
+ * {@code Ruta.tipo_mensaje_id} referencia esta tabla; el motor filtra por {@code codigo}
  * (el nombre del {@code MessageType} del request).
  */
 @Entity
 @SQLRestriction("canal = 'SMS'")
-@Table(name = "CanalTipoMensaje",
-        uniqueConstraints = @UniqueConstraint(name = "uq_canal_tipo_mensaje", columnNames = {"canal", "codigo"}))
+@Table(name = "TipoMensaje",
+        uniqueConstraints = @UniqueConstraint(name = "uq_tipo_mensaje", columnNames = {"canal", "codigo"}))
 @Getter
 @Setter
 @NoArgsConstructor
-public class SmsTipoMensajeEntity extends AuditInfo {
+public class TipoMensajeEntity extends AuditInfo {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_tipo_mensaje")
-    private Long idSmsTipoMensaje;
+    private Long idTipoMensaje;
 
     @Column(name = "codigo", length = 30, nullable = false)
     private String codigo;

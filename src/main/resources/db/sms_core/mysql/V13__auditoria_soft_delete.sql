@@ -1,6 +1,6 @@
 -- =============================================================================
 -- V13 · Auditoría + soft delete (AuditInfo) en las tablas de configuración
---       CanalProveedor, CanalCuenta, CanalTipoMensaje, CanalRuta, CanalRutaPaso, CanalProveedorServicio
+--       Proveedor, Cuenta, TipoMensaje, Ruta, RutaPaso, ProveedorServicio
 -- -----------------------------------------------------------------------------
 -- AuditInfo mapea `eliminado` con @SoftDelete e insertable=false: Hibernate NUNCA
 -- escribe la columna y filtra con `eliminado = 0`. Si queda NULL (columna creada
@@ -68,19 +68,19 @@ BEGIN
 END$$
 DELIMITER ;
 
-CALL sp_v13_auditoria('CanalProveedor');
-CALL sp_v13_auditoria('CanalCuenta');
-CALL sp_v13_auditoria('CanalTipoMensaje');
-CALL sp_v13_auditoria('CanalRuta');
-CALL sp_v13_auditoria('CanalRutaPaso');
-CALL sp_v13_auditoria('CanalProveedorServicio');
+CALL sp_v13_auditoria('Proveedor');
+CALL sp_v13_auditoria('Cuenta');
+CALL sp_v13_auditoria('TipoMensaje');
+CALL sp_v13_auditoria('Ruta');
+CALL sp_v13_auditoria('RutaPaso');
+CALL sp_v13_auditoria('ProveedorServicio');
 
 DROP PROCEDURE IF EXISTS sp_v13_auditoria;
 DROP PROCEDURE IF EXISTS sp_v13_columna;
 
 -- Verificación: no debe quedar ningún eliminado NULL
-SELECT 'CanalProveedor' AS tabla, SUM(eliminado IS NULL) AS nulos, COUNT(*) AS filas FROM CanalProveedor
-UNION ALL SELECT 'CanalCuenta',      SUM(eliminado IS NULL), COUNT(*) FROM CanalCuenta
-UNION ALL SELECT 'CanalTipoMensaje', SUM(eliminado IS NULL), COUNT(*) FROM CanalTipoMensaje
-UNION ALL SELECT 'CanalRuta',        SUM(eliminado IS NULL), COUNT(*) FROM CanalRuta
-UNION ALL SELECT 'CanalRutaPaso',    SUM(eliminado IS NULL), COUNT(*) FROM CanalRutaPaso;
+SELECT 'Proveedor' AS tabla, SUM(eliminado IS NULL) AS nulos, COUNT(*) AS filas FROM Proveedor
+UNION ALL SELECT 'Cuenta',      SUM(eliminado IS NULL), COUNT(*) FROM Cuenta
+UNION ALL SELECT 'TipoMensaje', SUM(eliminado IS NULL), COUNT(*) FROM TipoMensaje
+UNION ALL SELECT 'Ruta',        SUM(eliminado IS NULL), COUNT(*) FROM Ruta
+UNION ALL SELECT 'RutaPaso',    SUM(eliminado IS NULL), COUNT(*) FROM RutaPaso;

@@ -19,7 +19,7 @@ public interface RoutingPolicyPort {
     /**
      * Ruta pedida explícitamente en el request.
      *
-     * @param reference código ({@code CanalRuta.codigo}, sin importar mayúsculas) o id numérico de la ruta
+     * @param reference código ({@code Ruta.codigo}, sin importar mayúsculas) o id numérico de la ruta
      * @return la ruta con sus pasos activos en orden, o el motivo por el que no se puede usar (no existe / inactiva)
      */
     default RouteLookup findRoute(String reference) {

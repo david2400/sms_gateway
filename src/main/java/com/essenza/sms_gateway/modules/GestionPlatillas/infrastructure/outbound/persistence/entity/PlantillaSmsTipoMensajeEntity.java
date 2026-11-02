@@ -11,12 +11,12 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Immutable;
 
 /**
- * Tipos de mensaje de SMS ({@code CanalTipoMensaje}, canal = 'SMS') vistos por el módulo de plantillas: solo lectura
+ * Tipos de mensaje de SMS ({@code TipoMensaje}, canal = 'SMS') vistos por el módulo de plantillas: solo lectura
  * (el catálogo lo administra notificacion). Nombre de entidad propio para no chocar con el de SmsCore (misma tabla).
  */
 @Entity(name = "PlantillaSmsTipoMensaje")
 @SQLRestriction("canal = 'SMS'")
-@Table(name = "CanalTipoMensaje")
+@Table(name = "TipoMensaje")
 @Immutable
 @Getter
 @NoArgsConstructor
@@ -24,7 +24,7 @@ public class PlantillaSmsTipoMensajeEntity extends AuditInfo {
 
     @Id
     @Column(name = "id_tipo_mensaje")
-    private Long idSmsTipoMensaje;
+    private Long idTipoMensaje;
 
     @Column(name = "codigo", length = 30, nullable = false)
     private String codigo;

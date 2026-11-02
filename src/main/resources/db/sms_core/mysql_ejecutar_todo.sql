@@ -5,11 +5,11 @@
    (SmsPlantilla, SmsPlantillaVariable) + 2 plantillas de ejemplo.
 
    La CONFIGURACIÓN (proveedores, cuentas, tipos de mensaje, servicios, rutas) ya no está aquí: son las tablas
-   unificadas Canal* (filas con canal = 'SMS') que crea y administra notificacion:
+   unificadas (filas con canal = 'SMS') que crea y administra notificacion:
      notificacion/src/main/resources/db/admin_canales_esquema.sql      (esquema)
      notificacion/src/main/resources/db/admin_canales_datos.sql        (datos iniciales SMS y EMAIL)
      notificacion/src/main/resources/db/migracion_admin_canales.sql    (base con las tablas antiguas Sms*)
-   EJECUTAR ESOS PRIMERO: las FK de este script apuntan a CanalProveedor, CanalCuenta y CanalTipoMensaje.
+   EJECUTAR ESOS PRIMERO: las FK de este script apuntan a Proveedor, Cuenta y TipoMensaje.
 
    Los scripts V1..V14 de mysql/ son históricos (crean las tablas antiguas Sms*); no usarlos en bases nuevas.
    Idempotente. En DBeaver ejecutar como SCRIPT (Alt+X).
@@ -47,8 +47,8 @@ CREATE TABLE IF NOT EXISTS SmsEnvio (
   KEY fk_sms_envio_cuenta (cuenta_final_id),
   KEY ix_sms_envio_destino_created (destino,created_at),
   KEY ix_sms_envio_estado_created (estado,created_at),
-  CONSTRAINT fk_sms_envio_cuenta FOREIGN KEY (cuenta_final_id) REFERENCES CanalCuenta (id_canal_cuenta),
-  CONSTRAINT fk_sms_envio_proveedor FOREIGN KEY (proveedor_final_id) REFERENCES CanalProveedor (id_canal_proveedor)
+  CONSTRAINT fk_sms_envio_cuenta FOREIGN KEY (cuenta_final_id) REFERENCES Cuenta (id_cuenta),
+  CONSTRAINT fk_sms_envio_proveedor FOREIGN KEY (proveedor_final_id) REFERENCES Proveedor (id_proveedor)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS SmsEnvioIntento (
@@ -56,8 +56,8 @@ CREATE TABLE IF NOT EXISTS SmsEnvioIntento (
   sms_envio_id bigint(20) NOT NULL,
   paso_orden int(11) NOT NULL,
   nro_intento int(11) NOT NULL,
-  canal_proveedor_id bigint(20) NOT NULL,
-  canal_cuenta_id bigint(20) NOT NULL,
+  proveedor_id bigint(20) NOT NULL,
+  cuenta_id bigint(20) NOT NULL,
   exitoso bit(1) NOT NULL,
   http_status int(11) DEFAULT NULL,
   detalle varchar(1000) DEFAULT NULL,
@@ -69,12 +69,12 @@ CREATE TABLE IF NOT EXISTS SmsEnvioIntento (
   created_at datetime(6) DEFAULT current_timestamp(6),
   updated_at datetime(6) DEFAULT NULL,
   PRIMARY KEY (id_sms_envio_intento),
-  KEY fk_sms_intento_proveedor (canal_proveedor_id),
-  KEY fk_sms_intento_cuenta (canal_cuenta_id),
+  KEY fk_sms_intento_proveedor (proveedor_id),
+  KEY fk_sms_intento_cuenta (cuenta_id),
   KEY ix_sms_intento_envio (sms_envio_id),
-  CONSTRAINT fk_sms_intento_cuenta FOREIGN KEY (canal_cuenta_id) REFERENCES CanalCuenta (id_canal_cuenta),
+  CONSTRAINT fk_sms_intento_cuenta FOREIGN KEY (cuenta_id) REFERENCES Cuenta (id_cuenta),
   CONSTRAINT fk_sms_intento_envio FOREIGN KEY (sms_envio_id) REFERENCES SmsEnvio (id_sms_envio),
-  CONSTRAINT fk_sms_intento_proveedor FOREIGN KEY (canal_proveedor_id) REFERENCES CanalProveedor (id_canal_proveedor)
+  CONSTRAINT fk_sms_intento_proveedor FOREIGN KEY (proveedor_id) REFERENCES Proveedor (id_proveedor)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS SmsPlantilla (
@@ -93,7 +93,7 @@ CREATE TABLE IF NOT EXISTS SmsPlantilla (
   PRIMARY KEY (id_sms_plantilla),
   UNIQUE KEY uq_sms_plantilla_codigo (codigo),
   KEY fk_sms_plantilla_tipo (tipo_mensaje_id),
-  CONSTRAINT fk_sms_plantilla_tipo FOREIGN KEY (tipo_mensaje_id) REFERENCES CanalTipoMensaje (id_tipo_mensaje)
+  CONSTRAINT fk_sms_plantilla_tipo FOREIGN KEY (tipo_mensaje_id) REFERENCES TipoMensaje (id_tipo_mensaje)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS SmsPlantillaVariable (
@@ -128,7 +128,7 @@ FROM (
   SELECT 'OTP_VERIFICACION', 'Código de verificación', 'Ejemplo: OTP con vigencia',
          'OTP', 'Comfenalco: su codigo de verificacion es {{codigo}}. Vence en {{minutos}} minutos. No lo comparta.'
 ) v
-LEFT JOIN CanalTipoMensaje t ON t.canal = 'SMS' AND t.codigo = v.tipo
+LEFT JOIN TipoMensaje t ON t.canal = 'SMS' AND t.codigo = v.tipo
 WHERE NOT EXISTS (SELECT 1 FROM SmsPlantilla p WHERE p.codigo = v.codigo);
 
 INSERT INTO SmsPlantillaVariable (plantilla_id, nombre, tipo_dato, obligatoria, longitud_max, patron, valor_defecto, descripcion, orden, eliminado, usr_crea, created_at)
@@ -148,6 +148,6 @@ WHERE NOT EXISTS (SELECT 1 FROM SmsPlantillaVariable x WHERE x.plantilla_id = p.
 -- Verificación
 SELECT p.codigo, p.version, t.codigo AS tipo, COUNT(v.id_sms_plantilla_variable) AS variables, p.contenido
 FROM SmsPlantilla p
-LEFT JOIN CanalTipoMensaje t ON t.id_tipo_mensaje = p.tipo_mensaje_id
+LEFT JOIN TipoMensaje t ON t.id_tipo_mensaje = p.tipo_mensaje_id
 LEFT JOIN SmsPlantillaVariable v ON v.plantilla_id = p.id_sms_plantilla
 GROUP BY p.id_sms_plantilla, p.codigo, p.version, t.codigo, p.contenido ORDER BY p.codigo;

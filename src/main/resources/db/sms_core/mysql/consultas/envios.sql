@@ -5,8 +5,8 @@ SELECT e.created_at, BIN_TO_UUID(e.uuid) AS sms_envio_id, e.canal, e.proveedor_s
        e.destino, e.estado, p.codigo AS proveedor_final, c.codigo AS cuenta_final,
        e.http_status_final, e.total_intentos, e.codigo_error, e.detalle_error
 FROM SmsEnvio e
-LEFT JOIN CanalProveedor p ON p.id_canal_proveedor = e.proveedor_final_id
-LEFT JOIN CanalCuenta c    ON c.id_canal_cuenta    = e.cuenta_final_id
+LEFT JOIN Proveedor p ON p.id_proveedor = e.proveedor_final_id
+LEFT JOIN Cuenta c    ON c.id_cuenta    = e.cuenta_final_id
 ORDER BY e.created_at DESC
 LIMIT 200;
 
@@ -16,8 +16,8 @@ SELECT i.paso_orden, i.nro_intento, p.codigo AS proveedor, c.codigo AS cuenta,
        i.exitoso + 0 AS exitoso, i.http_status, i.duracion_ms, i.detalle, i.fecha
 FROM SmsEnvioIntento i
 JOIN SmsEnvio e     ON e.id_sms_envio = i.sms_envio_id
-JOIN CanalProveedor p ON p.id_canal_proveedor = i.canal_proveedor_id
-JOIN CanalCuenta c    ON c.id_canal_cuenta = i.canal_cuenta_id
+JOIN Proveedor p ON p.id_proveedor = i.proveedor_id
+JOIN Cuenta c    ON c.id_cuenta = i.cuenta_id
 WHERE e.uuid = UUID_TO_BIN(@envio)
 ORDER BY i.paso_orden, i.nro_intento;
 
@@ -25,16 +25,16 @@ ORDER BY i.paso_orden, i.nro_intento;
 SET @destino = '3157132338';
 SELECT e.created_at, e.tipo_mensaje, e.estado, p.codigo AS proveedor, c.codigo AS cuenta, e.total_intentos
 FROM SmsEnvio e
-LEFT JOIN CanalProveedor p ON p.id_canal_proveedor = e.proveedor_final_id
-LEFT JOIN CanalCuenta c    ON c.id_canal_cuenta    = e.cuenta_final_id
+LEFT JOIN Proveedor p ON p.id_proveedor = e.proveedor_final_id
+LEFT JOIN Cuenta c    ON c.id_cuenta    = e.cuenta_final_id
 WHERE e.destino LIKE CONCAT('%', @destino)
 ORDER BY e.created_at DESC;
 
 -- Resumen del día por proveedor/cuenta/estado
 SELECT p.codigo AS proveedor, c.codigo AS cuenta, e.estado, COUNT(*) AS total, AVG(e.total_intentos) AS prom_intentos
 FROM SmsEnvio e
-LEFT JOIN CanalProveedor p ON p.id_canal_proveedor = e.proveedor_final_id
-LEFT JOIN CanalCuenta c    ON c.id_canal_cuenta    = e.cuenta_final_id
+LEFT JOIN Proveedor p ON p.id_proveedor = e.proveedor_final_id
+LEFT JOIN Cuenta c    ON c.id_cuenta    = e.cuenta_final_id
 WHERE e.created_at >= CURDATE()
 GROUP BY p.codigo, c.codigo, e.estado
 ORDER BY p.codigo, c.codigo, e.estado;

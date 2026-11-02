@@ -7,8 +7,8 @@ import com.essenza.sms_gateway.modules.SmsCore.domain.model.RouteStep;
 import com.essenza.sms_gateway.modules.SmsCore.domain.ports.RoutingPolicyPort;
 import com.essenza.sms_gateway.modules.SmsCore.infrastructure.config.SmsCoreProperties;
 import com.essenza.sms_gateway.modules.SmsCore.infrastructure.outbound.mappers.ProviderAccountFactory;
-import com.essenza.sms_gateway.modules.SmsCore.infrastructure.outbound.persistence.entity.CanalCuentaEntity;
-import com.essenza.sms_gateway.modules.SmsCore.infrastructure.outbound.persistence.entity.CanalProveedorEntity;
+import com.essenza.sms_gateway.modules.SmsCore.infrastructure.outbound.persistence.entity.CuentaEntity;
+import com.essenza.sms_gateway.modules.SmsCore.infrastructure.outbound.persistence.entity.ProveedorEntity;
 import com.essenza.sms_gateway.modules.SmsCore.infrastructure.outbound.persistence.entity.RutaEntity;
 import com.essenza.sms_gateway.modules.SmsCore.infrastructure.outbound.persistence.entity.RutaPasoEntity;
 import com.essenza.sms_gateway.modules.SmsCore.infrastructure.outbound.persistence.repository.RutaPasoRepository;
@@ -98,7 +98,7 @@ public class RoutingPolicyJpaAdapter implements RoutingPolicyPort {
         }
 
         RutaEntity r = ruta.get();
-        String providerCode = r.getCanalProveedor() == null ? null : r.getCanalProveedor().getCodigo();
+        String providerCode = r.getProveedor() == null ? null : r.getProveedor().getCodigo();
         MessageType type;
         try {
             type = MessageType.valueOf(r.getTipoMensaje().getCodigo());
@@ -121,8 +121,8 @@ public class RoutingPolicyJpaAdapter implements RoutingPolicyPort {
 
     private RoutePlan load(String providerCode, MessageType type) {
         Optional<RutaEntity> ruta = providerCode == null
-                ? rutaRepository.findFirstByCanalProveedorIsNullAndTipoMensaje_CodigoAndEliminadoFalse(type.name())
-                : rutaRepository.findFirstByCanalProveedor_CodigoAndTipoMensaje_CodigoAndEliminadoFalse(providerCode.toUpperCase(), type.name());
+                ? rutaRepository.findFirstByProveedorIsNullAndTipoMensaje_CodigoAndEliminadoFalse(type.name())
+                : rutaRepository.findFirstByProveedor_CodigoAndTipoMensaje_CodigoAndEliminadoFalse(providerCode.toUpperCase(), type.name());
 
         if (ruta.isEmpty()) {
             return RoutePlan.empty(providerCode, type);
@@ -138,8 +138,8 @@ public class RoutingPolicyJpaAdapter implements RoutingPolicyPort {
                 .messageType(type);
 
         for (RutaPasoEntity paso : pasoRepository.findByRuta_IdRutaAndEliminadoFalseOrderByOrdenAsc(ruta.getIdRuta())) {
-            CanalCuentaEntity cuenta = paso.getCanalCuenta();
-            CanalProveedorEntity proveedor = cuenta.getCanalProveedor();
+            CuentaEntity cuenta = paso.getCuenta();
+            ProveedorEntity proveedor = cuenta.getProveedor();
 
             if (cuenta.isEliminado() || proveedor.isEliminado()) {
                 continue;

@@ -27,7 +27,8 @@ import java.util.regex.PatternSyntaxException;
  * <ul>
  *   <li>Sintaxis {@code {{variable}}} válida.</li>
  *   <li>Si no se declaran variables se crean desde el contenido (TEXTO, obligatorias).</li>
- *   <li>Toda variable usada está declarada y toda variable declarada se usa (sin nombres repetidos).</li>
+ *   <li>Toda variable usada está declarada (sin nombres repetidos) y toda variable OBLIGATORIA declarada se usa.
+ *       Una variable no obligatoria puede guardarse aunque no aparezca en el contenido.</li>
  *   <li>Patrones compilables; valor por defecto válido para su tipo, longitud y patrón.</li>
  *   <li>Tipo de mensaje existente, activo y soportado por el motor.</li>
  * </ul>
@@ -86,8 +87,11 @@ public class PlantillaValidator {
             }
         }
         for (PlantillaVariable v : p.getVariables()) {
-            if (v.getNombre() != null && !parsed.variables().contains(v.getNombre())) {
-                errores.add("La variable '" + v.getNombre() + "' está declarada pero no se usa en el contenido");
+            // Solo las obligatorias deben aparecer: pedir un valor que nunca se imprime no tiene sentido.
+            if (v.getNombre() != null && Boolean.TRUE.equals(v.getObligatoria())
+                    && !parsed.variables().contains(v.getNombre())) {
+                errores.add("La variable obligatoria '" + v.getNombre() + "' no se usa en el contenido: "
+                        + "insértela o márquela como no obligatoria");
             }
         }
 

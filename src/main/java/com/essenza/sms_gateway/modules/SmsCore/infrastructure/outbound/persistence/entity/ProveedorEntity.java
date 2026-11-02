@@ -17,21 +17,21 @@ import lombok.Setter;
 import java.time.LocalDateTime;
 
 /**
- * Proveedor de SMS: filas {@code canal = 'SMS'} de {@code CanalProveedor} (las administra notificacion).
+ * Proveedor de SMS: filas {@code canal = 'SMS'} de {@code Proveedor} (las administra notificacion).
  */
 @Entity
 @SQLRestriction("canal = 'SMS'")
-@Table(name = "CanalProveedor",
-        uniqueConstraints = @UniqueConstraint(name = "uq_canal_proveedor", columnNames = {"canal", "codigo"}))
+@Table(name = "Proveedor",
+        uniqueConstraints = @UniqueConstraint(name = "uq_proveedor", columnNames = {"canal", "codigo"}))
 @Getter
 @Setter
 @NoArgsConstructor
-public class CanalProveedorEntity extends AuditInfo {
+public class ProveedorEntity extends AuditInfo {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_canal_proveedor")
-    private Long idCanalProveedor;
+    @Column(name = "id_proveedor")
+    private Long idProveedor;
 
     /** Debe coincidir con {@code SmsSenderPort.providerCode()}. */
     @Column(name = "codigo", length = 30, nullable = false)

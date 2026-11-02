@@ -4,8 +4,8 @@ import com.essenza.sms_gateway.modules.SmsCore.domain.model.ProviderAccount;
 import com.essenza.sms_gateway.modules.SmsCore.infrastructure.config.SmsCoreProperties;
 import com.essenza.sms_gateway.modules.SmsCore.infrastructure.outbound.adapters.AesGcmSecretCipherAdapter;
 import com.essenza.sms_gateway.modules.SmsCore.infrastructure.outbound.adapters.EnvSecretResolver;
-import com.essenza.sms_gateway.modules.SmsCore.infrastructure.outbound.persistence.entity.CanalCuentaEntity;
-import com.essenza.sms_gateway.modules.SmsCore.infrastructure.outbound.persistence.entity.CanalProveedorEntity;
+import com.essenza.sms_gateway.modules.SmsCore.infrastructure.outbound.persistence.entity.CuentaEntity;
+import com.essenza.sms_gateway.modules.SmsCore.infrastructure.outbound.persistence.entity.ProveedorEntity;
 import com.essenza.sms_gateway.modules.SmsCore.shared.crypto.AesGcmCipher;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.env.MapPropertySource;
@@ -29,16 +29,16 @@ class ProviderAccountFactoryTest {
         return new ProviderAccountFactory(new EnvSecretResolver(env), new AesGcmSecretCipherAdapter(props));
     }
 
-    private static CanalCuentaEntity cuenta(String claveCifrada, String secretRef) {
-        CanalProveedorEntity p = new CanalProveedorEntity();
-        p.setIdCanalProveedor(1L);
+    private static CuentaEntity cuenta(String claveCifrada, String secretRef) {
+        ProveedorEntity p = new ProveedorEntity();
+        p.setIdProveedor(1L);
         p.setCodigo("INALAMBRIA");
         p.setBaseUrl("https://x");
-        CanalCuentaEntity c = new CanalCuentaEntity();
-        c.setIdCanalCuenta(7L);
+        CuentaEntity c = new CuentaEntity();
+        c.setIdCuenta(7L);
         c.setCodigo("INALAMBRIA_OTP");
         c.setUsuario("usuario");
-        c.setCanalProveedor(p);
+        c.setProveedor(p);
         c.setClaveCifrada(claveCifrada);
         c.setSecretRef(secretRef);
         return c;

@@ -11,10 +11,10 @@ import java.util.Optional;
 public interface RutaRepository extends JpaRepository<RutaEntity, Long> {
 
     /** Ruta del endpoint central (sin proveedor); {@code codigo} = nombre del MessageType. */
-    Optional<RutaEntity> findFirstByCanalProveedorIsNullAndTipoMensaje_CodigoAndEliminadoFalse(String codigo);
+    Optional<RutaEntity> findFirstByProveedorIsNullAndTipoMensaje_CodigoAndEliminadoFalse(String codigo);
 
     /** Ruta propia de un proveedor. */
-    Optional<RutaEntity> findFirstByCanalProveedor_CodigoAndTipoMensaje_CodigoAndEliminadoFalse(String proveedorCodigo, String codigo);
+    Optional<RutaEntity> findFirstByProveedor_CodigoAndTipoMensaje_CodigoAndEliminadoFalse(String proveedorCodigo, String codigo);
 
     /** Ruta activa pedida por código (sin importar mayúsculas). @SoftDelete ya excluye las inactivas. */
     Optional<RutaEntity> findFirstByCodigoIgnoreCase(String codigo);
@@ -23,7 +23,7 @@ public interface RutaRepository extends JpaRepository<RutaEntity, Long> {
      * Estado ({@code eliminado}) de la ruta de SMS con ese id o código, incluidas las inactivas que @SoftDelete oculta:
      * distingue "no existe" de "está inactiva". Primero la coincidencia por id.
      */
-    @Query(value = "SELECT r.eliminado FROM CanalRuta r WHERE r.canal = 'SMS' AND (r.id_ruta = :id OR UPPER(r.codigo) = UPPER(:codigo)) "
+    @Query(value = "SELECT r.eliminado FROM Ruta r WHERE r.canal = 'SMS' AND (r.id_ruta = :id OR UPPER(r.codigo) = UPPER(:codigo)) "
             + "ORDER BY CASE WHEN r.id_ruta = :id THEN 0 ELSE 1 END", nativeQuery = true)
     List<Boolean> findEstado(@Param("id") Long id, @Param("codigo") String codigo);
 }

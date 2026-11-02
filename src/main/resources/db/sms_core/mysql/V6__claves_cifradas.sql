@@ -10,31 +10,31 @@
    ===================================================================== */
 
 SET @sql = IF((SELECT COUNT(*) FROM information_schema.columns
-               WHERE table_schema = DATABASE() AND LOWER(table_name) = 'canalcuenta' AND column_name = 'clave_cifrada') = 0,
-  'ALTER TABLE CanalCuenta ADD COLUMN clave_cifrada VARCHAR(4000) NULL AFTER secret_ref',
+               WHERE table_schema = DATABASE() AND LOWER(table_name) = 'cuenta' AND column_name = 'clave_cifrada') = 0,
+  'ALTER TABLE Cuenta ADD COLUMN clave_cifrada VARCHAR(4000) NULL AFTER secret_ref',
   'DO 0');
 PREPARE st FROM @sql; EXECUTE st; DEALLOCATE PREPARE st;
-ALTER TABLE CanalCuenta MODIFY secret_ref VARCHAR(100) NULL;
+ALTER TABLE Cuenta MODIFY secret_ref VARCHAR(100) NULL;
 
-UPDATE CanalCuenta SET clave_cifrada = 'v1:MOIs/G3Q9IWGgpOqaYikpP3lactcYqEPCVnrrCtPhKF+0Xc='
-WHERE codigo = 'INALAMBRIA_OTP';
-UPDATE CanalCuenta SET clave_cifrada = 'v1:zqg+2HKF6qCl2NTp2pQlnWwrrnGXtzu+2Iwj2VWSwKCGE3gVyd8='
-WHERE codigo = 'INALAMBRIA_MASIVO';
-UPDATE CanalCuenta SET clave_cifrada = 'v1:Wpp8p25Jr6cif+9OrAWOraLPR9vfw4pE6oMxGcmjoaldjQft'
-WHERE codigo = 'INALAMBRIA_HABEASDATA';
-UPDATE CanalCuenta SET clave_cifrada = 'v1:g04hQjF0uvZaUSCrcNO4OWJLuIMoJrq5D5KUuMWqehGew8U='
-WHERE codigo = 'INALAMBRIA_TEMPLATE';
-UPDATE CanalCuenta SET clave_cifrada = 'v1:POKjUCKJbM1z/8VwYNPztUKTleO0Kf85gNEi5cG0Eh18bWs='
-WHERE codigo = 'INALAMBRIA_PERSONALIZADA';
-UPDATE CanalCuenta SET clave_cifrada = 'v1:y8o3E8dikzW62ZxJyJAaUiOhQWHdvwwdYEb/UqlBdwtNumcQNzAo5Iyvnxc='
-WHERE codigo = 'GO4CLIENTS_PRINCIPAL';
+UPDATE Cuenta SET clave_cifrada = 'v1:MOIs/G3Q9IWGgpOqaYikpP3lactcYqEPCVnrrCtPhKF+0Xc='
+WHERE codigo = 'INALAMBRIA_OTP' AND canal = 'SMS';
+UPDATE Cuenta SET clave_cifrada = 'v1:zqg+2HKF6qCl2NTp2pQlnWwrrnGXtzu+2Iwj2VWSwKCGE3gVyd8='
+WHERE codigo = 'INALAMBRIA_MASIVO' AND canal = 'SMS';
+UPDATE Cuenta SET clave_cifrada = 'v1:Wpp8p25Jr6cif+9OrAWOraLPR9vfw4pE6oMxGcmjoaldjQft'
+WHERE codigo = 'INALAMBRIA_HABEASDATA' AND canal = 'SMS';
+UPDATE Cuenta SET clave_cifrada = 'v1:g04hQjF0uvZaUSCrcNO4OWJLuIMoJrq5D5KUuMWqehGew8U='
+WHERE codigo = 'INALAMBRIA_TEMPLATE' AND canal = 'SMS';
+UPDATE Cuenta SET clave_cifrada = 'v1:POKjUCKJbM1z/8VwYNPztUKTleO0Kf85gNEi5cG0Eh18bWs='
+WHERE codigo = 'INALAMBRIA_PERSONALIZADA' AND canal = 'SMS';
+UPDATE Cuenta SET clave_cifrada = 'v1:y8o3E8dikzW62ZxJyJAaUiOhQWHdvwwdYEb/UqlBdwtNumcQNzAo5Iyvnxc='
+WHERE codigo = 'GO4CLIENTS_PRINCIPAL' AND canal = 'SMS';
 
 -- Verificación (no muestra la clave, solo si está cargada)
 SELECT codigo, secret_ref, clave_cifrada IS NOT NULL AS tiene_clave_cifrada, LENGTH(clave_cifrada) AS largo
-FROM CanalCuenta WHERE codigo IN ('INALAMBRIA_OTP', 'INALAMBRIA_MASIVO', 'INALAMBRIA_HABEASDATA', 'INALAMBRIA_TEMPLATE', 'INALAMBRIA_PERSONALIZADA', 'GO4CLIENTS_PRINCIPAL') ORDER BY codigo;
+FROM Cuenta WHERE codigo IN ('INALAMBRIA_OTP', 'INALAMBRIA_MASIVO', 'INALAMBRIA_HABEASDATA', 'INALAMBRIA_TEMPLATE', 'INALAMBRIA_PERSONALIZADA', 'GO4CLIENTS_PRINCIPAL') ORDER BY codigo;
 
 /* Opcional: usar SOLO la clave cifrada (sin respaldo por variable de entorno)
-UPDATE CanalCuenta SET secret_ref = NULL WHERE clave_cifrada IS NOT NULL;
+UPDATE Cuenta SET secret_ref = NULL WHERE clave_cifrada IS NOT NULL;
 */
 
 -- Si la aplicación está corriendo: POST /api/sms_gateway/v1/sms/admin/routing-cache/refresh

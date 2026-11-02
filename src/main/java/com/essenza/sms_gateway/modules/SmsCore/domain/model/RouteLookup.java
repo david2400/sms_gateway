@@ -3,7 +3,7 @@ package com.essenza.sms_gateway.modules.SmsCore.domain.model;
 import lombok.Value;
 
 /**
- * Resultado de buscar una ruta pedida explícitamente en el request ({@code ruta}: código o id de {@code CanalRuta}).
+ * Resultado de buscar una ruta pedida explícitamente en el request ({@code ruta}: código o id de {@code Ruta}).
  */
 @Value
 public class RouteLookup {

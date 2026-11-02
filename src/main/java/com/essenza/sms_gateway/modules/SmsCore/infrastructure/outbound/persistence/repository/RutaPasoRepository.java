@@ -8,6 +8,6 @@ import java.util.List;
 
 public interface RutaPasoRepository extends JpaRepository<RutaPasoEntity, Long> {
 
-    @EntityGraph(attributePaths = {"canalCuenta", "canalCuenta.canalProveedor"})
+    @EntityGraph(attributePaths = {"cuenta", "cuenta.proveedor"})
     List<RutaPasoEntity> findByRuta_IdRutaAndEliminadoFalseOrderByOrdenAsc(Long rutaId);
 }

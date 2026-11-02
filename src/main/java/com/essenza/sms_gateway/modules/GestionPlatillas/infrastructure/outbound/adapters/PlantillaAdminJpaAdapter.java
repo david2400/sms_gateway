@@ -8,19 +8,26 @@ import com.essenza.sms_gateway.modules.GestionPlatillas.infrastructure.outbound.
 import com.essenza.sms_gateway.modules.GestionPlatillas.infrastructure.outbound.persistence.entity.PlantillaSmsVariableEntity;
 import com.essenza.sms_gateway.modules.GestionPlatillas.infrastructure.outbound.persistence.repository.PlantillaSmsRepository;
 import com.essenza.sms_gateway.modules.GestionPlatillas.infrastructure.outbound.persistence.repository.PlantillaSmsTipoMensajeRepository;
+import com.essenza.sms_gateway.modules.GestionPlatillas.infrastructure.outbound.persistence.repository.PlantillaSmsVariableRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 
-/** Adapter JPA de la administración de plantillas (variables en cascada, reemplazo completo al guardar). */
+/** Adapter JPA de la administración de plantillas (variables en cascada, sincronizadas por nombre al guardar). */
 @Component
 @RequiredArgsConstructor
 public class PlantillaAdminJpaAdapter implements PlantillaAdminPort {
 
     private final PlantillaSmsRepository repository;
     private final PlantillaSmsTipoMensajeRepository tipos;
+    private final PlantillaSmsVariableRepository variables;
     private final PlantillaMapper mapper;
 
     @Override
@@ -39,25 +46,47 @@ public class PlantillaAdminJpaAdapter implements PlantillaAdminPort {
     }
 
     @Override
+    @Transactional
     public Plantilla save(Plantilla p) {
+        if (p.getId() != null && !p.getVariables().isEmpty()) {
+            variables.purgarEliminadas(p.getId(), p.getVariables().stream().map(PlantillaVariable::getNombre).toList());
+        }
         PlantillaSmsEntity e = p.getId() != null
                 ? repository.findWithVariablesByIdSmsPlantilla(p.getId()).orElseThrow()
                 : new PlantillaSmsEntity();
         mapper.updateEntity(p, e);
         e.setTipoMensaje(p.getTipoMensajeId() == null ? null : tipos.getReferenceById(p.getTipoMensajeId()));
-
-        // Reemplazo completo: orphanRemoval borra las anteriores. Flush entre borrar e insertar
-        // por el UNIQUE (plantilla_id, nombre).
-        e.getVariables().clear();
-        if (e.getIdSmsPlantilla() != null) {
-            repository.saveAndFlush(e);
-        }
-        for (PlantillaVariable v : p.getVariables()) {
-            PlantillaSmsVariableEntity ve = mapper.toEntity(v);
-            ve.setTipoDato(v.getTipoDato().name());
-            ve.setPlantilla(e);
-            e.getVariables().add(ve);
-        }
+        sincronizarVariables(e, p.getVariables());
         return mapper.toModel(repository.saveAndFlush(e));
     }
+
+    /**
+     * Actualiza las variables EN SITIO por nombre (sin distinguir mayúsculas, como el UNIQUE de MySQL): las que siguen
+     * se actualizan, las nuevas se insertan y las que ya no vienen se eliminan (soft delete por orphanRemoval).
+     * Borrar todas y reinsertarlas chocaba con el UNIQUE (plantilla_id, nombre): con @SoftDelete las "borradas"
+     * siguen en la tabla.
+     */
+    private void sincronizarVariables(PlantillaSmsEntity e, List<PlantillaVariable> nuevas) {
+        Map<String, PlantillaSmsVariableEntity> actuales = new HashMap<>();
+        e.getVariables().forEach(v -> actuales.put(clave(v.getNombre()), v));
+        List<PlantillaSmsVariableEntity> resultado = new ArrayList<>();
+        for (PlantillaVariable v : nuevas) {
+            PlantillaSmsVariableEntity ve = actuales.remove(clave(v.getNombre()));
+            if (ve == null) {
+                ve = mapper.toEntity(v);
+                ve.setPlantilla(e);
+            } else {
+                mapper.updateEntity(v, ve);
+            }
+            ve.setTipoDato(v.getTipoDato().name());
+            resultado.add(ve);
+        }
+        e.getVariables().clear();
+        e.getVariables().addAll(resultado);
+    }
+
+    private static String clave(String nombre) {
+        return nombre == null ? "" : nombre.toLowerCase(Locale.ROOT);
+    }
 }
+

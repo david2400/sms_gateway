@@ -17,34 +17,34 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * Servicio habilitado de un proveedor (filas {@code canal = 'SMS'} de {@code CanalProveedorServicio}) = (proveedor, tipo de mensaje).
+ * Servicio habilitado de un proveedor (filas {@code canal = 'SMS'} de {@code ProveedorServicio}) = (proveedor, tipo de mensaje).
  * Si no existe la fila, el proveedor no atiende ese tipo.
  */
 @Entity
 @SQLRestriction("canal = 'SMS'")
-@Table(name = "CanalProveedorServicio",
-        uniqueConstraints = @UniqueConstraint(name = "uq_canal_proveedor_servicio", columnNames = {"canal_proveedor_id", "tipo_mensaje_id"}))
+@Table(name = "ProveedorServicio",
+        uniqueConstraints = @UniqueConstraint(name = "uq_proveedor_servicio", columnNames = {"proveedor_id", "tipo_mensaje_id"}))
 @Getter
 @Setter
 @NoArgsConstructor
-public class CanalProveedorServicioEntity extends AuditInfo {
+public class ProveedorServicioEntity extends AuditInfo {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_canal_proveedor_servicio")
-    private Long idCanalProveedorServicio;
+    @Column(name = "id_proveedor_servicio")
+    private Long idProveedorServicio;
 
     // EAGER: Hibernate 6.4 no permite LAZY hacia una entidad con @SoftDelete (AuditInfo)
 
     @ManyToOne(fetch = FetchType.EAGER, optional = false)
-    @JoinColumn(name = "canal_proveedor_id", nullable = false)
-    private CanalProveedorEntity canalProveedor;
+    @JoinColumn(name = "proveedor_id", nullable = false)
+    private ProveedorEntity proveedor;
 
     // EAGER: Hibernate 6.4 no permite LAZY hacia una entidad con @SoftDelete (AuditInfo)
 
     @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "tipo_mensaje_id", nullable = false)
-    private SmsTipoMensajeEntity tipoMensaje;
+    private TipoMensajeEntity tipoMensaje;
 
     /** Canal de la configuración (SMS | EMAIL); este gateway solo ve las filas de SMS. Lo escribe notificacion. */
     @Column(name = "canal", length = 10, nullable = false, insertable = false, updatable = false)

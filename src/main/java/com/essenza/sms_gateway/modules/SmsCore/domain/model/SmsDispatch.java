@@ -52,7 +52,7 @@ public class SmsDispatch {
     String preferredProvider;
 
     /**
-     * Ruta pedida por el cliente (código o id de {@code CanalRuta}). Opcional: si viene, el motor ejecuta los pasos de
+     * Ruta pedida por el cliente (código o id de {@code Ruta}). Opcional: si viene, el motor ejecuta los pasos de
      * esa ruta en lugar de resolverla por tipo de mensaje / proveedor.
      */
     String routeReference;

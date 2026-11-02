@@ -3,8 +3,8 @@ package com.essenza.sms_gateway.modules.SmsCore.infrastructure.outbound.mappers;
 import com.essenza.sms_gateway.modules.SmsCore.domain.model.ProviderAccount;
 import com.essenza.sms_gateway.modules.SmsCore.domain.ports.SecretCipherPort;
 import com.essenza.sms_gateway.modules.SmsCore.infrastructure.outbound.adapters.EnvSecretResolver;
-import com.essenza.sms_gateway.modules.SmsCore.infrastructure.outbound.persistence.entity.CanalCuentaEntity;
-import com.essenza.sms_gateway.modules.SmsCore.infrastructure.outbound.persistence.entity.CanalProveedorEntity;
+import com.essenza.sms_gateway.modules.SmsCore.infrastructure.outbound.persistence.entity.CuentaEntity;
+import com.essenza.sms_gateway.modules.SmsCore.infrastructure.outbound.persistence.entity.ProveedorEntity;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +16,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * Construye la {@link ProviderAccount} de dominio a partir de {@code CanalCuenta} + {@code CanalProveedor}.
+ * Construye la {@link ProviderAccount} de dominio a partir de {@code Cuenta} + {@code Proveedor}.
  * <ul>
  *   <li>La contraseña se descifra de {@code clave_cifrada}; si no hay (o no se puede descifrar) se usa
  *       {@code secret_ref} (variable de entorno).</li>
@@ -36,12 +36,12 @@ public class ProviderAccountFactory {
     private final EnvSecretResolver secretResolver;
     private final SecretCipherPort secretCipher;
 
-    public ProviderAccount toAccount(CanalCuentaEntity cuenta) {
-        CanalProveedorEntity proveedor = cuenta.getCanalProveedor();
+    public ProviderAccount toAccount(CuentaEntity cuenta) {
+        ProveedorEntity proveedor = cuenta.getProveedor();
         return ProviderAccount.builder()
-                .id(cuenta.getIdCanalCuenta())
+                .id(cuenta.getIdCuenta())
                 .code(cuenta.getCodigo())
-                .providerId(proveedor.getIdCanalProveedor())
+                .providerId(proveedor.getIdProveedor())
                 .providerCode(proveedor.getCodigo())
                 .baseUrl(proveedor.getBaseUrl())
                 .connectTimeoutMs(proveedor.getConnectTimeoutMs() != null ? proveedor.getConnectTimeoutMs() : 2000)
@@ -53,13 +53,13 @@ public class ProviderAccountFactory {
                 .build();
     }
 
-    public boolean isUsable(CanalCuentaEntity cuenta) {
+    public boolean isUsable(CuentaEntity cuenta) {
         return !cuenta.isEliminado()
-                && cuenta.getCanalProveedor() != null
-                && !cuenta.getCanalProveedor().isEliminado();
+                && cuenta.getProveedor() != null
+                && !cuenta.getProveedor().isEliminado();
     }
 
-    private String resolvePassword(CanalCuentaEntity cuenta) {
+    private String resolvePassword(CuentaEntity cuenta) {
         String cifrada = cuenta.getClaveCifrada();
         if (cifrada != null && !cifrada.isBlank()) {
             try {
@@ -80,7 +80,7 @@ public class ProviderAccountFactory {
         return usuario;
     }
 
-    private Map<String, String> parseParameters(CanalCuentaEntity cuenta) {
+    private Map<String, String> parseParameters(CuentaEntity cuenta) {
         String json = cuenta.getParametrosJson();
         if (json == null || json.isBlank()) {
             return Collections.emptyMap();

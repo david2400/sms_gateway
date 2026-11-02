@@ -1,6 +1,6 @@
 /* =====================================================================
    V5 - Rutas del ENDPOINT CENTRAL (MySQL)  POST /v1/sms/send y /v1/sms/batch
-   (CanalRuta.canal_proveedor_id = NULL). Idempotente. Requiere V1 + V2.
+   (Ruta.proveedor_id = NULL). Idempotente. Requiere V1 + V2.
    Cada paso = una cuenta; el motor hace max_intentos (3) en esa cuenta y
    luego pasa al siguiente orden. NO pisa pasos existentes: para cambiar
    una ruta use SmsAdmin (/v1/sms/admin/rutas) o un UPDATE.
@@ -20,24 +20,24 @@ INSERT INTO tmp_sms_pasos VALUES
  -- Opcional, Go4Clients como respaldo (requiere V4): agregar a la lista
  -- (NULL, 'OTP', 3, 'GO4CLIENTS_PRINCIPAL'), (NULL, 'NORMAL', 2, 'GO4CLIENTS_PRINCIPAL'), (NULL, 'MASIVO', 2, 'GO4CLIENTS_PRINCIPAL')
 
-INSERT INTO CanalRuta (canal_proveedor_id, tipo_mensaje_id, eliminado)
-SELECT DISTINCT pr.id_canal_proveedor, tm.id_tipo_mensaje, b'0'
+INSERT INTO Ruta (canal, proveedor_id, tipo_mensaje_id, eliminado)
+SELECT DISTINCT 'SMS', pr.id_proveedor, tm.id_tipo_mensaje, b'0'
 FROM tmp_sms_pasos p
-JOIN CanalTipoMensaje tm ON tm.codigo = p.tipo AND tm.canal = 'SMS'
-LEFT JOIN CanalProveedor pr ON pr.codigo = p.proveedor AND pr.canal = 'SMS'
-WHERE (p.proveedor IS NULL OR pr.id_canal_proveedor IS NOT NULL)
-  AND NOT EXISTS (SELECT 1 FROM CanalRuta r
-                  WHERE r.tipo_mensaje_id = tm.id_tipo_mensaje AND r.canal_proveedor_id <=> pr.id_canal_proveedor);
+JOIN TipoMensaje tm ON tm.codigo = p.tipo AND tm.canal = 'SMS'
+LEFT JOIN Proveedor pr ON pr.codigo = p.proveedor AND pr.canal = 'SMS'
+WHERE (p.proveedor IS NULL OR pr.id_proveedor IS NOT NULL)
+  AND NOT EXISTS (SELECT 1 FROM Ruta r
+                  WHERE r.tipo_mensaje_id = tm.id_tipo_mensaje AND r.proveedor_id <=> pr.id_proveedor);
 
-INSERT INTO CanalRutaPaso (ruta_id, orden, canal_cuenta_id, max_intentos, espera_ms, eliminado)
-SELECT r.id_ruta, p.orden, c.id_canal_cuenta, 3, 500, b'0'
+INSERT INTO RutaPaso (canal, ruta_id, orden, cuenta_id, max_intentos, espera_ms, eliminado)
+SELECT 'SMS', r.id_ruta, p.orden, c.id_cuenta, 3, 500, b'0'
 FROM tmp_sms_pasos p
-JOIN CanalTipoMensaje tm ON tm.codigo = p.tipo AND tm.canal = 'SMS'
-LEFT JOIN CanalProveedor pr ON pr.codigo = p.proveedor AND pr.canal = 'SMS'
-JOIN CanalRuta r   ON r.tipo_mensaje_id = tm.id_tipo_mensaje AND r.canal_proveedor_id <=> pr.id_canal_proveedor AND r.canal = 'SMS'
-JOIN CanalCuenta c ON c.codigo = CAST(p.cuenta AS BINARY) AND c.canal = 'SMS'
-WHERE (p.proveedor IS NULL OR pr.id_canal_proveedor IS NOT NULL)
-  AND NOT EXISTS (SELECT 1 FROM CanalRutaPaso x WHERE x.ruta_id = r.id_ruta AND x.orden = p.orden);
+JOIN TipoMensaje tm ON tm.codigo = p.tipo AND tm.canal = 'SMS'
+LEFT JOIN Proveedor pr ON pr.codigo = p.proveedor AND pr.canal = 'SMS'
+JOIN Ruta r   ON r.tipo_mensaje_id = tm.id_tipo_mensaje AND r.proveedor_id <=> pr.id_proveedor AND r.canal = 'SMS'
+JOIN Cuenta c ON c.codigo = CAST(p.cuenta AS BINARY) AND c.canal = 'SMS'
+WHERE (p.proveedor IS NULL OR pr.id_proveedor IS NOT NULL)
+  AND NOT EXISTS (SELECT 1 FROM RutaPaso x WHERE x.ruta_id = r.id_ruta AND x.orden = p.orden);
 
 
 -- Si la aplicación está corriendo: POST /api/sms_gateway/v1/sms/admin/routing-cache/refresh

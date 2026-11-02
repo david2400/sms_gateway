@@ -9,6 +9,6 @@ import java.util.UUID;
 
 public interface SmsEnvioIntentoRepository extends JpaRepository<SmsEnvioIntentoEntity, Long> {
 
-    @EntityGraph(attributePaths = {"canalProveedor", "canalCuenta"})
+    @EntityGraph(attributePaths = {"proveedor", "cuenta"})
     List<SmsEnvioIntentoEntity> findByEnvio_UuidOrderByIdSmsEnvioIntentoAsc(UUID envioId);
 }

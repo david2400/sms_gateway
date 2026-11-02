@@ -59,8 +59,8 @@ public class PlantillaAdminController {
     }
 
     @Operation(summary = "Crear plantilla",
-            description = "Valida sintaxis {{variable}}, que toda variable usada esté declarada y viceversa, patrones y valores "
-                    + "por defecto. Sin 'variables' se crean desde el contenido (TEXTO, obligatorias). 400 con la lista de errores.")
+            description = "Valida sintaxis {{variable}}, que toda variable usada esté declarada y que toda variable obligatoria se use "
+                    + "(las no obligatorias pueden no estar en el contenido), patrones y valores por defecto. Sin 'variables' se crean desde el contenido (TEXTO, obligatorias). 400 con la lista de errores.")
     @PostMapping
     public ResponseEntity<PlantillaResponse> crear(@Valid @RequestBody PlantillaRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(crearPlantilla.crear(request));

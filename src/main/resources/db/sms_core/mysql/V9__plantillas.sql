@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS SmsPlantilla (
   updated_at         DATETIME(6)   NULL,
   CONSTRAINT pk_sms_plantilla PRIMARY KEY (id_sms_plantilla),
   CONSTRAINT uq_sms_plantilla_codigo UNIQUE (codigo),
-  CONSTRAINT fk_sms_plantilla_tipo FOREIGN KEY (tipo_mensaje_id) REFERENCES CanalTipoMensaje (id_tipo_mensaje)
+  CONSTRAINT fk_sms_plantilla_tipo FOREIGN KEY (tipo_mensaje_id) REFERENCES TipoMensaje (id_tipo_mensaje)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS SmsPlantillaVariable (
@@ -68,7 +68,7 @@ FROM (
   SELECT 'OTP_VERIFICACION', 'Código de verificación', 'Ejemplo: OTP con vigencia',
          'OTP', 'Comfenalco: su codigo de verificacion es {{codigo}}. Vence en {{minutos}} minutos. No lo comparta.'
 ) v
-LEFT JOIN CanalTipoMensaje t ON t.codigo = v.tipo
+LEFT JOIN TipoMensaje t ON t.codigo = v.tipo AND t.canal = 'SMS'
 WHERE NOT EXISTS (SELECT 1 FROM SmsPlantilla p WHERE p.codigo = v.codigo);
 
 INSERT INTO SmsPlantillaVariable (plantilla_id, nombre, tipo_dato, obligatoria, longitud_max, patron, valor_defecto, descripcion, orden, eliminado, usr_crea, created_at)
@@ -88,6 +88,6 @@ WHERE NOT EXISTS (SELECT 1 FROM SmsPlantillaVariable x WHERE x.plantilla_id = p.
 -- Verificación
 SELECT p.codigo, p.version, t.codigo AS tipo, COUNT(v.id_sms_plantilla_variable) AS variables, p.contenido
 FROM SmsPlantilla p
-LEFT JOIN CanalTipoMensaje t ON t.id_tipo_mensaje = p.tipo_mensaje_id
+LEFT JOIN TipoMensaje t ON t.id_tipo_mensaje = p.tipo_mensaje_id
 LEFT JOIN SmsPlantillaVariable v ON v.plantilla_id = p.id_sms_plantilla
 GROUP BY p.id_sms_plantilla, p.codigo, p.version, t.codigo, p.contenido ORDER BY p.codigo;

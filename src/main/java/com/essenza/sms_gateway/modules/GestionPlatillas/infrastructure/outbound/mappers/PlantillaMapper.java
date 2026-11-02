@@ -51,7 +51,7 @@ public interface PlantillaMapper {
     // ---------- Persistencia ----------
 
     @Mapping(target = "id", source = "idSmsPlantilla")
-    @Mapping(target = "tipoMensajeId", source = "tipoMensaje.idSmsTipoMensaje")
+    @Mapping(target = "tipoMensajeId", source = "tipoMensaje.idTipoMensaje")
     @Mapping(target = "tipoMensaje", source = "tipoMensaje.codigo")
     @Mapping(target = "fechaModificacion", source = "updatedAt")
     Plantilla toModel(PlantillaSmsEntity entity);
@@ -80,6 +80,16 @@ public interface PlantillaMapper {
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     PlantillaSmsVariableEntity toEntity(PlantillaVariable variable);
+
+    /** Actualiza en sitio una variable existente (mismo id); plantilla y auditoría no cambian. */
+    @Mapping(target = "idSmsPlantillaVariable", ignore = true)
+    @Mapping(target = "plantilla", ignore = true)
+    @Mapping(target = "eliminado", ignore = true)
+    @Mapping(target = "usrCrea", ignore = true)
+    @Mapping(target = "usrMod", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
+    void updateEntity(PlantillaVariable source, @MappingTarget PlantillaSmsVariableEntity target);
 
     default LocalDateTime toLocalDateTime(Instant instant) {
         return instant == null ? null : LocalDateTime.ofInstant(instant, ZoneId.systemDefault());

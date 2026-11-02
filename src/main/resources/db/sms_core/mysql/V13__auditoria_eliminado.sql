@@ -58,12 +58,12 @@ BEGIN
 END$$
 DELIMITER ;
 
-CALL migra_auditoria('CanalProveedor');
-CALL migra_auditoria('CanalCuenta');
-CALL migra_auditoria('CanalTipoMensaje');
-CALL migra_auditoria('CanalRuta');
-CALL migra_auditoria('CanalRutaPaso');
-CALL migra_auditoria('CanalProveedorServicio');
+CALL migra_auditoria('Proveedor');
+CALL migra_auditoria('Cuenta');
+CALL migra_auditoria('TipoMensaje');
+CALL migra_auditoria('Ruta');
+CALL migra_auditoria('RutaPaso');
+CALL migra_auditoria('ProveedorServicio');
 CALL migra_auditoria('SmsPlantilla');
 CALL migra_auditoria('SmsPlantillaVariable');
 CALL migra_auditoria('SmsEnvio');
